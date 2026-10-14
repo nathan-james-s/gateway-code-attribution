@@ -1,0 +1,6 @@
+# Claude Code: per-session worktrees and machine-local settings
+.claude/worktrees/
+.claude/settings.local.json
+
+# OS
+.DS_Store
