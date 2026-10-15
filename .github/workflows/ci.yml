@@ -42,6 +42,7 @@ jobs:
       - uses: azure/setup-helm@v4
       - name: helm lint
         run: |
+          scripts/helm-repos.sh
           helm dependency build charts/gateway-code-attribution
           helm lint charts/gateway-code-attribution --set github.existingSecret=gca-github-app
       - name: kubeconform

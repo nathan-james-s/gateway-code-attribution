@@ -5,6 +5,7 @@ on:
   pull_request:
 permissions:
   contents: read
+  pull-requests: read   # dorny/paths-filter lists the PR's changed files through the API
 jobs:
   changes:
     runs-on: ubuntu-latest

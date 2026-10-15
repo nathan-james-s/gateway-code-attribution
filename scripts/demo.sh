@@ -48,6 +48,7 @@ fi
 kubectl get namespace "$NS" >/dev/null 2>&1 || kubectl create namespace "$NS"
 if [ -n "$SECRET" ]; then kubectl apply -n "$NS" -f "$SECRET" >/dev/null && echo "==> applied $SECRET"; fi
 
+scripts/helm-repos.sh
 helm dependency build "$CHART" >/dev/null
 echo "==> installing $RELEASE ($GATEWAY) into namespace $NS"
 helm upgrade --install "$RELEASE" "$CHART" -n "$NS" -f "$VALUES" \
