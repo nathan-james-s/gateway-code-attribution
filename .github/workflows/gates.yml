@@ -63,6 +63,16 @@ jobs:
         with:
           install_only: true
       - run: uv sync --all-packages -p 3.12
-      - run: gh auth setup-git
+      - name: secrets configured?
+        id: secrets
+        run: |
+          if [ -n "$GCA_E2E_REPO" ] && [ -n "$GCA_E2E_APP" ] && [ -n "$GH_TOKEN" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning title=clean-install-and-privacy not run::Set the GCA_E2E_APP, GCA_E2E_REPO and GCA_E2E_GH_TOKEN repository secrets (docs/maintainers.md). Until then this gate does not test the stack."
+          fi
+      - if: steps.secrets.outputs.present == 'true'
+        run: gh auth setup-git
       - name: clean-install (both gateways; time to first result, M7) then privacy audit
+        if: steps.secrets.outputs.present == 'true'
         run: uv run pytest tests/e2e/test_us1_demo.py tests/privacy -x -s --gateway both
