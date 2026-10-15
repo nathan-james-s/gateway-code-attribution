@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Settings</h1>
+<p><a href="/admin">Administration</a> · <a href="/admin/roles">Roles</a> · <a href="/admin/teams">Teams</a></p>
+<form method="post" action="/admin/settings" class="card">
+  <input type="hidden" name="form" value="1">
+  <h2>Per-developer views (FR-029)</h2>
+  <label><input type="checkbox" name="per_developer_enabled" value="on" {{ "checked" if s.per_developer_enabled }}>
+    Per-developer views are on</label>
+  <p>Who can see them:</p>
+  {% for r in role_names %}
+  <label><input type="checkbox" name="visible_roles" value="{{ r }}" {{ "checked" if r in s.visible_roles }}>
+    {{ {"admin": "admins (every developer)", "team_lead": "team leads (members of their teams)",
+        "other": "everyone else (every developer)"}[r] }}</label><br>
+  {% endfor %}
+  <h2>Attribution</h2>
+  <label>Matching window, days <input type="number" name="matching_window_days" min="1" max="3650"
+    value="{{ s.matching_window_days }}"></label><br>
+  <label>Retention, days <input type="number" name="retention_days" min="1" max="3650" value="{{ s.retention_days }}"></label>
+  <p class="muted">Captures older than the matching window don't match a PR; captures past retention are deleted.
+  A PR that arrives late can only match captures still inside both.</p>
+  <label>Exclusion rules, one glob per line (FR-021)<br>
+    <textarea name="exclusion_rules" rows="8" cols="60">{{ s.exclusion_rules|join("\n") }}</textarea></label>
+  <p class="muted">A changed Helm value replaces the matching setting here at the next upgrade.</p>
+  <button>Save settings</button>
+</form>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Teams</h1>
+<p><a href="/admin">Administration</a> · <a href="/admin/roles">Roles</a> · <a href="/admin/settings">Settings</a></p>
+<p class="muted">Teams and members come from the GitHub organization and stay in sync (FR-027). Add teams of your
+own, or add and remove members as overrides; sync never changes an override. Only developers who have signed in
+to the portal can be members.</p>
+<table>
+  <tr><th>Team</th><th>Source</th><th>Members now</th><th>GitHub maintainers</th><th>Overrides</th></tr>
+  {% for t in teams %}
+  <tr><td><a href="/teams/{{ t.slug }}/developers">{{ t.slug }}</a><br><span class="muted">{{ t.name }}</span></td>
+      <td>{{ t.source }}{% if t.synced_at %}<br><span class="muted">synced {{ t.synced_at.strftime("%Y-%m-%d %H:%M") }}</span>{% endif %}</td>
+      <td>{{ t.members|join(", ") }}</td><td>{{ t.maintainers|join(", ") }}</td>
+      <td>{% for o in t.overrides %}{{ o.split(":")[0] }} ({{ o.split(":")[1] }}){{ ", " if not loop.last }}{% endfor %}</td></tr>
+  {% else %}<tr><td colspan="5" class="muted">No teams yet.</td></tr>{% endfor %}
+</table>
+
+<form method="post" action="/admin/teams" class="card">
+  <input type="hidden" name="action" value="create">
+  <label>New team slug <input name="team" required pattern="[a-z0-9][a-z0-9_-]*"></label>
+  <label>Name <input name="name"></label>
+  <button>Create team</button>
+</form>
+<form method="post" action="/admin/teams" class="card">
+  <label>Team <input name="team" required></label>
+  <label>Developer (GitHub login) <input name="github_login" required></label>
+  <label>Override <select name="action">
+    <option value="add_member">add to team</option><option value="remove_member">remove from team</option>
+    <option value="clear_member">clear override</option></select></label>
+  <button>Save</button>
+</form>
+{% endblock %}

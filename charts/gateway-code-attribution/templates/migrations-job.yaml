@@ -25,6 +25,8 @@ spec:
           command: ["/bin/sh", "-c", "alembic -c /app/services/core/alembic.ini upgrade head && python -m gca_core.bootstrap"]
           env:
             {{- include "gca.dbEnv" . | nindent 12 }}
+            - name: GCA_SETTINGS
+              value: {{ dict "per_developer_enabled" .Values.perDeveloper.enabled "visible_roles" .Values.perDeveloper.visibleRoles "matching_window_days" (int .Values.attribution.matchingWindowDays) "retention_days" (int .Values.attribution.retentionDays) "exclusion_rules" .Values.attribution.exclusions | toJson | quote }}
             - name: GCA_REPORTING_PASSWORD
               valueFrom: {secretKeyRef: {name: {{ include "gca.postgresSecret" . }}, key: reportingPassword}}
           securityContext: {{- include "gca.containerSecurity" . | nindent 12 }}

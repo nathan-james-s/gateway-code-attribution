@@ -13,7 +13,7 @@ FORBIDDEN = {"developer_id", "credited_developer_id", "credited_github_id", "git
 
 def test_views_have_no_per_developer_columns(pg_engine: Engine) -> None:
     with pg_engine.connect() as conn:
-        for view in ("v_change_summary", "v_repository_daily"):
+        for view in ("v_change_summary", "v_repository_daily", "v_team_daily"):
             cols = set(
                 conn.execute(
                     text("SELECT column_name FROM information_schema.columns WHERE table_name = :v"),
@@ -34,8 +34,9 @@ def test_reporting_role_reads_views_not_tables(pg_engine: Engine) -> None:
                 ).scalar()
             )
 
-        assert can("v_change_summary") and can("v_repository_daily")
+        assert can("v_change_summary") and can("v_repository_daily") and can("v_team_daily")
         assert not can("line_result") and not can("captured_line") and not can("developer")
+        assert not can("team_membership") and not can("team")
 
 
 def test_change_summary_toggle(pg_engine: Engine) -> None:

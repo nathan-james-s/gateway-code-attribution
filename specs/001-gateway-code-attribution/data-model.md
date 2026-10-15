@@ -87,7 +87,8 @@ Admin overrides of viewer roles (FR-029, FR-029a).
 ### PortalSettings (singleton)
 `per_developer_enabled` (default **true**), `visible_roles` (default `[admin, team_lead]`),
 `matching_window_days` (default 14), `retention_days` (default 90), `exclusion_rules` (glob list, with the defaults
-from FR-021).
+from FR-021). `helm_values` (jsonb, nullable): the values the chart last applied, so an upgrade writes only the
+settings the adopter changed in Helm and keeps what admins set in the portal.
 
 ## Algorithm and keys
 

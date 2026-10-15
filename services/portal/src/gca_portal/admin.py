@@ -1,15 +1,13 @@
 """Administration (T074-T076; FR-016, FR-036): identity overrides, revoking any credential, key rotation.
 
-Admin only (`gca_core.roles.is_admin`). HTML forms post URL-encoded bodies; `/api/...` variants take JSON.
+Admin only (roles from `gca_core.roles`, T083). HTML forms post URL-encoded bodies; `/api/...` variants take JSON.
 """
 
 from __future__ import annotations
 
-import json
 import uuid
 from collections.abc import Callable
 from typing import Any
-from urllib.parse import parse_qs
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
@@ -18,9 +16,8 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 
-from gca_core.roles import is_admin
-
 from . import admin_keys, credentials
+from .access import form_fields
 from .backends import CredentialBackend
 from .config import PortalConfig
 from .keysecret import KeySecret
@@ -38,33 +35,16 @@ _OVERRIDES = text("""
 """)
 
 
-def _forbidden() -> HTTPException:
-    return HTTPException(403, detail={"error": "forbidden", "message": "administrators only"})
-
-
-async def _fields(request: Request) -> dict[str, str]:
-    body = await request.body()
-    if request.headers.get("content-type", "").startswith("application/json"):
-        data = json.loads(body or b"{}")
-        return {k: str(v) for k, v in data.items()}
-    return {k: v[0] for k, v in parse_qs(body.decode()).items()}
-
-
 def create_router(
     engine: Engine,
     cfg: PortalConfig,
     backend: CredentialBackend,
-    current: Callable[..., SessionData],
+    require_admin: Callable[..., Any],
     user_client: Callable[[str], Any],
     templates: Jinja2Templates,
     key_secret: KeySecret | None,
 ) -> APIRouter:
     router = APIRouter()
-
-    async def require_admin(who: SessionData = Depends(current)) -> SessionData:
-        if not await is_admin(user_client(who.token), cfg.github_org, who.github_login, cfg.admin_logins):
-            raise _forbidden()
-        return who
 
     def _overrides() -> list[Any]:
         with engine.connect() as conn:
@@ -99,7 +79,7 @@ def create_router(
 
     # ---------------------------------------------------------------------------------- overrides (T074)
     async def _create_override(request: Request, admin: SessionData) -> uuid.UUID:
-        f = await _fields(request)
+        f = await form_fields(request)
         login, dev_login, reason = (
             f.get("github_login", "").strip(),
             f.get("developer_login", "").strip(),
@@ -205,7 +185,9 @@ def create_router(
             raise HTTPException(
                 409, detail={"error": "conflict", "message": "no fingerprint key Secret configured"}
             )
-        gen = admin_keys.rotate(engine, key_secret, cfg.retention_days)
+        with engine.connect() as conn:  # the settings page can change retention (T084)
+            retention = conn.execute(text("SELECT retention_days FROM portal_settings WHERE id = 1")).scalar()
+        gen = admin_keys.rotate(engine, key_secret, retention or cfg.retention_days)
         if "text/html" in request.headers.get("accept", ""):
             return RedirectResponse("/admin", status_code=303)
         return JSONResponse({"active_generation": gen})

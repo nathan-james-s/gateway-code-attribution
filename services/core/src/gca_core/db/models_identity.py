@@ -18,7 +18,7 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base, created_at, pg_enum, uuid_pk
@@ -176,6 +176,8 @@ class PortalSettings(Base):
             "ARRAY['**/*.lock','**/package-lock.json','**/vendor/**','**/node_modules/**','**/*.min.*','**/dist/**']"
         ),
     )
+    # The values the chart last applied (gca_core.bootstrap.apply_settings; migration 0004).
+    helm_values: Mapped[dict[str, object] | None] = mapped_column(JSONB)
 
 
 __all__ = [

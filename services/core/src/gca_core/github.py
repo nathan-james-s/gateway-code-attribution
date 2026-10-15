@@ -239,6 +239,20 @@ class UserClient:
             return None
         return str(resp.parsed_data.role)
 
+    async def maintained_teams(self, org: str, login: str) -> list[str]:
+        """Slugs of the teams in ``org`` that the user maintains. Empty on any GitHub error (fail closed)."""
+        try:
+            slugs = [
+                t.slug
+                async for t in self.gh.paginate(
+                    self.gh.rest.teams.async_list_for_authenticated_user, per_page=100
+                )
+                if t.organization.login.lower() == org.lower()
+            ]
+        except Exception:
+            return []
+        return [s for s in slugs if await self.team_role(org, s, login) == "maintainer"]
+
     async def user_by_login(self, login: str) -> dict[str, Any] | None:
         try:
             resp = await self.gh.rest.users.async_get_by_username(login)

@@ -1,4 +1,5 @@
-"""Portal: GitHub sign-in, personal gateway credentials, setup help, per-line PR results (T048-T051).
+"""Portal: GitHub sign-in, personal gateway credentials, setup help, per-line PR results (T048-T051), and
+role-checked per-developer views with role, team and settings administration (T083-T085).
 
 Responses never contain code or prompt text (contracts/portal-http.md). Per-line views show positions and
 outcomes, linking to GitHub for the line itself.
@@ -25,7 +26,8 @@ from sqlalchemy.orm import Session
 from gca_core import github as gh
 from gca_core.db.models_identity import Developer, GatewayCredential
 
-from . import admin, admin_keys, credentials
+from . import admin, admin_keys, admin_roles, admin_settings, admin_teams, credentials, developers
+from .access import Access
 from .backends import CredentialBackend, make_backend
 from .config import PortalConfig, portal_config
 from .keysecret import KeySecret
@@ -93,6 +95,7 @@ def create_app(
     if key_secret is None and cfg.fingerprint_secret:
         key_secret = KeySecret(cfg.namespace, cfg.fingerprint_secret)
     store = SessionStore(cfg.session_ttl_seconds)
+    access = Access(engine, cfg, user_client)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -120,6 +123,7 @@ def create_app(
     if backend is None:
         backend = make_backend(cfg)
     app.state.backend = backend
+    app.state.access = access
     pending_states: dict[str, float] = {}
 
     @app.exception_handler(HTTPException)
@@ -216,21 +220,43 @@ def create_app(
     def _active_credential(s: Session, dev_id: str) -> GatewayCredential | None:
         return credentials.active_credential(s, uuid.UUID(dev_id))
 
+    async def _profile(who: SessionData) -> dict[str, Any]:
+        roles = await access.roles(who)
+        with engine.connect() as conn:
+            led = [
+                r.slug
+                for r in conn.execute(
+                    text("SELECT slug FROM team WHERE id = ANY(:t) ORDER BY slug"), {"t": list(roles.lead_of)}
+                )
+            ]
+        return {"roles": roles.names, "is_admin": roles.admin, "lead_teams": led}
+
     @app.get("/me", response_class=HTMLResponse)
-    def me(request: Request, who: SessionData = Depends(current)) -> Any:
+    async def me(request: Request, who: SessionData = Depends(current)) -> Any:
         with db() as s:
             cred = _active_credential(s, who.developer_id)
         return TEMPLATES.TemplateResponse(
-            request, "me.html", {"who": who, "cred": cred, "gateway": cfg.gateway_type, "issued_key": None}
+            request,
+            "me.html",
+            {
+                "who": who,
+                "cred": cred,
+                "gateway": cfg.gateway_type,
+                "issued_key": None,
+                **await _profile(who),
+            },
         )
 
     @app.get("/api/me")
-    def api_me(who: SessionData = Depends(current)) -> dict[str, Any]:
+    async def api_me(who: SessionData = Depends(current)) -> dict[str, Any]:
         with db() as s:
             cred = _active_credential(s, who.developer_id)
+        profile = await _profile(who)
         return {
             "github_login": who.github_login,
             "github_id": who.github_id,
+            "roles": profile["roles"],
+            "lead_teams": profile["lead_teams"],
             "credential": {"id": str(cred.id), "issued_at": cred.issued_at.isoformat()} if cred else None,
         }
 
@@ -246,13 +272,15 @@ def create_app(
         credentials.revoke(s, backend, cfg.gateway_type, cred)
 
     @app.post("/me/credential", response_class=HTMLResponse)
-    def issue_credential(request: Request, who: SessionData = Depends(current)) -> Any:
-        cred, key = credentials.issue(
-            engine, backend, cfg.gateway_type, uuid.UUID(who.developer_id), who.github_id
+    async def issue_credential(request: Request, who: SessionData = Depends(current)) -> Any:
+        cred, key = await asyncio.to_thread(
+            credentials.issue, engine, backend, cfg.gateway_type, uuid.UUID(who.developer_id), who.github_id
         )
         # The key is shown exactly once and never stored or logged.
         return TEMPLATES.TemplateResponse(
-            request, "me.html", {"who": who, "cred": cred, "gateway": cfg.gateway_type, "issued_key": key}
+            request,
+            "me.html",
+            {"who": who, "cred": cred, "gateway": cfg.gateway_type, "issued_key": key, **await _profile(who)},
         )
 
     @app.post("/me/credential/revoke")
@@ -294,6 +322,13 @@ def create_app(
             {"who": who, "owner": owner, "repo": repo, "pr": pr, "head": head, "lines": lines},
         )
 
-    app.include_router(admin.create_router(engine, cfg, backend, current, user_client, TEMPLATES, key_secret))
+    require_admin = access.admin_dependency(current)
+    app.include_router(
+        admin.create_router(engine, cfg, backend, require_admin, user_client, TEMPLATES, key_secret)
+    )
+    app.include_router(admin_roles.create_router(engine, require_admin, TEMPLATES))
+    app.include_router(admin_teams.create_router(engine, require_admin, TEMPLATES))
+    app.include_router(admin_settings.create_router(engine, require_admin, TEMPLATES))
+    app.include_router(developers.create_router(engine, access, current, TEMPLATES))
 
     return app

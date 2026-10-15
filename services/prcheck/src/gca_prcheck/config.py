@@ -24,6 +24,8 @@ class PrcheckConfig(BaseSettings):
         default=10.0, gt=0
     )  # R12: after this, attribute with incomplete coverage
     webhook_secret: str = ""
+    # Team sync (T082) runs only for an organization install; a personal account has no teams.
+    github_org: str = ""
 
 
 @lru_cache(maxsize=1)
