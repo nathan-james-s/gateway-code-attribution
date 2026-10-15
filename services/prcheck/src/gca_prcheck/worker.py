@@ -31,6 +31,7 @@ from gcattr import ALG, AddedLine, Candidate, FingerprintKey, LineOutcome
 from . import checkrun
 from .config import PrcheckConfig
 from .diff import MAX_ADDED_LINES, MAX_BLOB_BYTES, added_from_blobs, added_from_patch
+from .exclusions import Rules, load_rules
 
 log = logging.getLogger("gca.prcheck.worker")
 
@@ -38,7 +39,9 @@ _CLAIM = text("""
     UPDATE change_head SET status = 'processing', attempts = attempts + 1
     WHERE id = (
         SELECT id FROM change_head
-        WHERE status = 'pending' AND event_received_at <= :wm
+        WHERE status = 'pending'
+          AND (event_received_at <= CAST(:wm AS timestamptz)
+               OR event_received_at <= now() - make_interval(secs => :cap))
         ORDER BY event_received_at
         LIMIT 1
         FOR UPDATE SKIP LOCKED
@@ -103,7 +106,13 @@ async def _file_added_lines(
 
 
 async def collect_lines(
-    gh: AppClient, inst: int, full_name: str, pr: int, base_sha: str, head_sha: str
+    gh: AppClient,
+    inst: int,
+    full_name: str,
+    pr: int,
+    base_sha: str,
+    head_sha: str,
+    rules: Rules | None = None,
 ) -> tuple[list[AddedLine], list[dict[str, str]], str, list[str]]:
     """Added lines credited per R11 (blame at head, commit in the PR), excluded paths, merge base, reasons."""
     owner, repo = full_name.split("/", 1)
@@ -115,6 +124,9 @@ async def collect_lines(
     lines: list[AddedLine] = []
     excluded: list[dict[str, str]] = []
     for f in cmp.files:
+        if rules is not None and f.status != "removed" and rules.match(f.filename):
+            excluded.append({"path": f.filename, "reason": "rule"})  # never read (FR-021)
+            continue
         added, reason = await _file_added_lines(gh, inst, owner, repo, f, cmp.merge_base_sha, head_sha)
         if reason:
             excluded.append({"path": f.filename, "reason": reason})
@@ -232,14 +244,28 @@ def store_result(engine: Engine, head_id: uuid.UUID, alg: int, result: HeadResul
     return summary
 
 
-def coverage_for(lines: Sequence[AddedLine], outcomes: Sequence[LineOutcome]) -> str:
-    """not_observed when no credited author of the change is mapped (FR-015); otherwise complete.
+def coverage_for(
+    lines: Sequence[AddedLine], outcomes: Sequence[LineOutcome], *, capped_minutes: float | None = None
+) -> tuple[str, list[str]]:
+    """(coverage_status, reasons).
 
-    Loss overlap and the pending cap (incomplete) arrive with US2/US4 (T070, T090).
+    - not_observed: no commit author of the change is mapped (FR-015);
+    - incomplete: capture hadn't caught up when the pending cap expired (FR-017, R12);
+    - complete otherwise. Lines from unmapped authors in a partly mapped PR are noted as a reason.
+
+    Capture-loss overlap (also incomplete) arrives with US4 (T089).
     """
-    if lines and all(o.outcome == "not_observed" for o in outcomes):
-        return "not_observed"
-    return "complete"
+    unmapped = sum(1 for o in outcomes if o.outcome == "not_observed")
+    if lines and unmapped == len(outcomes):
+        return "not_observed", ["no commit author in this change uses a gateway credential"]
+    reasons = (
+        [f"{unmapped} lines from commit authors without a gateway credential are not observed"]
+        if unmapped
+        else []
+    )
+    if capped_minutes is not None:
+        return "incomplete", [f"capture had not caught up after {capped_minutes:g} minutes", *reasons]
+    return "complete", reasons
 
 
 # ---------------------------------------------------------------------------------------------- loop
@@ -248,14 +274,18 @@ async def process_head(
 ) -> None:
     with engine.connect() as conn:
         h = conn.execute(_HEAD, {"h": head_id}).one()
+        wm = current_watermark(conn)
+    # Claimed by the cap rather than the watermark: attribute now, but say coverage is incomplete.
+    capped = cfg.pending_cap_minutes if wm is None or wm < h.event_received_at else None
     lines, excluded, merge_base, reasons = await collect_lines(
-        gh, h.installation_id, h.full_name, h.pr_number, h.base_sha, h.head_sha
+        gh, h.installation_id, h.full_name, h.pr_number, h.base_sha, h.head_sha, load_rules(engine)
     )
     keys.reload()
     outcomes, devs, key_gens = await asyncio.to_thread(
         match_lines, engine, lines, keys.all, h.event_received_at
     )
-    coverage = coverage_for(lines, outcomes)
+    coverage, coverage_reasons = coverage_for(lines, outcomes, capped_minutes=capped)
+    reasons = [*coverage_reasons, *reasons]
     result = HeadResult(lines, outcomes, devs, excluded, coverage, reasons, key_gens, merge_base)
     summary = store_result(engine, head_id, ALG, result)
     notes = checkrun.annotations(
@@ -291,12 +321,11 @@ async def process_head(
             )
 
 
-def claim_ready(engine: Engine) -> uuid.UUID | None:
+def claim_ready(engine: Engine, cap_minutes: float = 10.0) -> uuid.UUID | None:
+    """The oldest pending head that capture has caught up with, or that has waited past the cap (FR-017)."""
     with engine.begin() as conn:
-        wm = current_watermark(conn)
-        if wm is None:
-            return None  # no active capture instance: heads wait (cap: T070)
-        return conn.execute(_CLAIM, {"wm": wm}).scalar()
+        wm = current_watermark(conn)  # None when no capture instance is active: only the cap releases heads
+        return conn.execute(_CLAIM, {"wm": wm, "cap": cap_minutes * 60}).scalar()
 
 
 def _fail(engine: Engine, head_id: uuid.UUID, max_attempts: int) -> None:
@@ -315,7 +344,7 @@ async def run(engine: Engine, gh: AppClient, keys: KeyRing, cfg: PrcheckConfig) 
     while True:
         head_id = None
         try:
-            head_id = claim_ready(engine)
+            head_id = claim_ready(engine, cfg.pending_cap_minutes)
             if head_id is None:
                 await asyncio.sleep(cfg.work_seconds)
                 continue

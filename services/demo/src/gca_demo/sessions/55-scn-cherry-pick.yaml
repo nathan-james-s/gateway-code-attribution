@@ -1,0 +1,17 @@
+name: scn-cherry-pick
+kind: scenario
+description: AI lines committed elsewhere, then cherry-picked onto the PR branch.
+steps:
+  - format: openai_chat
+    file: src/scenarios/returns.py
+    write: |
+      """Return windows for the scenario suite."""
+
+      from datetime import date, timedelta
+
+      RETURN_WINDOW_DAYS = 30
+
+
+      def return_deadline(delivered_on: date, extended: bool = False) -> date:
+          window = RETURN_WINDOW_DAYS * 2 if extended else RETURN_WINDOW_DAYS
+          return delivered_on + timedelta(days=window)

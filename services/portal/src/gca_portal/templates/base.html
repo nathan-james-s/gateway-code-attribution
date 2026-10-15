@@ -33,7 +33,7 @@
 <body>
 <header>
   <a href="/">Gateway Code Attribution</a><span class="spacer"></span>
-  {% if who %}<a href="/me/setup">Tool setup</a><span class="muted">{{ who.github_login }}</span>
+  {% if who %}<a href="/me/setup">Tool setup</a><a href="/admin">Admin</a><span class="muted">{{ who.github_login }}</span>
   <form method="post" action="/auth/logout" style="margin:0"><button class="secondary">Sign out</button></form>{% endif %}
 </header>
 <main>{% block content %}{% endblock %}</main>

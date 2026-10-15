@@ -16,7 +16,7 @@ from sqlalchemy.engine import Engine
 
 from gca_core.github import AppClient
 
-from . import checkrun
+from . import checkrun, events
 
 log = logging.getLogger("gca.prcheck.polling")
 
@@ -77,6 +77,26 @@ async def announce(
         )
 
 
+def known_open(engine: Engine, repository_id: uuid.UUID) -> set[int]:
+    with engine.connect() as conn:
+        return set(
+            conn.execute(
+                text("SELECT pr_number FROM change WHERE repository_id = :r AND state = 'open'"),
+                {"r": repository_id},
+            ).scalars()
+        )
+
+
+def needs_announce(engine: Engine, head_id: uuid.UUID) -> bool:
+    with engine.connect() as conn:
+        return (
+            conn.execute(
+                text("SELECT check_run_id IS NULL FROM change_head WHERE id = :h"), {"h": head_id}
+            ).scalar()
+            is True
+        )
+
+
 async def poll_once(engine: Engine, gh: AppClient) -> int:
     new_heads = 0
     for inst in await gh.list_installations():
@@ -90,11 +110,19 @@ async def poll_once(engine: Engine, gh: AppClient) -> int:
             try:
                 repo_id = upsert_repository(engine, repo, inst_id)
                 owner, name = repo["full_name"].split("/", 1)
+                open_numbers = set()
                 for pr in await gh.open_pulls(inst_id, owner, name):
+                    open_numbers.add(pr["number"])
                     head_id = record_head(engine, repo_id, pr)
                     if head_id is not None:
                         new_heads += 1
                         await announce(engine, gh, head_id, inst_id, repo["full_name"], pr["head"]["sha"])
+                # PRs we saw open that are no longer open were merged or closed since the last poll (FR-018).
+                for number in sorted(known_open(engine, repo_id) - open_numbers):
+                    pr = await gh.get_pull(inst_id, owner, name, number)
+                    final_id = events.on_closed(engine, repo_id, pr)
+                    if final_id is not None and needs_announce(engine, final_id):
+                        await announce(engine, gh, final_id, inst_id, repo["full_name"], pr["head"]["sha"])
             except Exception:
                 log.exception("polling %s failed", repo.get("full_name"))
     return new_heads

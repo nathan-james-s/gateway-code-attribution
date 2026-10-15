@@ -23,7 +23,7 @@ import httpx
 
 from gcattr import CapturedToolOutput, CaptureFailure, parse_stream
 
-from .sessions import Session, marker, sessions
+from .sessions import Session, demo_sessions, marker
 
 __all__ = ["apply_human_edit", "apply_output", "play", "register"]
 
@@ -225,7 +225,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     credential = args.credential or os.environ.get("GCA_CREDENTIAL")
     if not credential:
         raise SystemExit("set GCA_CREDENTIAL (from the portal's Get gateway credential) or pass --credential")
-    all_sessions = sessions()
+    all_sessions = demo_sessions()
     chosen = [all_sessions[n] for n in (args.sessions or sorted(all_sessions))]
     login, email = _gh_identity()
     with tempfile.TemporaryDirectory(prefix="gca-demo-") as tmp:
@@ -308,6 +308,9 @@ def register(sub: Any) -> None:
     p.add_argument("--credential", default=None, help="personal gateway key (default: $GCA_CREDENTIAL)")
     p.add_argument("--sessions", nargs="*", help="session names (default: all)")
     p.set_defaults(func=lambda a: _guard(_cmd_run, a))
+    from .scenarios import register as register_scenarios
+
+    register_scenarios(demo_sub)
     i = demo_sub.add_parser("init-repo", help="create the sample repository and push the sample project")
     i.add_argument("--repo", required=True, help="OWNER/NAME")
     i.set_defaults(func=lambda a: _guard(_cmd_init_repo, a))

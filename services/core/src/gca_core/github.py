@@ -101,6 +101,11 @@ class AppClient:
         resp = await gh.rest.apps.async_list_repos_accessible_to_installation(per_page=100)
         return [r.model_dump() for r in resp.parsed_data.repositories]
 
+    async def get_pull(self, installation_id: int, owner: str, repo: str, number: int) -> dict[str, Any]:
+        gh = self.installation(installation_id)
+        resp = await gh.rest.pulls.async_get(owner, repo, number)
+        return resp.parsed_data.model_dump()
+
     async def open_pulls(self, installation_id: int, owner: str, repo: str) -> list[dict[str, Any]]:
         gh = self.installation(installation_id)
         out: list[dict[str, Any]] = []
@@ -233,6 +238,13 @@ class UserClient:
         except Exception:
             return None
         return str(resp.parsed_data.role)
+
+    async def user_by_login(self, login: str) -> dict[str, Any] | None:
+        try:
+            resp = await self.gh.rest.users.async_get_by_username(login)
+        except Exception:
+            return None
+        return dict(resp.parsed_data.model_dump())
 
     async def can_view_repo(self, owner: str, repo: str) -> bool:
         try:

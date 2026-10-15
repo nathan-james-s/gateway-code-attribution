@@ -25,6 +25,11 @@ class PortalConfig(BaseSettings):
     litellm_url: str = "http://localhost:4000"
     litellm_master_key: str = ""
     session_ttl_seconds: int = 8 * 3600
+    # Admins besides the organization's owners (an install on a personal account has no owners).
+    admin_logins: list[str] = []
+    # The fingerprint key Secret the portal rotates (empty: rotation unavailable).
+    fingerprint_secret: str = ""
+    retention_days: int = 90
 
 
 @lru_cache(maxsize=1)

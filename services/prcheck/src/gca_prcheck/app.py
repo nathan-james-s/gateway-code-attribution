@@ -15,7 +15,7 @@ from sqlalchemy.engine import Engine
 from gca_core.github import AppClient
 from gca_core.keys import KeyRing
 
-from . import polling, worker
+from . import polling, webhooks, worker
 from .config import PrcheckConfig
 
 log = logging.getLogger("gca.prcheck")
@@ -36,6 +36,8 @@ def create_app(engine: Engine, cfg: PrcheckConfig, gh: AppClient, keys: KeyRing)
                 await t
 
     app = FastAPI(title="Gateway Code Attribution PR check", docs_url=None, redoc_url=None, lifespan=lifespan)
+    if cfg.delivery == "webhook":
+        app.include_router(webhooks.create_router(engine, gh, cfg.webhook_secret))
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:

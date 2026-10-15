@@ -123,6 +123,28 @@ With OrbStack's own Kubernetes (`orb config set k8s.enable true`), run `make dem
 built with OrbStack's Docker are visible to its Kubernetes without loading; reach the services with
 `kubectl port-forward`.
 
+## Bring your own provider keys
+
+To drive real coding tools against real models (FR-039), create a Secret with any of `ANTHROPIC_API_KEY`,
+`OPENAI_API_KEY` and `GEMINI_API_KEY`, and list the model routes the gateway should offer:
+
+```bash
+kubectl -n gca create secret generic provider-keys \
+  --from-literal=ANTHROPIC_API_KEY=... --from-literal=OPENAI_API_KEY=...
+```
+
+```yaml
+# values-byo.yaml (git-ignored)
+providers:
+  existingSecret: provider-keys
+  models:
+    - {name: claude-sonnet-4-5, provider: anthropic, model: claude-sonnet-4-5}
+    - {name: gpt-5, provider: openAI, model: gpt-5}
+```
+
+Install with `-f values-byo.yaml` as well. Demo routes stay available alongside in demo mode. Then point your tools
+at the gateway: [tools/](tools/README.md).
+
 ## 4. Run the demo
 
 1. Open http://localhost:8080, sign in with GitHub, choose **Get gateway credential**, and copy the key. It's shown

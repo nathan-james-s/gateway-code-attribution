@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from gca_demo import agent, model
-from gca_demo.sessions import marker, sessions, tool_calls
+from gca_demo.sessions import demo_sessions, marker, sessions, tool_calls
 from gca_demo.streams import render
 from gca_prcheck.diff import added_from_blobs
 from gcattr import (
@@ -82,7 +82,7 @@ def test_demo_exercises_every_outcome(tmp_path: Path) -> None:
     base = agent.sample_repo_dir()
     repo = tmp_path / "repo"
     shutil.copytree(base, repo, ignore=shutil.ignore_patterns("__pycache__", ".*_cache"))
-    outputs = agent.play(repo, sessions().values(), _send)
+    outputs = agent.play(repo, demo_sessions().values(), _send)
     agent.format_python(repo)
 
     # Capture side: what the gateway would have fingerprinted.

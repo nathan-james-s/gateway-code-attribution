@@ -12,6 +12,7 @@ from sqlalchemy.engine import Engine
 from gca_core import messages
 from gca_core.nats import STREAM, SUBJECT_PREFIX, connect_jetstream, ensure_stream
 
+from .maintenance import daily
 from .store import handle, mark_stale_instances
 
 log = logging.getLogger("gca.ingest")
@@ -58,8 +59,9 @@ def _store(engine: Engine, msg: dict[str, Any]) -> None:
 
 
 async def maintenance(engine: Engine, *, sweep_seconds: float = 5.0) -> None:
-    """Stale-instance sweeper every 5 s (U1); partitions three days ahead at start and hourly."""
-    last_partition = 0.0
+    """Stale-instance sweeper every 5 s (U1); partitions three days ahead at start and hourly; key expiry and
+    retention daily (maintenance.daily)."""
+    last_partition = last_daily = float("-inf")
     loop = asyncio.get_running_loop()
     while True:
         try:
@@ -69,6 +71,9 @@ async def maintenance(engine: Engine, *, sweep_seconds: float = 5.0) -> None:
                 if now - last_partition > 3600:
                     conn.execute(text("SELECT gca_ensure_partitions(3)"))
                     last_partition = now
+                if now - last_daily > 86400:
+                    log.info("daily maintenance: %s", daily(conn))
+                    last_daily = now
         except Exception:
             log.exception("maintenance failed")
         await asyncio.sleep(sweep_seconds)

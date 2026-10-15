@@ -19,7 +19,16 @@ from gca_core.db.models_identity import CredentialStatus, Developer, GatewayCred
 
 from .backends import ActiveKey, CredentialBackend
 
-__all__ = ["active_credential", "active_keys", "issue", "key_hash", "new_key", "revoke", "sync"]
+__all__ = [
+    "active_credential",
+    "active_keys",
+    "issue",
+    "key_hash",
+    "new_key",
+    "revoke",
+    "revoke_by_id",
+    "sync",
+]
 
 
 def key_hash(key: str) -> str:
@@ -83,3 +92,16 @@ def active_keys(engine: Engine) -> list[ActiveKey]:
 
 def sync(engine: Engine, backend: CredentialBackend) -> None:
     backend.sync(active_keys(engine))
+
+
+def revoke_by_id(
+    engine: Engine, backend: CredentialBackend, gateway_type: str, credential_id: uuid.UUID
+) -> bool:
+    """Admin revoke (T075): the same gateway-side removal as a developer's own revoke. False if not active."""
+    with Session(engine, expire_on_commit=False) as s, s.begin():
+        cred = s.get(GatewayCredential, credential_id)
+        if cred is None or cred.status != CredentialStatus.active:
+            return False
+        revoke(s, backend, gateway_type, cred)
+    sync(engine, backend)
+    return True

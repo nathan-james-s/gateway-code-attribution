@@ -1,0 +1,26 @@
+name: scn-rewrite
+kind: scenario
+description: AI lines in two commits, then a rebase onto a moved base and a squash.
+steps:
+  - format: gemini_native
+    file: src/scenarios/tax.py
+    write: |
+      """Sales tax for the scenario suite."""
+
+      STATE_RATES_BASIS_POINTS = {"CA": 725, "NY": 400, "TX": 625}
+
+
+      def sales_tax_cents(state: str, taxable_cents: int) -> int:
+          basis_points = STATE_RATES_BASIS_POINTS.get(state, 0)
+          return taxable_cents * basis_points // 10_000
+  - format: gemini_native
+    file: src/scenarios/tax_report.py
+    write: |
+      """Sales tax report lines for the scenario suite."""
+
+      from .tax import sales_tax_cents
+
+
+      def tax_report_line(state: str, taxable_cents: int) -> str:
+          tax = sales_tax_cents(state, taxable_cents)
+          return f"{state}: {taxable_cents / 100:.2f} taxable, {tax / 100:.2f} tax"

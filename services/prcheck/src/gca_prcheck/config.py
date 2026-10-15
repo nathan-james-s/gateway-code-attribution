@@ -20,6 +20,10 @@ class PrcheckConfig(BaseSettings):
     portal_url: str = "http://localhost:8080"
     headline_includes_broad: bool = False
     max_attempts: int = Field(default=3, ge=1)
+    pending_cap_minutes: float = Field(
+        default=10.0, gt=0
+    )  # R12: after this, attribute with incomplete coverage
+    webhook_secret: str = ""
 
 
 @lru_cache(maxsize=1)
