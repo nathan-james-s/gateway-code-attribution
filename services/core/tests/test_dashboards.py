@@ -22,14 +22,14 @@ def _queries() -> list[tuple[str, str]]:
             if var.get("type") == "query":
                 out.append((f"{path.stem}:var:{var['name']}", var["query"]))
         for panel in board["panels"]:
-            for target in panel.get("targets", []):
+            for target in panel.get("targets", []):  # text panels have none
                 out.append((f"{path.stem}:{panel['title']}", target["rawSql"]))
     return out
 
 
 def _render(sql: str, broad: str) -> str:
     sql = sql.replace("${broad}", broad)
-    sql = re.sub(r"\$\{(repository|team):sqlstring\}", "'acme/none'", sql)
+    sql = re.sub(r"\$\{(repository|team|gateway):sqlstring\}", "'acme/none'", sql)
     return re.sub(r"\$__timeFilter\((\w+)\)", r"\1 > now() - interval '30 days'", sql)
 
 
@@ -44,8 +44,11 @@ def test_query_runs_as_reporting_role(pg_engine: Engine, name: str, sql: str, br
             conn.rollback()
 
 
-def test_every_dashboard_has_the_broad_toggle_and_shows_alg() -> None:
+def test_every_attribution_dashboard_has_the_broad_toggle_and_shows_alg() -> None:
     for path in DASHBOARDS.glob("*.json"):
+        if path.stem == "coverage":  # capture loss has no attribution figures, so no broad toggle
+            assert "alg" in path.read_text()
+            continue
         board: dict[str, Any] = json.loads(path.read_text())
         assert any(v["name"] == "broad" for v in board["templating"]["list"]), path.name
         assert "alg" in path.read_text(), path.name  # FR-028

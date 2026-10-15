@@ -1,10 +1,47 @@
-"""Derive the API format and a tool hint from request headers (T042). No content involved."""
+"""Derive the API format and a tool hint from the request (T042, T090). No content involved."""
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from gca_core.tools import session_id, tool_hint
 
-__all__ = ["api_format_for_path", "tool_hint"]
+__all__ = ["UNSUPPORTED", "api_format_for_path", "classify", "model_from_path", "session_id", "tool_hint"]
+
+UNSUPPORTED = "unsupported"
+
+# Routes that never carry model-written code. Any other route through the gateway that capture can't parse is
+# reported as an unsupported combination (FR-007) rather than dropped silently.
+_NO_CODE_ENDINGS = (
+    "/models",
+    "/embeddings",
+    "/moderations",
+    "/files",
+    "/batches",
+    "/rerank",
+    "/count_tokens",
+    "/health",
+    "/healthz",
+    ":countTokens",
+    ":embedContent",
+    ":batchEmbedContents",
+)
+_NO_CODE_PARTS = ("/images/", "/audio/", "/files/", "/batches/")
+
+
+def classify(path: str | None) -> str | None:
+    """The API format of a model response capture reads; UNSUPPORTED for a route that may carry model output but
+    can't be read; None for a route that never carries code."""
+    if not path:
+        return None
+    fmt = api_format_for_path(path)
+    if fmt is not None:
+        return fmt
+    p = path.split("?", 1)[0].rstrip("/")
+    last = p.rsplit("/", 1)[-1]
+    if p.endswith(_NO_CODE_ENDINGS) or any(part in p + "/" for part in _NO_CODE_PARTS):
+        return None
+    if "/models/" in p and ":" not in last:
+        return None  # model metadata, e.g. GET /v1/models/{id}
+    return UNSUPPORTED
 
 
 def api_format_for_path(path: str | None) -> str | None:
@@ -20,35 +57,6 @@ def api_format_for_path(path: str | None) -> str | None:
         return "anthropic_messages"
     if ":streamGenerateContent" in p or ":generateContent" in p:
         return "gemini_native"
-    return None
-
-
-_TOOLS = (
-    ("claude-cli", "claude-code"),
-    ("claude-code", "claude-code"),
-    ("codex", "codex-cli"),
-    ("gemini-cli", "gemini-cli"),
-    ("geminicli", "gemini-cli"),
-    ("opencode", "opencode"),
-)
-
-
-def tool_hint(headers: Mapping[str, str]) -> str | None:
-    if "x-claude-code-session-id" in headers:
-        return "claude-code"
-    if "x-opencode-session-id" in headers:
-        return "opencode"
-    ua = headers.get("user-agent", "").lower()
-    for needle, name in _TOOLS:
-        if needle in ua:
-            return name
-    return None
-
-
-def session_id(headers: Mapping[str, str]) -> str | None:
-    for h in ("x-claude-code-session-id", "x-opencode-session-id", "session_id", "x-session-id"):
-        if headers.get(h):
-            return headers[h][:128]
     return None
 
 

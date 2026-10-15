@@ -8,7 +8,7 @@ from typing import Any
 
 from .sessions import ToolCall
 
-__all__ = ["render"]
+__all__ = ["render", "render_fault"]
 
 TEXT = "Working on it."
 
@@ -278,3 +278,29 @@ def render(
     """(content type, body)."""
     body = _RENDER[api_format](calls, model, stream)
     return ("text/event-stream" if stream else "application/json"), body.encode("utf-8")
+
+
+def render_fault(kind: str, call: ToolCall, *, model: str = "demo") -> tuple[str, bytes]:
+    """A broken stream for fault injection (T092), as real providers sometimes send:
+
+    - ``truncated``: Anthropic Messages cut off halfway through a tool call's arguments, ending with
+      ``stop_reason: max_tokens`` and no ``content_block_stop``;
+    - ``unexpected_format``: OpenAI Responses whose ``response.completed`` event lost its ``type`` (and event name)
+      and its ``created_at``, a schema deviation like the one the probe met.
+    """
+    if kind == "truncated":
+        full = _anthropic([call], model, True)
+        events = full.split("\n\n")
+        deltas = [i for i, e in enumerate(events) if '"input_json_delta"' in e]
+        cut = events[: deltas[len(deltas) // 2] + 1]
+        stop = {"type": "message_delta", "delta": {"stop_reason": "max_tokens", "stop_sequence": None}}
+        body = "\n\n".join(cut) + "\n\n" + _sse({**stop, "usage": {"output_tokens": 4096}}, "message_delta")
+        body += _sse({"type": "message_stop"}, "message_stop")
+        return "text/event-stream", body.encode("utf-8")
+    if kind == "unexpected_format":
+        events = _openai_responses([call], model, True).split("\n\n")
+        last = json.loads(events[-2].split("data: ", 1)[1])  # response.completed
+        response = {k: v for k, v in last["response"].items() if k != "created_at"}
+        events[-2] = _sse({"sequence_number": last["sequence_number"], "response": response}).rstrip("\n")
+        return "text/event-stream", "\n\n".join(events).encode("utf-8")
+    raise ValueError(f"unknown fault {kind!r}")

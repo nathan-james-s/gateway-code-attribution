@@ -26,7 +26,7 @@ from sqlalchemy.orm import Session
 from gca_core import github as gh
 from gca_core.db.models_identity import Developer, GatewayCredential
 
-from . import admin, admin_keys, admin_roles, admin_settings, admin_teams, credentials, developers
+from . import admin, admin_keys, admin_roles, admin_settings, admin_teams, coverage, credentials, developers
 from .access import Access
 from .backends import CredentialBackend, make_backend
 from .config import PortalConfig, portal_config
@@ -330,5 +330,6 @@ def create_app(
     app.include_router(admin_teams.create_router(engine, require_admin, TEMPLATES))
     app.include_router(admin_settings.create_router(engine, require_admin, TEMPLATES))
     app.include_router(developers.create_router(engine, access, current, TEMPLATES))
+    app.include_router(coverage.create_router(engine, cfg, access, current, user_client, TEMPLATES))
 
     return app

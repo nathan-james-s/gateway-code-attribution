@@ -18,7 +18,7 @@ from envoy.service.ext_proc.v3 import external_processor_pb2_grpc as pbg
 from google.protobuf import struct_pb2
 
 from gca_capture_extproc import worker
-from gca_capture_extproc.api_format import api_format_for_path, tool_hint
+from gca_capture_extproc.api_format import UNSUPPORTED, api_format_for_path, classify, tool_hint
 from gca_capture_extproc.lag import LagMonitor
 from gca_capture_extproc.server import CaptureProcessor, health_server, make_executor
 from gca_core.capture_runtime import CaptureRuntime
@@ -222,3 +222,37 @@ async def test_health_endpoint(keys_dir: str) -> None:
     await writer.drain()
     assert (await reader.read()).startswith(b"HTTP/1.1 200 OK")
     server.close()
+
+
+@pytest.mark.parametrize(
+    ("path", "kind"),
+    [
+        ("/v1/chat/completions", "openai_chat"),
+        ("/v1/models", None),
+        ("/v1/models/gpt-5", None),
+        ("/v1/embeddings", None),
+        ("/v1/audio/transcriptions", None),
+        ("/v1/messages/count_tokens", None),
+        ("/v1beta/models/gemini:countTokens", None),
+        ("/v1/completions", UNSUPPORTED),  # legacy completions can carry code
+        ("/v1/threads/t1/runs", UNSUPPORTED),
+        ("/v1beta/models/gemini:predict", UNSUPPORTED),
+        (None, None),
+    ],
+)
+def test_classify_routes(path: str | None, kind: str | None) -> None:
+    assert classify(path) == kind
+
+
+async def test_unreadable_model_route_is_counted_not_dropped(keys_dir: str) -> None:
+    """FR-007, T090: a route capture can't read is an unsupported combination, with the tool, for the developer."""
+    data = b'{"choices": [{"text": "def f():\\n    return 1"}]}'
+    echoed, sent = await _run(keys_dir, "/v1/completions", data, {"credential_id": "c-1"})
+    assert echoed == data
+    assert [(m["kind"], m.get("cause"), m.get("credential_id"), m.get("tool_hint")) for m in sent] == [
+        ("failure", "unsupported_combination", "c-1", "claude-code")
+    ]
+    _, sent = await _run(keys_dir, "/v1/completions", data, {})
+    assert [(m["kind"], m.get("cause")) for m in sent] == [("failure", "unknown_credential")]
+    _, sent = await _run(keys_dir, "/v1/embeddings", b'{"data": []}', {"credential_id": "c-1"})
+    assert sent == []  # never carries code: nothing to report

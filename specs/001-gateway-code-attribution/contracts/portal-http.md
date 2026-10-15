@@ -24,7 +24,7 @@ team exists.
 | `GET /changes/{repo}/{pr}` | anyone who can view the repo on GitHub (checked through the user's token) | per-line results for the latest and final heads: path, line, outcome, tier, confidence, credited login; links to GitHub | no line content |
 | `GET /developers/{github_login}` | admin, or team_lead of a team containing that developer | per-developer totals over a period, with and without broad | FR-029; 403 otherwise |
 | `GET /teams/{slug}/developers` | admin, or team_lead(slug) | per-developer breakdown inside a team | |
-| `GET /coverage` | signed in | links to the Grafana coverage dashboard, plus the unmapped-author list | FR-030 |
+| `GET /coverage` | signed in | links to the Grafana coverage dashboard, recent capture loss by cause, plus the unmapped-author list | FR-030; the list of accounts is shown to admins only (it spans every repository), others see the count |
 | `GET /admin/overrides` / `POST` / `DELETE /admin/overrides/{id}` | admin | identity overrides | FR-016; `reason` required |
 | `GET/POST /admin/roles`, `GET/POST /admin/teams` | admin | role and team overrides | FR-027, FR-029a |
 | `GET/POST /admin/settings` | admin | `per_developer_enabled`, `visible_roles`, window, retention, exclusions | |

@@ -17,6 +17,7 @@ class PortalConfig(BaseSettings):
     github_org: str = ""
     gateway_type: Literal["agentgateway", "litellm"] = "agentgateway"
     gateway_public_url: str = "http://localhost:4000"
+    grafana_url: str = "http://localhost:3000"
     # agentgateway: base config (Helm-owned) and live config (portal-rendered) ConfigMaps
     namespace: str = "default"
     agentgateway_base_configmap: str = ""

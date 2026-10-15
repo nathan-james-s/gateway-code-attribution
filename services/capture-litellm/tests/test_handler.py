@@ -156,3 +156,31 @@ async def test_unrecognised_generative_call_is_counted_not_dropped(handler: GcaH
     await handler.async_log_success_event(_kwargs(call_type="some_future_route"), {"x": 1}, None, None)
     sent = await _flush(handler)
     assert [(m["kind"], m.get("cause")) for m in sent] == [("failure", "unsupported_combination")]
+
+
+async def test_tool_hint_from_request_headers(handler: GcaHandler) -> None:
+    """T090: LiteLLM passes the client's headers to callbacks; capture records which tool sent the request."""
+    kw = _kwargs()
+    kw["litellm_params"]["metadata"]["headers"] = {"User-Agent": "codex_cli_rs/0.40", "session_id": "s-9"}
+    resp = _chat(json.dumps({"file_path": "/r/src/app.py", "content": CODE}))
+    await handler.async_log_success_event(kw, resp, None, None)
+    kw = _kwargs(call_type="some_future_route")
+    kw["litellm_params"]["proxy_server_request"] = {"headers": {"x-opencode-session-id": "o-1"}}
+    await handler.async_log_success_event(kw, {"x": 1}, None, None)
+    sent = await _flush(handler)
+    ev = next(m for m in sent if m["kind"] == "event")
+    assert ev["tool_hint"] == "codex-cli" and ev["session_id"] == "s-9"
+    fail = next(m for m in sent if m["kind"] == "failure")
+    assert (fail["cause"], fail["tool_hint"], fail["credential_id"]) == (
+        "unsupported_combination",
+        "opencode",
+        "cred-1",
+    )
+
+
+async def test_unrecognised_call_without_credential_is_unknown_credential(handler: GcaHandler) -> None:
+    await handler.async_log_success_event(
+        _kwargs(call_type="some_future_route", alias=None), {"x": 1}, None, None
+    )
+    sent = await _flush(handler)
+    assert [(m["kind"], m.get("cause")) for m in sent] == [("failure", "unknown_credential")]

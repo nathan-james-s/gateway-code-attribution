@@ -14,7 +14,7 @@ from .consumer import consume, maintenance
 async def _main() -> None:
     cfg = settings()
     eng = engine()
-    await asyncio.gather(consume(eng, cfg.nats_url), maintenance(eng))
+    await asyncio.gather(consume(eng, cfg.nats_url), maintenance(eng, cfg.gateway_type))
 
 
 def main() -> None:

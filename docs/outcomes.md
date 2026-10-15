@@ -32,6 +32,22 @@ Each attributed head also gets a coverage status:
 - **pending**: waiting for capture to catch up (shown as *in progress* on the check).
 - **not observed**: none of the change's authors are mapped.
 
+What counts as capture loss for a change: a loss in the matching window that is one of its credited authors' own
+(a truncated, unreadable or unsupported response under their credential), or that could be anyone's (a sequence
+gap, missed heartbeats, a capture outage, a full buffer). The check lists one reason per cause. Responses under an
+unknown credential belong to nobody in the stack, so they never make a change incomplete.
+
+Capture loss is recorded when:
+
+- a capture instance reports it (truncated, unreadable or unexpected responses, unsupported routes or tools,
+  unknown credentials, a full buffer, failed publishes);
+- messages from an instance go missing (a gap in its sequence numbers; a late, out-of-order message isn't loss);
+- an instance stops sending heartbeats for 15 seconds, until it resumes, shuts down or is replaced;
+- no capture instance of the installed gateway is running for 15 seconds, for example scaled to zero. The gateway
+  fails open, so requests keep working, but nothing captures them until capture is back.
+
+The portal's `/coverage` page and Grafana's **Coverage** dashboard show it by cause, gateway, API format and tool.
+
 ## Excluded files
 
 Some files are listed rather than attributed, each with a reason:

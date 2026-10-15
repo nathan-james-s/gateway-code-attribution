@@ -2,7 +2,8 @@
 
 Serves the four provider APIs in their real streaming formats, writing the body in small chunks (default 7
 bytes) so gateways see SSE lines and UTF-8 sequences split across writes. Requests marked by `gca demo run`
-get that session step's tool call; anything else gets a short text reply. Request bodies are not logged.
+get that session step's tool call; requests marked by `--inject-faults` get a broken stream (T092); anything
+else gets a short text reply. Request bodies are not logged.
 """
 
 from __future__ import annotations
@@ -13,8 +14,8 @@ import re
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from .sessions import parse_marker, sessions, tool_calls
-from .streams import render
+from .sessions import FAULTS, fault_call, parse_fault, parse_marker, sessions, tool_calls
+from .streams import render, render_fault
 
 CHUNK = int(os.environ.get("GCA_DEMO_CHUNK", "7"))
 _GEMINI = re.compile(r"^/v1beta/models/([^/:]+):(streamGenerateContent|generateContent)")
@@ -43,6 +44,10 @@ def _wants_stream(api_format: str, path: str, body: str) -> bool:
 
 
 def respond(api_format: str, path: str, body: str) -> tuple[str, bytes, bool]:
+    fault = parse_fault(body)
+    if fault is not None and FAULTS[fault[0]] == api_format and _wants_stream(api_format, path, body):
+        ctype, data = render_fault(fault[0], fault_call(fault[1]))
+        return ctype, data, True
     mark = parse_marker(body)
     calls = []
     if mark is not None:

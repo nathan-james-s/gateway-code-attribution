@@ -150,3 +150,33 @@ def test_refuses_paths_outside_repo(tmp_path: Path) -> None:
     )
     with pytest.raises(agent.DemoError):
         agent.apply_output(tmp_path, out)
+
+
+def test_inject_faults_sends_broken_responses_that_capture_counts() -> None:
+    """T092: each injected fault reaches demo-model by its own API format and parses as that loss cause."""
+    from gca_demo.sessions import FAULTS
+    from gcattr import CaptureFailure, parse_stream
+
+    assert agent.parse_faults("truncated=2, unexpected_format=1") == {"truncated": 2, "unexpected_format": 1}
+    for bad in ("truncated", "slow=3", "truncated=x"):
+        with pytest.raises(agent.DemoError):
+            agent.parse_faults(bad)
+    seen: Counter[str] = Counter()
+
+    def send(api_format: str, text: str) -> bytes:
+        path = "/v1/messages" if api_format == "anthropic_messages" else "/v1/responses"
+        body = json.dumps({"stream": True, "messages": [{"role": "user", "content": text}]})
+        data = model.respond(api_format, path, body)[1]
+        for r in parse_stream(api_format, [data]):  # type: ignore[arg-type]
+            if isinstance(r, CaptureFailure):
+                seen[r.cause] += 1
+        return data
+
+    agent.inject_faults({"truncated": 3, "unexpected_format": 2}, send)
+    assert seen == Counter({"truncated": 3, "unexpected_format": 2})
+    # A fault marker sent to the other format gets an ordinary reply.
+    assert FAULTS["truncated"] == "anthropic_messages"
+    other = model.respond(
+        "openai_chat", "/v1/chat/completions", '{"stream": true, "x": "gca-demo fault=truncated n=0"}'
+    )
+    assert b"max_tokens" not in other[1]

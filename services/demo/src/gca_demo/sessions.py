@@ -50,6 +50,32 @@ class ToolCall:
     freeform: str | None = None  # freeform tools (apply_patch)
 
 
+# Fault injection (T092): `gca demo run --inject-faults` asks demo-model for broken responses with this marker.
+FAULTS = {"truncated": "anthropic_messages", "unexpected_format": "openai_responses"}
+_FAULT = re.compile(r"gca-demo fault=(truncated|unexpected_format) n=(\d+)")
+
+
+def fault_marker(kind: str, n: int) -> str:
+    return f"gca-demo fault={kind} n={n}"
+
+
+def parse_fault(body: str) -> tuple[str, int] | None:
+    m = _FAULT.search(body)
+    return (m.group(1), int(m.group(2))) if m else None
+
+
+def fault_call(n: int) -> ToolCall:
+    """The tool call a fault response carries (a file nobody commits)."""
+    code = (
+        f"def fault_{n}(values, threshold):\n"
+        f"    kept = [value * {n + 2} for value in values if value > threshold]\n"
+        "    return sorted(kept, reverse=True)\n"
+    )
+    return ToolCall(
+        f"call_fault_{n}", "Write", {"file_path": f"/workspace/faults/fault_{n}.py", "content": code}
+    )
+
+
 def marker(session: str, step: int) -> str:
     return f"gca-demo session={session} step={step}"
 

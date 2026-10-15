@@ -83,6 +83,9 @@ class FakeUser:
     async def maintained_teams(self, org: str, login: str) -> list[str]:
         return []
 
+    async def login_for_id(self, account_id: int) -> str | None:
+        return next((login for login, gid in FakeUser.accounts.items() if gid == account_id), None)
+
     async def user_by_login(self, login: str) -> dict[str, Any] | None:
         gid = FakeUser.accounts.get(login)
         return {"id": gid, "login": login} if gid else None
