@@ -1,0 +1,25 @@
+{{- if .Values.grafana.enabled }}
+{{- $fn := include "gca.fullname" . }}
+# Grafana settings the subchart can't derive itself (T061). Dashboards query aggregate views only (R15).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fn }}-grafana-env
+  labels: {{- include "gca.labels" . | nindent 4 }}
+data:
+  GF_SERVER_ROOT_URL: {{ .Values.grafana.publicUrl | quote }}
+  GF_AUTH_GITHUB_ALLOWED_ORGANIZATIONS: {{ .Values.github.org | quote }}
+  GF_AUTH_ANONYMOUS_ENABLED: "false"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fn }}-dashboards
+  labels: {{- include "gca.labels" . | nindent 4 }}
+data:
+  {{- $portal := .Values.portal.publicUrl | default "http://localhost:8080" }}
+  {{- range $path, $_ := .Files.Glob "dashboards/*.json" }}
+  {{ base $path }}: |-
+    {{- $.Files.Get $path | replace "__GCA_PORTAL_URL__" $portal | nindent 4 }}
+  {{- end }}
+{{- end }}

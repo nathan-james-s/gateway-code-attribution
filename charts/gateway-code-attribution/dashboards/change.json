@@ -1,0 +1,325 @@
+{
+  "uid": "gca-change",
+  "title": "Changes",
+  "description": "One row per pull request: the final head at merge, otherwise the latest attributed head. 'Human' means no match to observed AI output.",
+  "editable": false,
+  "schemaVersion": 41,
+  "version": 1,
+  "tags": [
+    "gateway-code-attribution"
+  ],
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "templating": {
+    "list": [
+      {
+        "name": "broad",
+        "label": "Include broad matches",
+        "type": "custom",
+        "query": "No : without_broad,Yes : with_broad",
+        "current": {
+          "text": "No",
+          "value": "without_broad"
+        },
+        "options": [
+          {
+            "text": "No",
+            "value": "without_broad",
+            "selected": true
+          },
+          {
+            "text": "Yes",
+            "value": "with_broad",
+            "selected": false
+          }
+        ],
+        "description": "Broad matches are lower-confidence 'AI, modified' lines. When excluded they count as human."
+      },
+      {
+        "name": "repository",
+        "label": "Repository",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "gca"
+        },
+        "query": "SELECT DISTINCT repository FROM v_change_summary ORDER BY 1",
+        "definition": "SELECT DISTINCT repository FROM v_change_summary ORDER BY 1",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "AI share",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT round(100.0 * sum(ai_lines_${broad}) / nullif(sum(attributable_lines), 0), 1) AS ai FROM v_change_summary WHERE repository IN (${repository:sqlstring}) AND $__timeFilter(completed_at)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Changes",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT count(*) FROM v_change_summary WHERE repository IN (${repository:sqlstring}) AND $__timeFilter(completed_at)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Not fully covered",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT count(*) FILTER (WHERE coverage_status <> 'complete') FROM v_change_summary WHERE repository IN (${repository:sqlstring}) AND $__timeFilter(completed_at)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Algorithm versions",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT coalesce(string_agg(DISTINCT alg::text, ', '), 'none') AS alg FROM v_change_summary WHERE repository IN (${repository:sqlstring}) AND $__timeFilter(completed_at)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Changes",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 16,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT repository AS \"Repository\", pr_number AS \"PR\", change_state AS \"State\", left(head_sha, 12) AS \"Head\", coverage_status AS \"Coverage\", ai_pct_${broad} AS \"AI %\", human_pct_${broad} AS \"Human %\", ai_unmodified AS \"AI, unmodified\", ai_modified_anchored AS \"AI, modified (anchored)\", ai_modified_broad AS \"AI, modified (broad)\", human AS \"Human\", indeterminate AS \"Indeterminate\", not_observed AS \"Not observed\", excluded_files AS \"Excluded files\", alg AS \"Algorithm\", completed_at AS \"Attributed\" FROM v_change_summary WHERE repository IN (${repository:sqlstring}) AND $__timeFilter(completed_at) ORDER BY completed_at DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PR"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Per-line results in the portal",
+                    "targetBlank": true,
+                    "url": "__GCA_PORTAL_URL__/changes/${__data.fields.Repository}/${__data.fields.PR}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*%"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "What the outcomes mean",
+      "type": "link",
+      "targetBlank": true,
+      "url": "https://github.com/nathan-james-s/gateway-code-attribution/blob/main/docs/outcomes.md"
+    }
+  ]
+}

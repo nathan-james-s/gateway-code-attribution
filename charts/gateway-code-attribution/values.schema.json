@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "gateway-code-attribution values",
+  "type": "object",
+  "required": ["gateway", "github", "postgres", "prcheck"],
+  "properties": {
+    "gateway": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {"enum": ["agentgateway", "litellm"], "description": "FR-001"},
+        "publicUrl": {"type": "string"}
+      }
+    },
+    "providers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "existingSecret": {"type": "string"},
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "provider", "model"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "provider": {"enum": ["anthropic", "openAI", "gemini"]},
+              "model": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "github": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Secrets only by reference (Constitution: Security & Data Handling)",
+      "properties": {
+        "existingSecret": {"type": "string"},
+        "org": {"type": "string"},
+        "host": {"enum": ["github.com"]}
+      }
+    },
+    "prcheck": {
+      "type": "object",
+      "properties": {
+        "delivery": {"enum": ["polling", "webhook"]},
+        "publicUrl": {"type": "string"},
+        "pendingCapMinutes": {"type": "integer", "minimum": 1},
+        "headlineIncludesBroad": {"type": "boolean"}
+      },
+      "if": {"properties": {"delivery": {"const": "webhook"}}},
+      "then": {"properties": {"publicUrl": {"type": "string", "minLength": 1}}}
+    },
+    "attribution": {
+      "type": "object",
+      "properties": {
+        "matchingWindowDays": {"type": "integer", "minimum": 1},
+        "retentionDays": {"type": "integer", "minimum": 1},
+        "exclusions": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "perDeveloper": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "visibleRoles": {"type": "array", "items": {"enum": ["admin", "team_lead"]}}
+      }
+    },
+    "fingerprintKey": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {"existingSecret": {"type": "string"}}
+    },
+    "postgres": {
+      "type": "object",
+      "properties": {
+        "internal": {"type": "boolean"},
+        "storage": {"type": "string"},
+        "external": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "host": {"type": "string"},
+            "port": {"type": "integer"},
+            "database": {"type": "string"},
+            "existingSecret": {"type": "string"}
+          }
+        }
+      },
+      "if": {"properties": {"internal": {"const": false}}},
+      "then": {
+        "properties": {
+          "external": {
+            "properties": {
+              "host": {"type": "string", "minLength": 1},
+              "existingSecret": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    }
+  }
+}

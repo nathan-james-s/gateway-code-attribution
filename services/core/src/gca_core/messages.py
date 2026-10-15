@@ -1,0 +1,192 @@
+"""Capture messages (contracts/capture-event.schema.json). Fingerprints and metadata only (Constitution II).
+
+``validate`` rejects any field that is not in the schema for the message kind, at every level, so content can
+never ride along in a capture message.
+"""
+
+from __future__ import annotations
+
+import base64
+import json
+from datetime import UTC, datetime
+from functools import cache
+from importlib import resources
+from typing import Any
+
+import jsonschema
+
+from gcattr import LineFingerprint
+
+__all__ = [
+    "MessageError",
+    "decode",
+    "encode",
+    "event_body",
+    "failure_body",
+    "heartbeat_body",
+    "line_from_wire",
+    "now_iso",
+    "validate",
+]
+
+SCHEMA_ID = "gca.capture.v1"
+_ENVELOPE = {"schema", "kind", "instance_id", "seq", "gateway_type", "sent_at"}
+_ALLOWED = {
+    "event": _ENVELOPE
+    | {
+        "credential_id",
+        "api_format",
+        "tool_hint",
+        "session_id",
+        "model",
+        "received_at",
+        "status",
+        "failure_cause",
+        "alg",
+        "key_gen",
+        "tool_call_count",
+        "lines",
+    },
+    "heartbeat": _ENVELOPE | {"responses_seen", "buffer_depth", "shutting_down"},
+    "failure": _ENVELOPE
+    | {"cause", "count", "credential_id", "api_format", "tool_hint", "period_start", "period_end"},
+}
+_LINE_KEYS = {"t", "l", "x", "m", "b", "p"}
+
+
+class MessageError(ValueError):
+    pass
+
+
+@cache
+def _schema() -> dict[str, Any]:
+    raw = resources.files("gca_core").joinpath("schemas/capture-event.schema.json").read_text("utf-8")
+    loaded: dict[str, Any] = json.loads(raw)
+    return loaded
+
+
+def now_iso() -> str:
+    return datetime.now(UTC).isoformat()
+
+
+def _b64(b: bytes) -> str:
+    return base64.b64encode(b).decode("ascii")
+
+
+def line_to_wire(fp: LineFingerprint) -> dict[str, Any]:
+    out: dict[str, Any] = {
+        "t": fp.tool_call_ordinal,
+        "l": fp.line_ordinal,
+        "x": _b64(fp.exact_fp),
+        "m": list(fp.minhash),
+        "b": [_b64(b) for b in fp.lsh_bands],
+    }
+    if fp.path_suffix_fps:
+        out["p"] = [_b64(p) for p in fp.path_suffix_fps]
+    return out
+
+
+def line_from_wire(d: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "tool_call_ordinal": int(d["t"]),
+        "line_ordinal": int(d["l"]),
+        "exact_fp": base64.b64decode(d["x"]),
+        "minhash": tuple(int(v) for v in d["m"]),
+        "lsh_bands": tuple(base64.b64decode(b) for b in d["b"]),
+        "path_suffix_fps": tuple(base64.b64decode(p) for p in d.get("p", [])),
+    }
+
+
+def event_body(
+    *,
+    api_format: str,
+    model: str,
+    received_at: str,
+    status: str,
+    alg: int,
+    key_gen: int,
+    lines: list[LineFingerprint],
+    tool_call_count: int,
+    credential_id: str | None = None,
+    tool_hint: str | None = None,
+    session_id: str | None = None,
+    failure_cause: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "kind": "event",
+        "credential_id": credential_id,
+        "api_format": api_format,
+        "tool_hint": tool_hint,
+        "session_id": session_id,
+        "model": model[:128],
+        "received_at": received_at,
+        "status": status,
+        "failure_cause": failure_cause,
+        "alg": alg,
+        "key_gen": key_gen,
+        "tool_call_count": tool_call_count,
+        "lines": [line_to_wire(f) for f in lines],
+    }
+
+
+def heartbeat_body(*, responses_seen: int, buffer_depth: int, shutting_down: bool = False) -> dict[str, Any]:
+    return {
+        "kind": "heartbeat",
+        "responses_seen": responses_seen,
+        "buffer_depth": buffer_depth,
+        "shutting_down": shutting_down,
+    }
+
+
+def failure_body(
+    *,
+    cause: str,
+    count: int,
+    period_start: str,
+    period_end: str,
+    credential_id: str | None = None,
+    api_format: str | None = None,
+    tool_hint: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "kind": "failure",
+        "cause": cause,
+        "count": count,
+        "credential_id": credential_id,
+        "api_format": api_format,
+        "tool_hint": tool_hint,
+        "period_start": period_start,
+        "period_end": period_end,
+    }
+
+
+def validate(msg: dict[str, Any]) -> dict[str, Any]:
+    kind = msg.get("kind")
+    if kind not in _ALLOWED:
+        raise MessageError(f"unknown message kind {kind!r}")
+    extra = set(msg) - _ALLOWED[kind]
+    if extra:
+        raise MessageError(f"fields not allowed in a {kind} message: {sorted(extra)}")
+    if kind == "event":
+        for line in msg.get("lines", []):
+            if not isinstance(line, dict) or set(line) - _LINE_KEYS:
+                raise MessageError("line items may only hold fingerprints (t, l, x, m, b, p)")
+    try:
+        jsonschema.validate(msg, _schema())
+    except jsonschema.ValidationError as exc:
+        raise MessageError(exc.message) from exc
+    return msg
+
+
+def encode(msg: dict[str, Any]) -> bytes:
+    return json.dumps(validate(msg), separators=(",", ":")).encode("utf-8")
+
+
+def decode(data: bytes) -> dict[str, Any]:
+    try:
+        msg = json.loads(data)
+    except json.JSONDecodeError as exc:
+        raise MessageError("message is not JSON") from exc
+    if not isinstance(msg, dict):
+        raise MessageError("message is not an object")
+    return validate(msg)

@@ -1,0 +1,10 @@
+.DS_Store
+.git/
+*.tmp
+*.swp
+.idea/
+.vscode/
+*.secret.yaml
+secrets/
+*.key
+*.crt

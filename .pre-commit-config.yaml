@@ -1,0 +1,25 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy (lib, strict)
+        entry: uv run mypy
+        language: system
+        pass_filenames: false
+        files: ^lib/
+      - id: helm-lint
+        name: helm lint
+        entry: helm lint charts/gateway-code-attribution
+        language: system
+        pass_filenames: false
+        files: ^charts/

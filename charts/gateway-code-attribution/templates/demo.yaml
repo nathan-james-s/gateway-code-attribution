@@ -1,0 +1,48 @@
+{{- if .Values.demo.enabled }}
+{{- $fn := include "gca.fullname" . }}
+# demo-model: a keyless stand-in for the model providers (FR-038). The gateway routes demo-openai, demo-anthropic
+# and demo-gemini to it (agentgateway.yaml llm.models, _litellm_config.tpl model_list).
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fn }}-demo-model
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  selector: {{- include "gca.selector" (dict "root" . "component" "demo-model") | nindent 4 }}
+  ports:
+    - {name: http, port: 8080, targetPort: 8080}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fn }}-demo-model
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{- include "gca.selector" (dict "root" . "component" "demo-model") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "gca.labels" . | nindent 8 }}
+        app.kubernetes.io/component: demo-model
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {{- include "gca.podSecurity" . | nindent 8 }}
+      containers:
+        - name: demo-model
+          image: {{ include "gca.projectImage" (dict "root" . "name" "demo") }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - {name: http, containerPort: 8080}
+          env:
+            - {name: GCA_DEMO_PORT, value: "8080"}
+            - {name: GCA_DEMO_CHUNK, value: "7"}
+          readinessProbe:
+            httpGet: {path: /healthz, port: 8080}
+            periodSeconds: 5
+          securityContext: {{- include "gca.containerSecurity" . | nindent 12 }}
+          resources:
+            requests: {cpu: 20m, memory: 64Mi}
+            limits: {memory: 256Mi}
+{{- end }}

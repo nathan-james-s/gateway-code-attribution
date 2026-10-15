@@ -1,0 +1,67 @@
+# Required merge gates (constitution "Development Workflow & Quality Gates"; T066). Listed as required status
+# checks in docs/maintainers.md. T095, T110 and T113 add jobs here.
+name: gates
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      capture: ${{ steps.f.outputs.capture }}
+      stack: ${{ steps.f.outputs.stack }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: f
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            capture:
+              - 'lib/**'
+              - 'services/core/**'
+              - 'services/capture-*/**'
+            stack:
+              - 'lib/**'
+              - 'services/**'
+              - 'charts/**'
+
+  no-recorder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/check-no-recorder.sh
+
+  conformance:
+    needs: changes
+    if: needs.changes.outputs.capture == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --all-packages -p 3.12
+      - run: uv run pytest tests/conformance
+
+  # Stack gate and data-path gate share one job and one cluster. The end-to-end test installs each gateway in
+  # turn (per-line parity needs both), then the privacy audit inspects what those runs left behind (T064, T065).
+  clean-install-and-privacy:
+    needs: changes
+    if: needs.changes.outputs.stack == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GCA_E2E: "1"
+      GCA_E2E_APP: ${{ secrets.GCA_E2E_APP }}
+      GCA_E2E_REPO: ${{ secrets.GCA_E2E_REPO }}
+      GH_TOKEN: ${{ secrets.GCA_E2E_GH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: azure/setup-helm@v4
+      - uses: helm/kind-action@v1
+        with:
+          install_only: true
+      - run: uv sync --all-packages -p 3.12
+      - run: gh auth setup-git
+      - name: clean-install (both gateways; time to first result, M7) then privacy audit
+        run: uv run pytest tests/e2e/test_us1_demo.py tests/privacy -x -s --gateway both

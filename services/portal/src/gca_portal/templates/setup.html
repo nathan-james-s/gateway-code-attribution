@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Route your coding tools through the gateway</h1>
+<p>Gateway URL: <code>{{ gateway_url }}</code>. Nothing is installed on your machine; only the endpoint and key
+change. Tools not listed here (for example GitHub Copilot inline completions, Cursor) can't be observed.</p>
+<table>
+  <tr><th>Tool</th><th>Settings</th><th>Model</th></tr>
+  {% for t in tools %}<tr><td>{{ t.tool }}</td><td><code>{{ t.set }}</code></td><td><code>{{ t.model }}</code></td></tr>{% endfor %}
+</table>
+{% endblock %}

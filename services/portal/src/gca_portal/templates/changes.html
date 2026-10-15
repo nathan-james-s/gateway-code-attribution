@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ owner }}/{{ repo }} #{{ pr }}</h1>
+<p class="muted">Head <code>{{ head.head_sha[:12] }}</code>{% if head.is_final %} (final at merge){% endif %} ·
+coverage: <strong>{{ head.coverage_status }}</strong> · algorithm version {{ head.alg }}.
+"Human" means no match to observed AI output.</p>
+<table>
+  <tr><th>File</th><th>Line</th><th>Outcome</th><th>Credited to</th></tr>
+  {% for l in lines %}
+  <tr>
+    <td><a href="https://github.com/{{ owner }}/{{ repo }}/blob/{{ head.head_sha }}/{{ l.file_path }}#L{{ l.line_no }}">{{ l.file_path }}</a></td>
+    <td>{{ l.line_no }}</td>
+    <td><span class="pill {{ l.outcome }} {{ l.tier }}">{% if l.outcome == "ai_unmodified" %}AI, unmodified{% elif l.outcome == "ai_modified" %}AI, modified ({{ l.tier }}){% elif l.outcome == "human" %}Human{% elif l.outcome == "indeterminate" %}Indeterminate{% else %}Not observed{% endif %}</span>
+      {% if l.similarity %}<span class="muted">{{ "%.2f"|format(l.similarity) }}</span>{% endif %}</td>
+    <td>{{ l.github_login or "unmapped" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% if head.excluded_paths %}<h3>Excluded</h3><ul>{% for e in head.excluded_paths %}<li><code>{{ e.path }}</code> ({{ e.reason }})</li>{% endfor %}</ul>{% endif %}
+{% endblock %}

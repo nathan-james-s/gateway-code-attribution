@@ -1,0 +1,62 @@
+{{- if eq .Values.gateway.type "agentgateway" }}
+{{- $fn := include "gca.fullname" . }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fn }}-capture-extproc
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  selector: {{- include "gca.selector" (dict "root" . "component" "capture-extproc") | nindent 4 }}
+  ports:
+    - {name: grpc, port: 9000, targetPort: 9000, appProtocol: kubernetes.io/h2c}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fn }}-capture-extproc
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  replicas: 2   # R2 mitigation 4
+  selector:
+    matchLabels: {{- include "gca.selector" (dict "root" . "component" "capture-extproc") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "gca.labels" . | nindent 8 }}
+        app.kubernetes.io/component: capture-extproc
+    spec:
+      # R2 mitigation 3: finish in-flight streams on rollout instead of truncating them.
+      terminationGracePeriodSeconds: 330
+      securityContext: {{- include "gca.podSecurity" . | nindent 8 }}
+      containers:
+        - name: capture-extproc
+          image: {{ include "gca.projectImage" (dict "root" . "name" "capture-extproc") }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - {name: grpc, containerPort: 9000}
+            - {name: health, containerPort: 9001}
+          env:
+            - {name: GCA_NATS_URL, value: "nats://{{ .Release.Name }}-nats:4222"}
+            - {name: GCA_KEYS_DIR, value: /var/run/gca/keys}
+            - {name: GCA_EXTPROC_WORKERS, value: "2"}
+          lifecycle:
+            preStop:
+              exec: {command: ["python", "-c", "import time; time.sleep(5)"]}
+          readinessProbe:
+            tcpSocket: {port: 9000}
+            periodSeconds: 5
+          livenessProbe:            # answered from the event loop: a wedged process or broken worker pool restarts
+            httpGet: {path: /healthz, port: 9001}
+            periodSeconds: 10
+            failureThreshold: 3
+          securityContext: {{- include "gca.containerSecurity" . | nindent 12 }}
+          resources:
+            requests: {cpu: 250m, memory: 256Mi}
+            limits: {memory: 1Gi}   # per-stream buffers are capped at 8 MiB
+          volumeMounts:
+            {{- include "gca.keysMount" . | nindent 12 }}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        {{- include "gca.keysVolume" . | nindent 8 }}
+        - {name: tmp, emptyDir: {medium: Memory, sizeLimit: 64Mi}}
+{{- end }}

@@ -1,0 +1,31 @@
+[project]
+name = "gcattr"
+version = "0.1.0"
+description = "Normalization, keyed fingerprinting and tiered matching for gateway-sourced AI-code attribution."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = "Apache-2.0"
+authors = [{ name = "Nathan Strandberg" }]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
+]
+# Runtime dependencies: standard library only (Constitution III; contracts/library-api.md).
+dependencies = []
+
+[project.scripts]
+gca = "gcattr.cli:main"
+
+[project.entry-points."gca.commands"]
+# Other packages register additional `gca` subcommands here (setup, demo, eval).
+
+[dependency-groups]
+dev = ["pytest>=8.3", "hypothesis>=6.112"]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gcattr"]

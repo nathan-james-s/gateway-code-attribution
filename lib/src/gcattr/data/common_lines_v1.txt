@@ -1,0 +1,29 @@
+# Common lines that are always indeterminate (research R10). One raw source line per entry; entries are
+# tokenized at load time, so spacing here does not matter. Versioned with the algorithm (common_lines_version).
+} else {
+else {
+return;
+pass
+break;
+continue;
+import os
+import sys
+};
+);
+end
+fi
+done
+try:
+except:
+else:
+finally:
+return None
+return true;
+return false;
+if __name__ == "__main__":
+} catch (e) {
+} finally {
+default:
+#!/usr/bin/env python3
+#!/usr/bin/env bash
+"use strict";

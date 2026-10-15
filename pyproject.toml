@@ -1,0 +1,71 @@
+[project]
+name = "gateway-code-attribution"
+version = "0.0.0"
+description = "Workspace root for the Gateway Code Attribution reference stack (not a published package)."
+requires-python = "==3.12.*"
+license = "Apache-2.0"
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["lib", "services/*", "eval/harness"]
+
+[tool.uv.sources]
+gcattr = { workspace = true }
+gca-core = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "hypothesis>=6.112",
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "pre-commit>=4.0",
+    "testcontainers[postgres]>=4.8",
+    "pytest-asyncio>=0.24",
+]
+
+# ---------------------------------------------------------------- lint / type-check (T005)
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["**/_gen/**", ".specify/**"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
+ignore = [
+    "S101",   # assert is fine in tests
+    "RUF001", # ambiguous unicode in strings is intentional in normalization tests
+    "RUF002",
+    "RUF003",
+    "E501",   # ruff format owns line length; long SQL strings and comments are allowed
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["gcattr", "gca_core", "gca_capture_extproc", "gca_capture_litellm", "gca_ingest", "gca_prcheck", "gca_portal", "gca_demo", "gca_eval"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S", "B"]
+"tests/**" = ["S", "B"]
+"**/tests/fixtures/**" = ["E501"]
+"**/alembic/versions/**" = ["E501", "W291"]
+"tests/spikes/**" = ["E501", "SIM115", "S", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+packages = ["gcattr"]
+mypy_path = "lib/src"
+strict = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+testpaths = ["lib/tests", "services"]
+asyncio_mode = "auto"
+markers = ["e2e: needs a demo cluster (kind) with an attributed demo run"]
+# The demo's sample project has its own tests, which run inside the sample repository.
+norecursedirs = [".*", "*.egg", "build", "dist", "node_modules", "venv", "sample-repo"]
+addopts = "-q --import-mode=importlib"

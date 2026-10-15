@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "gca.fullname" . }}-migrate-{{ .Release.Revision }}
+  labels: {{- include "gca.labels" . | nindent 4 }}
+  annotations:
+    # Runs after the database Secret and StatefulSet exist; retried until Postgres is ready.
+    helm.sh/hook: post-install,pre-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 20
+  template:
+    metadata:
+      labels:
+        {{- include "gca.labels" . | nindent 8 }}
+        app.kubernetes.io/component: migrate
+    spec:
+      restartPolicy: OnFailure
+      securityContext: {{- include "gca.podSecurity" . | nindent 8 }}
+      containers:
+        - name: migrate
+          image: {{ include "gca.projectImage" (dict "root" . "name" "ingest") }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          command: ["/bin/sh", "-c", "alembic -c /app/services/core/alembic.ini upgrade head && python -m gca_core.bootstrap"]
+          env:
+            {{- include "gca.dbEnv" . | nindent 12 }}
+            - name: GCA_REPORTING_PASSWORD
+              valueFrom: {secretKeyRef: {name: {{ include "gca.postgresSecret" . }}, key: reportingPassword}}
+          securityContext: {{- include "gca.containerSecurity" . | nindent 12 }}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {memory: 512Mi}
