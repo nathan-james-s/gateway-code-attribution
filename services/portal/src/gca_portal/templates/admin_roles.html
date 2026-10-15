@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Viewer roles</h1>
+<p><a href="/admin">Administration</a> · <a href="/admin/teams">Teams</a> · <a href="/admin/settings">Settings</a></p>
+<p class="muted">By default, organization owners are admins and team maintainers lead their own teams (FR-029a). A
+grant or revoke here overrides that default for one developer, role and team, from their next page load. Clear it
+to return to the GitHub default.</p>
+
+<h2>Overrides</h2>
+<table>
+  <tr><th>Developer</th><th>Role</th><th>Team</th><th>Override</th><th>Set by</th><th>When</th><th></th></tr>
+  {% for g in grants %}
+  <tr><td>{{ g.github_login }}</td><td>{{ g.role|replace("team_lead", "team lead") }}</td><td>{{ g.team or "" }}</td>
+      <td>{{ g.action }}</td><td>{{ g.created_by }}</td><td>{{ g.created_at.strftime("%Y-%m-%d") }}</td>
+      <td><form method="post" action="/admin/roles" style="margin:0">
+          <input type="hidden" name="github_login" value="{{ g.github_login }}">
+          <input type="hidden" name="role" value="{{ g.role }}"><input type="hidden" name="team" value="{{ g.team or "" }}">
+          <input type="hidden" name="action" value="clear"><button class="secondary">Clear</button></form></td></tr>
+  {% else %}<tr><td colspan="7" class="muted">No overrides: every role comes from GitHub.</td></tr>{% endfor %}
+</table>
+<form method="post" action="/admin/roles" class="card">
+  <label>Developer (GitHub login, signed in at least once) <input name="github_login" required></label>
+  <label>Role <select name="role"><option value="admin">admin</option><option value="team_lead">team lead</option></select></label>
+  <label>Team (for team lead) <input name="team"></label>
+  <label>Override <select name="action"><option value="grant">grant</option><option value="revoke">revoke</option></select></label>
+  <button>Save</button>
+</form>
+
+<h2>Team maintainers on GitHub</h2>
+<p class="muted">From the last team sync. Roles are also checked live with each viewer's GitHub account.</p>
+<table>
+  <tr><th>Team</th><th>Maintainer</th></tr>
+  {% for m in maintainers %}<tr><td>{{ m.team }}</td><td>{{ m.github_login }}</td></tr>
+  {% else %}<tr><td colspan="2" class="muted">None synced.</td></tr>{% endfor %}
+</table>
+{% endblock %}

@@ -21,4 +21,11 @@
   {% endif %}
 </div>
 <p>Next: <a href="/me/setup">point your coding tools at the gateway</a>.</p>
+{% if roles is defined %}
+<div class="card">
+  <p>Your role{{ "s" if roles|length > 1 }}: {{ roles|join(", ")|replace("team_lead", "team lead") }}.</p>
+  {% if is_admin %}<p><a href="/admin">Administration</a>: overrides, roles, teams and settings.</p>{% endif %}
+  {% for slug in lead_teams %}{% if loop.first %}<p>Teams you lead: {% endif %}<a href="/teams/{{ slug }}/developers">{{ slug }}</a>{{ ", " if not loop.last else "</p>"|safe }}{% endfor %}
+</div>
+{% endif %}
 {% endblock %}

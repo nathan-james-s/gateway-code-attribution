@@ -251,6 +251,19 @@ docs/                             # install, per-tool routing, outcomes, privacy
   parity check would prove nothing (seen with PR #3). One CI job runs both gateways, then the privacy audit.
 - **Demo "broad" case**: multiset matching (FR-013) lets an unchanged AI line consume its captured occurrence,
   so the demo shows a broad match by *moving* an AI-written method to another file and adapting it.
+- **Team sync runs in the PR check (T082)**, which holds the App key and receives the `membership`, `team` and
+  `organization` webhooks; the portal never gets the App key. Sync creates no developers: an account without a
+  Developer row is unmapped and its lines stay not observed (FR-015), so only people who have signed in can be
+  members. A developer's first membership row starts at their sign-in time (not at the next sync), so team
+  totals count what they merged in between, and sync re-runs within a minute of a new sign-in.
+- **Helm settings never reached the database** before US3: `attribution.*` and `perDeveloper.*` were rendered
+  but `portal_settings` kept its column defaults. The migrations Job now applies them
+  (`gca_core.bootstrap.apply_settings`), writing only values that changed since the chart last applied them
+  (`portal_settings.helm_values`, migration 0004), so upgrades don't undo the settings page.
+- **Role details (T083, T084)**: `portal.adminLogins` are always admins (break-glass, and the only admins on a
+  personal account), so a revoke doesn't remove them; an admin can't revoke their own admin role. One override
+  per (developer, role, team), latest wins; clearing it returns to the GitHub default. `visible_roles` may also
+  hold `other`, which lets every signed-in viewer see every developer.
 
 ## Complexity Tracking
 

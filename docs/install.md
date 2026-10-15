@@ -100,7 +100,24 @@ account. Your gateway credential is issued to that account, so the demo's AI out
 
 In the organization create one or two teams, for example `platform` and `payments`. Make yourself a
 **maintainer** of one, so you see the team-lead view, and add a second account if you have one. Organization
-owners are admins in the portal.
+owners are admins in the portal. Set `github.org` in your values to the organization's login.
+
+How roles and teams work:
+
+- **Roles** are checked live with each viewer's GitHub account and cached for 60 seconds: organization owners
+  are admins, team maintainers lead their own teams, everyone else is "other". Logins in `portal.adminLogins`
+  are always admins (an install on a personal account has no owners). Admins can grant or revoke roles at
+  `/admin/roles`; a change applies at the person's next page load.
+- **Teams** are synced from the organization by the PR check service: on team and membership webhooks, within
+  a minute of someone signing in to the portal for the first time, and in full every six hours. Only people who
+  have signed in are members. Admins can add teams, and add or remove members as overrides, at `/admin/teams`;
+  sync never changes an override.
+- **Per-developer views** (`/developers/<login>`, `/teams/<slug>/developers`) are on by default for admins (all
+  developers) and team leads (their own teams). Turn them off, or change who sees them, at `/admin/settings`.
+  Grafana's **Teams** dashboard shows team totals only, never per-developer figures.
+- **Settings** from the chart (`attribution.*`, `perDeveloper.*`) are applied at install. On upgrade, a value you
+  changed in your Helm values replaces what an admin set at `/admin/settings`; values you didn't change leave
+  the admin's choice in place.
 
 ### 2.7 CI only
 

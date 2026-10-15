@@ -439,21 +439,25 @@ in-scope tool used with a real provider key gives the same check behaviour.
 per-developer access FR-029 and FR-029a define. Team totals equal the sum of their members' credited lines, and
 the broad toggle changes only broad counts.
 
-- [ ] T082 [US3] Implement team sync in `services/portal/src/gca_portal/teamsync.py`. Handle the GitHub App events `membership`, `team` and `organization` (routed from `services/prcheck/src/gca_prcheck/webhooks.py` or polling) and run a full resync every 6 hours:
+- [X] T082 [US3] Implement team sync in `services/portal/src/gca_portal/teamsync.py`. Handle the GitHub App events `membership`, `team` and `organization` (routed from `services/prcheck/src/gca_prcheck/webhooks.py` or polling) and run a full resync every 6 hours:
   - upsert `Team` (`source=github`) for every team in `github.org`;
   - reconcile `TeamMembership` (`source=github`) by closing departed members' rows (`valid_to=now()`) and opening rows for new members (`valid_from=now()`), never deleting;
   - upsert `TeamLead` (`source=github_maintainer`) for maintainers.
 
   Override rows (`source=override`) are never changed by sync (FR-027).
-- [ ] T083 [US3] Implement `services/core/src/gca_core/roles.py`. `roles_for(developer) -> set[Role]` follows data-model.md "Working out a viewer's role": organization owner → `admin`; maintainer of team T → `team_lead(T)`; then `ViewerRoleGrant` grants and revokes are applied. `can_view_developer(viewer, target)` respects `PortalSettings.per_developer_enabled` and `visible_roles`. Defaults: admins see all developers; team leads see members of the teams they lead; others see none (FR-029, FR-029a). Replace T074's temporary `is_admin` with `roles_for`. **GitHub-derived roles are checked live** with the viewer's GitHub token (organization role and team maintainership), cached for at most 60 seconds, so GitHub-side changes apply within 60 seconds (FR-029a). In-stack grants and revokes apply at the next request.
-- [ ] T084 [US3] Implement role and team administration in `services/portal/src/gca_portal/admin_roles.py` and `admin_teams.py`, with templates: `GET/POST /admin/roles` and `GET/POST /admin/teams`, to grant or revoke admin and team-lead roles and add or remove team members as overrides. Implement `GET/POST /admin/settings` in `admin_settings.py` for `per_developer_enabled`, `visible_roles`, the matching window, retention and exclusions. All are admin only.
-- [ ] T085 [US3] Implement per-developer views in `services/portal/src/gca_portal/developers.py` with `developer.html.j2` and `team_developers.html.j2`:
+
+  *Implemented in `services/prcheck/src/gca_prcheck/teamsync.py`*, not the portal: the PR check already holds
+  the App key and receives the webhooks, so the portal keeps acting only with the signed-in user's token. Sync
+  also runs within a minute of a developer's first sign-in.
+- [X] T083 [US3] Implement `services/core/src/gca_core/roles.py`. `roles_for(developer) -> set[Role]` follows data-model.md "Working out a viewer's role": organization owner → `admin`; maintainer of team T → `team_lead(T)`; then `ViewerRoleGrant` grants and revokes are applied. `can_view_developer(viewer, target)` respects `PortalSettings.per_developer_enabled` and `visible_roles`. Defaults: admins see all developers; team leads see members of the teams they lead; others see none (FR-029, FR-029a). Replace T074's temporary `is_admin` with `roles_for`. **GitHub-derived roles are checked live** with the viewer's GitHub token (organization role and team maintainership), cached for at most 60 seconds, so GitHub-side changes apply within 60 seconds (FR-029a). In-stack grants and revokes apply at the next request.
+- [X] T084 [US3] Implement role and team administration in `services/portal/src/gca_portal/admin_roles.py` and `admin_teams.py`, with templates: `GET/POST /admin/roles` and `GET/POST /admin/teams`, to grant or revoke admin and team-lead roles and add or remove team members as overrides. Implement `GET/POST /admin/settings` in `admin_settings.py` for `per_developer_enabled`, `visible_roles`, the matching window, retention and exclusions. All are admin only.
+- [X] T085 [US3] Implement per-developer views in `services/portal/src/gca_portal/developers.py` with `developer.html.j2` and `team_developers.html.j2`:
   - `GET /developers/{github_login}` shows per-developer totals over a selectable period, with and without broad, aggregated from `LineResult.credited_developer_id` on final heads.
   - `GET /teams/{slug}/developers` shows a per-developer breakdown.
 
   Both enforce `can_view_developer` and return 403 `forbidden` without revealing whether the target exists (contracts/portal-http.md).
-- [ ] T086 [US3] Create Alembic migration `services/core/alembic/versions/0004_team_view.py` with `v_team_daily`: team × day sums of line credits on final heads to that team's members, using membership as of the merge date (`valid_from ≤ merged_at < coalesce(valid_to, ∞)`), with `*_with_broad` and `*_without_broad` columns and no per-developer columns. Grant to `gca_reporting`. Create `charts/gateway-code-attribution/dashboards/team.json` with the broad toggle and `alg`.
-- [ ] T087 [US3] Create `tests/integration/test_roles.py` covering the viewer role matrix:
+- [X] T086 [US3] Create Alembic migration `services/core/alembic/versions/0004_team_view.py` with `v_team_daily`: team × day sums of line credits on final heads to that team's members, using membership as of the merge date (`valid_from ≤ merged_at < coalesce(valid_to, ∞)`), with `*_with_broad` and `*_without_broad` columns and no per-developer columns. Grant to `gca_reporting`. Create `charts/gateway-code-attribution/dashboards/team.json` with the broad toggle and `alg`.
+- [X] T087 [US3] Create `tests/integration/test_roles.py` covering the viewer role matrix:
   - an org owner can view any developer;
   - a team maintainer can view only their team's members;
   - a plain member gets 403;

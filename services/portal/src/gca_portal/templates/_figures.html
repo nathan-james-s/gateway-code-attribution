@@ -1,0 +1,18 @@
+{% macro figures(f) %}
+<table>
+  <tr><th></th><th>With broad matches</th><th>Without broad matches</th></tr>
+  <tr><td>AI lines</td><td>{{ f.with_broad.ai_lines }}</td><td>{{ f.without_broad.ai_lines }}</td></tr>
+  <tr><td>Human lines</td><td>{{ f.with_broad.human_lines }}</td><td>{{ f.without_broad.human_lines }}</td></tr>
+  <tr><td>AI share</td><td>{{ f.with_broad.ai_pct if f.with_broad.ai_pct is not none else "–" }}%</td>
+      <td>{{ f.without_broad.ai_pct if f.without_broad.ai_pct is not none else "–" }}%</td></tr>
+</table>
+<p class="muted">AI unmodified {{ f.ai_unmodified }} · AI modified (anchored) {{ f.ai_modified_anchored }} ·
+AI modified (broad) {{ f.ai_modified_broad }} · human {{ f.human }} · indeterminate {{ f.indeterminate }} ·
+algorithm {{ f.algs|join(", ") if f.algs else "–" }}</p>
+{% endmacro %}
+{% macro period(days, periods) %}
+<form method="get" style="margin:0 0 12px">Period: <select name="days" onchange="this.form.submit()">
+  {% for p in periods %}<option value="{{ p }}" {{ "selected" if p == days }}>last {{ p }} days</option>{% endfor %}
+  {% if days not in periods %}<option value="{{ days }}" selected>last {{ days }} days</option>{% endif %}
+</select><noscript><button>Show</button></noscript></form>
+{% endmacro %}

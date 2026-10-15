@@ -10,6 +10,7 @@ import hashlib
 import hmac
 import json
 import logging
+from collections.abc import Callable
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
@@ -19,7 +20,7 @@ from sqlalchemy.engine import Engine
 
 from gca_core.github import AppClient
 
-from . import events
+from . import events, teamsync
 from .checkrun import CHECK_NAME
 from .polling import announce, needs_announce, record_head, upsert_repository
 
@@ -51,7 +52,9 @@ def _remember(engine: Engine, delivery: str, event: str) -> None:
         )
 
 
-def create_router(engine: Engine, gh: AppClient, secret: str) -> APIRouter:
+def create_router(
+    engine: Engine, gh: AppClient, secret: str, on_team_event: Callable[[], None] | None = None
+) -> APIRouter:
     router = APIRouter()
 
     async def on_pull_request(payload: dict[str, Any], background: BackgroundTasks) -> None:
@@ -122,7 +125,8 @@ def create_router(engine: Engine, gh: AppClient, secret: str) -> APIRouter:
             on_installation_repositories(payload)
         elif event == "installation":
             on_installation(payload)
-        # membership, team and organization events drive roles (US3); accepted and ignored for now.
+        elif event in teamsync.EVENTS and on_team_event is not None:
+            on_team_event()  # team sync runs in the background (T082)
         _remember(engine, delivery, event)
         return JSONResponse({"status": "accepted"}, status_code=202)
 

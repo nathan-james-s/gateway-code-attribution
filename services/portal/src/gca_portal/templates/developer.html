@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% import "_figures.html" as fig %}
+{% block content %}
+<h1>{{ d.github_login }}</h1>
+{{ fig.period(d.days, periods) }}
+<p>{{ d.changes }} merged change{{ "s" if d.changes != 1 }} with lines credited to {{ d.github_login }}.</p>
+<div class="card">{{ fig.figures(d) }}</div>
+<p class="muted">Counts are lines on the final head of each change merged in the period, credited by blame.
+Without broad matches, broad-similarity lines count as human (FR-028).</p>
+{% endblock %}

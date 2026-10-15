@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import "_figures.html" as fig %}
+{% block content %}
+<h1>{{ t.name }}</h1>
+{{ fig.period(t.days, periods) }}
+<div class="card"><h2>Team total</h2>{{ fig.figures(t.totals) }}</div>
+<table>
+  <tr><th>Developer</th><th>AI lines<br><span class="muted">with broad</span></th>
+      <th>AI lines<br><span class="muted">without broad</span></th><th>Human lines<br><span class="muted">with broad</span></th>
+      <th>AI share<br><span class="muted">with / without broad</span></th><th>Changes</th></tr>
+  {% for d in t.developers %}
+  <tr><td><a href="/developers/{{ d.github_login }}?days={{ t.days }}">{{ d.github_login }}</a>
+          {% if not d.current_member %}<span class="muted">(former member)</span>{% endif %}</td>
+      <td>{{ d.with_broad.ai_lines }}</td><td>{{ d.without_broad.ai_lines }}</td><td>{{ d.with_broad.human_lines }}</td>
+      <td>{{ d.with_broad.ai_pct if d.with_broad.ai_pct is not none else "–" }}% /
+          {{ d.without_broad.ai_pct if d.without_broad.ai_pct is not none else "–" }}%</td><td>{{ d.changes }}</td></tr>
+  {% else %}<tr><td colspan="6" class="muted">No members yet.</td></tr>{% endfor %}
+</table>
+<p class="muted">A line counts for the team when its developer was a member on the merge date.</p>
+{% endblock %}
