@@ -1,5 +1,8 @@
+{{- define "gca.providerKeyEnv" -}}PROVIDER_KEY_{{ . | upper | replace "-" "_" }}{{- end -}}
+
 {{- define "gca.litellmConfig" -}}
 {{- $fn := include "gca.fullname" . -}}
+{{- $keyNames := dict "anthropic" "ANTHROPIC_API_KEY" "openAI" "OPENAI_API_KEY" "gemini" "GEMINI_API_KEY" -}}
 model_list:
   {{- if .Values.demo.enabled }}
   - model_name: demo-openai
@@ -9,11 +12,15 @@ model_list:
   - model_name: demo-gemini
     litellm_params: {model: gemini/demo-gemini, api_base: "http://{{ $fn }}-demo-model:8080", api_key: demo}
   {{- end }}
-  {{- range .Values.providers.models }}
-  - model_name: {{ .name }}
+  {{- range $m := .Values.providers.models }}
+  - model_name: {{ $m.name }}
     litellm_params:
-      model: {{ if eq .provider "openAI" }}openai{{ else }}{{ .provider }}{{ end }}/{{ .model }}
-      api_key: os.environ/PROVIDER_{{ .provider | upper }}_KEY
+      model: {{ printf "%s/%s" (ternary "openai" $m.provider (eq $m.provider "openAI")) $m.model | quote }}
+      api_key: os.environ/{{ include "gca.providerKeyEnv" ($m.apiKeyName | default (get $keyNames $m.provider)) }}
+      {{- with $m.baseUrl }}
+      {{- /* LiteLLM appends /v1/messages for Anthropic, so its base is one level up from agentgateway's */}}
+      api_base: {{ ternary (trimSuffix "/v1" .) . (eq $m.provider "anthropic") | quote }}
+      {{- end }}
   {{- end }}
 litellm_settings:
   callbacks: ["gca_capture_litellm.handler.handler"]

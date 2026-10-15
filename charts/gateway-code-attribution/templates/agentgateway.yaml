@@ -55,8 +55,11 @@ data:
         - name: {{ .name }}
           provider: {{ .provider }}
           params:
-            model: {{ .model }}
-            apiKey: {file: /var/run/gca/providers/{{ get $keyFiles .provider }}}
+            model: {{ .model | quote }}
+            {{- with .baseUrl }}
+            baseUrl: {{ . | quote }}
+            {{- end }}
+            apiKey: {file: /var/run/gca/providers/{{ .apiKeyName | default (get $keyFiles .provider) }}}
         {{- end }}
 ---
 apiVersion: v1

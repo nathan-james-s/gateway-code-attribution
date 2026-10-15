@@ -59,6 +59,16 @@
               "model": {
                 "type": "string",
                 "minLength": 1
+              },
+              "baseUrl": {
+                "type": "string",
+                "pattern": "^https?://",
+                "description": "an API-compatible service instead of the provider, e.g. https://openrouter.ai/api/v1"
+              },
+              "apiKeyName": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_.-]+$",
+                "description": "the key in providers.existingSecret holding this model's API key"
               }
             }
           }

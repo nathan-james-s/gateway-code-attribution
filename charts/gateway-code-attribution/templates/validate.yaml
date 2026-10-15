@@ -15,7 +15,7 @@
 {{- end -}}
 {{- end -}}
 {{- if and .Values.providers.models (not .Values.providers.existingSecret) -}}
-{{- fail "providers.models needs providers.existingSecret: a Secret with ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY" -}}
+{{- fail "providers.models needs providers.existingSecret: a Secret with ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY (or the apiKeyName each model names)" -}}
 {{- end -}}
 {{- range .Values.providers.models -}}
 {{- if not (has .provider (list "anthropic" "openAI" "gemini")) -}}
