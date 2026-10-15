@@ -28,8 +28,11 @@ The system MUST NOT persist source code, model output text or prompts.
 - Only keyed fingerprints, including any similarity-preserving forms, and the metadata needed for attribution
   (identity, time, model, tool-call and path references) MAY be stored.
 - Content MAY be processed in memory only, for as long as fingerprinting needs it.
-- Logs, traces, metrics, queues, crash reports and demo data MUST NOT contain code or prompt text. This
-  includes gateway features that would log completions.
+- Logs, traces, metrics, queues, crash reports, and any data the system produces or stores (including during
+  demo runs) MUST NOT contain code or prompt text. This includes gateway features that would log completions.
+  Authored inputs that are synthetic code by design are exempt: demo fixtures, the sample repository, and the
+  scenario set. Those inputs MUST NOT contain real users' code or prompts, unless it's recorded traffic that its
+  owner consented to include.
 - Fingerprints MUST be keyed with a server-side secret. Unkeyed hashes of code lines MUST NOT be stored.
 - Any new similarity-preserving fingerprint MUST come with a documented assessment of what it reveals about
   short lines before it ships.
@@ -171,4 +174,4 @@ constitution wins until it is amended.
   - A deviation MUST be justified in the plan's complexity tracking, or the constitution amended first.
   - The constitution is reviewed at each release against the release bar (Principle V).
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-14 | **Last Amended**: 2026-10-14
+**Version**: 1.0.1 | **Ratified**: 2026-10-14 | **Last Amended**: 2026-10-14
