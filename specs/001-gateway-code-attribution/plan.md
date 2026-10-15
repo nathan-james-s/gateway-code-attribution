@@ -280,6 +280,16 @@ docs/                             # install, per-tool routing, outcomes, privacy
   injected event also loses its `type`, which is. The capture processor has two test-only delays,
   `GCA_CAPTURE_TEST_PARSE_DELAY_SECONDS` and `GCA_CAPTURE_TEST_ECHO_DELAY_SECONDS` (0 by default). Per R2 there's no
   gateway timeout on the echo path, so T093(d) checks that a slow echo still completes, not that it's cut off.
+- **One reading of a change (T096)**: the diff parser and exclusion globs moved from the PR check into
+  `gcattr.diff`, and the per-response fingerprinting loop (tool-call numbering) into `gcattr.io`, used by both
+  capture adapters and `gca fingerprint`. `gca attribute` therefore reads a local range exactly as the PR check
+  reads a PR; T097 confirmed it line for line on a live demo PR (93 lines). One known difference: when GitHub's
+  compare API omits a large file's patch, the PR check rebuilds it from both blobs with `difflib`, while
+  `gca attribute` always uses git's diff, so the two can number added lines differently for those files only.
+- **Golden corpus (T094, T095)**: inputs are frozen inside `lib/tests/golden/alg-<n>/inputs`, so later fixture
+  edits can't move the expected outputs; `.gitattributes` keeps those files byte-exact. `check-alg-bump.sh` allows
+  exactly one exception to "never change a corpus": the first corpus for the current `ALG`. The contract's
+  defaults `alg=ALG` on `attribute()` and `extract()` were missing and are now in place.
 - **Role details (T083, T084)**: `portal.adminLogins` are always admins (break-glass, and the only admins on a
   personal account), so a revoke doesn't remove them; an admin can't revoke their own admin role. One override
   per (developer, role, team), latest wins; clearing it returns to the GitHub default. `visible_roles` may also

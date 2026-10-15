@@ -1,0 +1,57 @@
+{
+ "call_type": "aresponses",
+ "response_obj": {
+  "id": "resp_bGl0ZWxsbTpjdXN0b21fbGxtX3Byb3ZpZGVyOm9wZW5haTttb2RlbF9pZDo0YTM1NTIzNjAzMDlmODU4M2QxMzhlYWUwNTM2MGNkODJhOGFiYjk0YmRhMTVhNjg3NWYxZTFhODQyNTUwYjA2O3Jlc3BvbnNlX2lkOnJlc3BfZGVtbw==",
+  "created_at": 1,
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "metadata": null,
+  "model": "demo",
+  "object": "response",
+  "output": [
+   {
+    "type": "custom_tool_call",
+    "call_id": "call_discount-ts_0",
+    "id": "ctc_0",
+    "name": "apply_patch",
+    "input": "*** Begin Patch\n*** Add File: web/src/discount.ts\n+import { CartLine, subtotalCents } from \"./cart\";\n+\n+export const BULK_THRESHOLD = 10;\n+\n+export function bulkDiscountCents(lines: CartLine[]): number {\n+  return lines\n+    .filter((line) => line.quantity >= BULK_THRESHOLD)\n+    .reduce((sum, line) => sum + Math.floor((line.priceCents * line.quantity * 5) / 100), 0);\n+}\n+\n+export function totalAfterDiscountsCents(lines: CartLine[]): number {\n+  return Math.max(subtotalCents(lines) - bulkDiscountCents(lines), 0);\n+}\n*** End Patch\n",
+    "status": "completed"
+   }
+  ],
+  "parallel_tool_calls": null,
+  "temperature": null,
+  "tool_choice": null,
+  "tools": null,
+  "top_p": null,
+  "max_output_tokens": null,
+  "previous_response_id": null,
+  "reasoning": null,
+  "status": "completed",
+  "text": null,
+  "truncation": null,
+  "usage": {
+   "completion_tokens": 50,
+   "prompt_tokens": 10,
+   "total_tokens": 60,
+   "completion_tokens_details": {
+    "accepted_prediction_tokens": null,
+    "audio_tokens": null,
+    "reasoning_tokens": 0,
+    "rejected_prediction_tokens": null,
+    "text_tokens": null,
+    "image_tokens": null,
+    "video_tokens": null
+   },
+   "prompt_tokens_details": {
+    "audio_tokens": null,
+    "cached_tokens": 0,
+    "text_tokens": null,
+    "image_tokens": null,
+    "video_tokens": null
+   }
+  },
+  "user": null,
+  "store": null
+ }
+}

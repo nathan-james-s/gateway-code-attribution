@@ -505,22 +505,22 @@ results as the stack.
 **Independent Test**: quickstart.md section 6. Golden files pass on Linux and macOS, and
 `gca attribute` matches the PR check for the same head.
 
-- [ ] T094 [US5] Create the golden corpus generator `lib/tests/golden/generate.py` and the corpus `lib/tests/golden/alg-1/`: input streams (from `lib/tests/fixtures`) plus a fixed test key (32 bytes of `0x42`, `key_gen=1`) mapped to expected `LineFingerprint` JSON and expected `attribute` outcomes. Add `lib/tests/test_golden.py`, asserting byte-identical output (FR-033, SC-008), run in CI on Linux and macOS (T008).
-- [ ] T095 [US5] Create `scripts/check-alg-bump.sh`, wired into CI. If `lib/tests/golden/alg-*` outputs change without a new `ALG` value and corpus directory in the same change, fail with a message citing Constitution III and FR-032.
-- [ ] T096 [US5] Implement the library CLI in `lib/src/gcattr/cli.py`, per [contracts/library-api.md](./contracts/library-api.md):
+- [X] T094 [US5] Create the golden corpus generator `lib/tests/golden/generate.py` and the corpus `lib/tests/golden/alg-1/`: input streams (from `lib/tests/fixtures`) plus a fixed test key (32 bytes of `0x42`, `key_gen=1`) mapped to expected `LineFingerprint` JSON and expected `attribute` outcomes. Add `lib/tests/test_golden.py`, asserting byte-identical output (FR-033, SC-008), run in CI on Linux and macOS (T008).
+- [X] T095 [US5] Create `scripts/check-alg-bump.sh`, wired into CI. If `lib/tests/golden/alg-*` outputs change without a new `ALG` value and corpus directory in the same change, fail with a message citing Constitution III and FR-032.
+- [X] T096 [US5] Implement the library CLI in `lib/src/gcattr/cli.py`, per [contracts/library-api.md](./contracts/library-api.md):
   - `gca version`;
   - `gca fingerprint --alg --key-file --format`, which reads a recorded stream from stdin and prints fingerprint JSON lines with no content;
   - `gca attribute --repo --base --head --captures --key-file`, which reads added lines through `git diff --unified=0 <merge-base>..<head>` and `git blame --porcelain <head> -- <path>` held in memory, writes nothing to disk, and prints outcomes per line and a summary;
   - `--json`, exit codes, and plugin subcommands loaded from the `gca.commands` entry points.
-- [ ] T097 [US5] Create `tests/integration/test_cli_matches_prcheck.py`. For a demo PR head, export that head's candidates (`captured_line` rows, no content) to `captures.jsonl`, run `gca attribute` on a local clone, and assert per-line outcomes identical to the stored `LineResult` rows.
-- [ ] T098 [US5] Create `.github/workflows/release.yml`, triggered on `v*` tags (R21):
+- [X] T097 [US5] Create `tests/integration/test_cli_matches_prcheck.py`. For a demo PR head, export that head's candidates (`captured_line` rows, no content) to `captures.jsonl`, run `gca attribute` on a local clone, and assert per-line outcomes identical to the stored `LineResult` rows.
+- [X] T098 [US5] Create `.github/workflows/release.yml`, triggered on `v*` tags (R21):
   - build the `gcattr` wheel and sdist;
   - write `SHA256SUMS`;
   - publish to PyPI with trusted publishing and attestations;
   - attach the artifacts to the GitHub Release;
   - build and push the service images to `ghcr.io` with digests in the release notes;
   - package the Helm chart (`helm package`) with a checksum, and push it to the GitHub Pages chart repository or an OCI registry.
-- [ ] T099 [P] [US5] Write `docs/library.md`: the Python API summary, the CLI, the versioning guarantees (semver versus `ALG`, the Unicode pin, `SUPPORTED_ALGS`) and an example of using `gcattr` outside the stack.
+- [X] T099 [P] [US5] Write `docs/library.md`: the Python API summary, the CLI, the versioning guarantees (semver versus `ALG`, the Unicode pin, `SUPPORTED_ALGS`) and an example of using `gcattr` outside the stack.
 
 **Checkpoint**: Stories 1–5 work on their own.
 

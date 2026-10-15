@@ -1,0 +1,95 @@
+{
+ "captures": {
+  "4242": [
+   "openai_chat.sse",
+   "anthropic.sse"
+  ]
+ },
+ "key_gen": 1,
+ "lines": [
+  [
+   "src/app.py",
+   1,
+   "def total(items):",
+   4242
+  ],
+  [
+   "src/app.py",
+   2,
+   "\tsubtotal = sum(i.price for i in items)  # cafe",
+   4242
+  ],
+  [
+   "src/app.py",
+   3,
+   "    print(\"a\\nb\", 'quote')",
+   4242
+  ],
+  [
+   "src/app.py",
+   4,
+   "    tax = 1.0825",
+   4242
+  ],
+  [
+   "src/app.py",
+   5,
+   "    return round(subtotal * tax, 2)",
+   4242
+  ],
+  [
+   "src/app.py",
+   6,
+   "",
+   4242
+  ],
+  [
+   "src/app.py",
+   7,
+   "\u00e9moji = \"\ud83d\ude80\"",
+   4242
+  ],
+  [
+   "src/app.py",
+   8,
+   "    subtotal = sum(item.price for item in items)  # caf\u00e9",
+   4242
+  ],
+  [
+   "src/app.py",
+   9,
+   "    log_everything_to_a_remote_audit_service(items, verbose=True)",
+   4242
+  ],
+  [
+   "src/app.py",
+   10,
+   "}",
+   4242
+  ],
+  [
+   "lib/other.py",
+   1,
+   "\tsubtotal = sum(i.price for i in items)  # cafe",
+   4242
+  ],
+  [
+   "lib/other.py",
+   2,
+   "    return round(subtotal * 1.0825, 3)",
+   5151
+  ],
+  [
+   "lib/other.py",
+   3,
+   "    return round(subtotal * tax, 2)",
+   null
+  ],
+  [
+   "web/add.ts",
+   1,
+   "export const add = (a: number, b: number): number => a + b;",
+   4242
+  ]
+ ]
+}

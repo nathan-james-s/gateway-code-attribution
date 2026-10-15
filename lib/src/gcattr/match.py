@@ -6,7 +6,7 @@ from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from typing import NamedTuple
 
-from .algorithm import params_for
+from .algorithm import ALG, params_for
 from .fingerprint import FingerprintKey, exact_fp, path_suffix_fps
 from .lexer import Token, tokenize
 from .normalize import normalize_line
@@ -69,7 +69,7 @@ def attribute(
     lines: Sequence[AddedLine],
     candidates_by_author: Mapping[int, Sequence[Candidate]],
     keys: Mapping[int, FingerprintKey],
-    alg: int,
+    alg: int = ALG,
 ) -> list[LineOutcome]:
     params_for(alg)
     results: list[LineOutcome | None] = [None] * len(lines)

@@ -1,0 +1,4 @@
+data: {"candidates": [{"content": {"role": "model", "parts": [{"text": "Writing the file."}]}, "index": 0}]}
+
+data: {"candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "write_file", "args": {"path": "src/app.py", "content": "def total(items):\n\tsubtotal = sum(i.price for i in items)  # café\n    print(\"a\\nb\", 'quote')\n    return round(subtotal * 1.0825, 2)\r\n\némoji = \"🚀\"\n"}}}]}, "finishReason": "STOP", "index": 0}], "usageMetadata": {"promptTokenCount": 10, "candidatesTokenCount": 50, "totalTokenCount": 60}}
+
