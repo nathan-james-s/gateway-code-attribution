@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Your gateway credential</h1>
+{% if issued_key %}
+<div class="card">
+  <strong>Copy this key now. It is shown only once and never stored.</strong>
+  <pre id="key">{{ issued_key }}</pre>
+  <p class="muted">It takes effect within about 2 minutes, while the gateway reloads its configuration.</p>
+</div>
+{% endif %}
+<div class="card">
+  {% if cred %}
+  <p>Active credential issued {{ cred.issued_at.strftime("%Y-%m-%d %H:%M UTC") }} for {{ gateway }}.</p>
+  <form method="post" action="/me/credential" style="display:inline"><button>Issue a new key</button></form>
+  <form method="post" action="/me/credential/revoke" style="display:inline">
+    <button class="secondary">Revoke</button></form>
+  <p class="muted">Issuing a new key revokes the old one.</p>
+  {% else %}
+  <p>You don't have an active credential.</p>
+  <form method="post" action="/me/credential"><button>Get gateway credential</button></form>
+  {% endif %}
+</div>
+<p>Next: <a href="/me/setup">point your coding tools at the gateway</a>.</p>
+{% endblock %}

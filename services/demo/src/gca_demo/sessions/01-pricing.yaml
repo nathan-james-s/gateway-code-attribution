@@ -1,0 +1,60 @@
+name: pricing
+description: Claude Code (Anthropic Messages) writes bulk-discount pricing and merges duplicate cart lines.
+steps:
+  - format: anthropic_messages
+    file: src/shop/pricing.py
+    write: |
+      """Discount rules for the cart."""
+
+      from __future__ import annotations
+
+      from .cart import Cart
+
+      BULK_THRESHOLD = 10
+      BULK_DISCOUNT_PERCENT = 5
+
+
+      def bulk_discount_cents(cart: Cart) -> int:
+          """Five percent off every line with at least ten units."""
+          eligible = [item for item in cart.items if item.quantity >= BULK_THRESHOLD]
+          rate = BULK_DISCOUNT_PERCENT
+          discount = sum(item.price_cents * item.quantity * rate // 100 for item in eligible)
+          return discount
+
+
+      def total_after_discounts_cents(cart: Cart) -> int:
+          return max(cart.subtotal_cents() - bulk_discount_cents(cart), 0)
+  - format: anthropic_messages
+    file: src/shop/cart.py
+    edit:
+      old: |
+        def add(self, item: Item) -> None:
+                self.items.append(item)
+      new: |
+        def add(self, item: Item) -> None:
+                for index, existing in enumerate(self.items):
+                    if existing.sku == item.sku:
+                        merged = existing.quantity + item.quantity
+                        self.items[index] = Item(item.sku, item.name, item.price_cents, merged)
+                        return
+                self.items.append(item)
+human_edits:
+  # Renaming a variable next to AI output: those lines become "AI, modified (anchored)".
+  - file: src/shop/pricing.py
+    replace:
+      old: "    discount = sum("
+      new: "    total = sum("
+  - file: src/shop/pricing.py
+    replace:
+      old: "    return discount\n"
+      new: "    return total\n"
+  # Typed by the developer: "Human".
+  - file: src/shop/pricing.py
+    append: |
+
+
+      def describe_discount(cart: Cart) -> str:
+          saved = bulk_discount_cents(cart)
+          if not saved:
+              return "No bulk discount this time"
+          return f"You saved {saved} cents with bulk pricing"

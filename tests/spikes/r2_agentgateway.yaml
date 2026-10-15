@@ -1,0 +1,42 @@
+# T038 spike config for agentgateway 1.6.0 standalone (research R2, R5). Test key: gca_spike_key_1.
+config:
+  logging:
+    format: json
+llm:
+  port: 13090
+  policies:
+    apiKey:
+      mode: strict
+      location:
+        expression: >-
+          default(request.headers["x-api-key"],
+            default(request.headers["x-goog-api-key"],
+              request.headers["authorization"].regexReplace("^Bearer ", "")))
+      keys:
+        - keyHash: "sha256:c9b19a2b3bdb87fc9c18deee3ca4ed985b96b9eb944aa39f80a28d0bb9b2dd0f"
+          metadata:
+            credential_id: "11111111-2222-3333-4444-555555555555"
+            github_id: 4242
+    extProc:
+      host: 127.0.0.1:9000
+      failureMode: failOpen
+      processingOptions:
+        requestHeaderMode: send
+        responseHeaderMode: send
+        requestBodyMode: none
+        responseBodyMode: fullDuplexStreamed
+      metadataContext:
+        gca:
+          credential_id: apiKey.credential_id
+          github_id: apiKey.github_id
+          path: request.path
+  models:
+    - name: mock-openai
+      provider: openAI
+      params: {model: mock, baseUrl: "http://127.0.0.1:18090/v1", apiKey: sk-mock}
+    - name: mock-anthropic
+      provider: anthropic
+      params: {model: mock, baseUrl: "http://127.0.0.1:18090/v1", apiKey: sk-mock}
+    - name: mock-gemini
+      provider: gemini
+      params: {model: mock-gemini, baseUrl: "http://127.0.0.1:18090/v1beta", apiKey: sk-mock}

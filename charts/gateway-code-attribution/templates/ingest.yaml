@@ -1,0 +1,28 @@
+{{- $fn := include "gca.fullname" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fn }}-ingest
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  replicas: 1              # one consumer keeps per-instance order (watermark + sequence-gap detection)
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {{- include "gca.selector" (dict "root" . "component" "ingest") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "gca.labels" . | nindent 8 }}
+        app.kubernetes.io/component: ingest
+    spec:
+      securityContext: {{- include "gca.podSecurity" . | nindent 8 }}
+      containers:
+        - name: ingest
+          image: {{ include "gca.projectImage" (dict "root" . "name" "ingest") }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          env:
+            {{- include "gca.dbEnv" . | nindent 12 }}
+          securityContext: {{- include "gca.containerSecurity" . | nindent 12 }}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {memory: 1Gi}

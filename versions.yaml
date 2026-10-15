@@ -1,0 +1,65 @@
+# Every pinned external artifact (Constitution VI). Digests are resolved by scripts/pin-digests.sh.
+# Resolved 2026-10-14 with `docker buildx imagetools inspect`.
+images:
+  agentgateway:
+    ref: cr.agentgateway.dev/agentgateway
+    tag: v1.6.0
+    digest: sha256:9d3e6044ddcdc0878b1787f77bd401252b95e22684203fb5e874c4c42d2ed90c
+  litellm:
+    # Upstream image, NOT used at runtime: it ships Python 3.13 / Unicode 15.1.0, but gcattr alg 1 pins
+    # CPython 3.12 / Unicode 15.0.0 (R8). We build gca-litellm on python:3.12-slim with litellm[proxy]==1.105.1.
+    ref: ghcr.io/berriai/litellm
+    tag: v1.105.1
+    digest: sha256:b7b9e2c306343721802253d0dd9436b9634a2eb4e14da7c7cf06c5c7b7530802
+  nats:
+    ref: docker.io/library/nats
+    tag: 2.15.1-alpine
+    digest: sha256:2ae57dfba3063d5e25fecb75256118c0882a1a2d2cf7d0fba17a7c701df956f6
+  grafana:
+    ref: docker.io/grafana/grafana
+    tag: 13.2.4
+    digest: sha256:dbbc38ea21103cefb50396340cd88afec779c7e070b0a7bf5a75b4ce46651d3f
+  postgres:
+    ref: docker.io/library/postgres
+    tag: "17"
+    digest: sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3
+  python:
+    ref: docker.io/library/python
+    tag: 3.12-slim
+    digest: sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
+  uv:
+    ref: ghcr.io/astral-sh/uv
+    tag: 0.13.0
+    digest: sha256:cdc6093146eb3ff6a40107b38f008b789e050e77ad87865e381d9917da55a168
+  kind-node:
+    ref: docker.io/kindest/node
+    tag: v1.34.0
+    digest: sha256:7416a61b42b1662ca6ca89f02028ac133a309a2a30ba309614e8ec94d976dc5a
+
+binaries:
+  agentgateway:
+    version: v1.6.0
+    url: https://github.com/agentgateway/agentgateway/releases/download/v1.6.0/agentgateway-{os}-{arch}
+    sha256:
+      # from the release's published .sha256 files
+      darwin-arm64: 6cebe8bd57262edce23a65a376d2f5a27b97cdfef609740642edbe75e1e9c685
+      linux-amd64: 496ed27e6a96b55a9ad7cabe5c2be7172511f44a3cb113e533d22bf93a7f079d
+      linux-arm64: b59ecac31103bb317d1377fd42b0cb25cd9a21f8c3f1d9ee14c3ff05f3f91abf
+  litellm:
+    pypi: litellm[proxy]==1.105.1
+  kind:
+    version: v0.33.0
+
+charts:
+  nats:
+    repo: https://nats-io.github.io/k8s/helm/charts/
+    name: nats
+    version: 2.15.1          # git tag nats-2.15.1 in nats-io/k8s; verified by `helm dependency build`
+  grafana:
+    repo: https://grafana-community.github.io/helm-charts
+    name: grafana
+    version: 13.6.0          # git tag grafana-13.6.0 in grafana-community/helm-charts; image pinned above
+
+python:
+  version: "3.12"
+  unicode_version: "15.0.0"  # unicodedata.unidata_version of CPython 3.12 (R8)

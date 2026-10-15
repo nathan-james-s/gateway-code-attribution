@@ -1,0 +1,19 @@
+[project]
+name = "gca-capture-extproc"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+license = "Apache-2.0"
+dependencies = [
+    "gcattr",
+    "gca-core",
+    "grpcio==1.84.0",
+    "protobuf>=5.28",
+    "xds-protos==1.84.0",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gca_capture_extproc"]

@@ -1,0 +1,52 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --all-packages -p 3.12
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+
+  test-lib:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --all-packages -p 3.12
+      - run: uv run pytest lib/tests
+
+  test-services:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --all-packages -p 3.12
+      - run: uv run pytest services tests/integration -m "not e2e"
+
+  helm-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: helm lint
+        run: |
+          scripts/helm-repos.sh
+          helm dependency build charts/gateway-code-attribution
+          helm lint charts/gateway-code-attribution --set github.existingSecret=gca-github-app
+      - name: kubeconform
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz
+          helm template t charts/gateway-code-attribution --set github.existingSecret=gca-github-app --set gateway.type=agentgateway --set demo.enabled=true | ./kubeconform -strict -ignore-missing-schemas -summary
+          helm template t charts/gateway-code-attribution --set github.existingSecret=gca-github-app --set gateway.type=litellm --set demo.enabled=true | ./kubeconform -strict -ignore-missing-schemas -summary

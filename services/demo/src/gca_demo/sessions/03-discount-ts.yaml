@@ -1,0 +1,19 @@
+name: discount-ts
+description: Codex CLI (OpenAI Responses, freeform apply_patch) adds the TypeScript discount module.
+steps:
+  - format: openai_responses
+    file: web/src/discount.ts
+    write: |
+      import { CartLine, subtotalCents } from "./cart";
+
+      export const BULK_THRESHOLD = 10;
+
+      export function bulkDiscountCents(lines: CartLine[]): number {
+        return lines
+          .filter((line) => line.quantity >= BULK_THRESHOLD)
+          .reduce((sum, line) => sum + Math.floor((line.priceCents * line.quantity * 5) / 100), 0);
+      }
+
+      export function totalAfterDiscountsCents(lines: CartLine[]): number {
+        return Math.max(subtotalCents(lines) - bulkDiscountCents(lines), 0);
+      }

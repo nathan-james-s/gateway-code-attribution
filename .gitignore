@@ -4,3 +4,25 @@
 
 # OS
 .DS_Store
+
+# Python / tooling
+.venv/
+__pycache__/
+*.pyc
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# Generated / local
+report.json
+kind-*.kubeconfig
+*.secret.yaml
+values-github.yaml
+values-byo.yaml
+
+# Helm dependency archives (Chart.lock is committed)
+charts/*/charts/*.tgz

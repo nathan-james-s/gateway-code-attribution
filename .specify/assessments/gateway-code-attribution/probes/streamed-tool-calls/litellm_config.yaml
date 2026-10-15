@@ -1,0 +1,20 @@
+model_list:
+  - model_name: mock-openai
+    litellm_params:
+      model: openai/mock
+      api_base: http://127.0.0.1:18080/v1
+      api_key: sk-mock
+  - model_name: mock-anthropic
+    litellm_params:
+      model: anthropic/mock
+      api_base: http://127.0.0.1:18080
+      api_key: sk-mock
+  - model_name: mock-gemini
+    litellm_params:
+      model: gemini/mock-gemini
+      api_base: http://127.0.0.1:18080
+      api_key: sk-mock
+
+litellm_settings:
+  callbacks: litellm_cb.probe
+  drop_params: true

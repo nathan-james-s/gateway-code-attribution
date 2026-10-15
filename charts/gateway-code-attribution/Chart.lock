@@ -1,0 +1,9 @@
+dependencies:
+- name: nats
+  repository: https://nats-io.github.io/k8s/helm/charts/
+  version: 2.15.1
+- name: grafana
+  repository: https://grafana-community.github.io/helm-charts
+  version: 13.6.0
+digest: sha256:29d131c06bb27af0cac906121c51ffa6b08a443a25b053ee4ced2b441bd77d0e
+generated: "2026-10-14T10:38:57.567867-04:00"

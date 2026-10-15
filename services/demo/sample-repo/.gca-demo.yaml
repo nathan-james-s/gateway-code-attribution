@@ -1,0 +1,11 @@
+# Files the scripted demo sessions touch (`gca demo run`). Everything here is synthetic demo content.
+sessions:
+  pricing: {format: anthropic_messages, files: [src/shop/pricing.py, src/shop/cart.py]}
+  inventory: {format: openai_chat, files: [src/shop/inventory.py]}
+  discount-ts: {format: openai_responses, files: [web/src/discount.ts]}
+  receipt: {format: gemini_native, files: [src/shop/receipt.py]}
+human:
+  edited: [src/shop/pricing.py]        # a renamed variable next to AI output, plus a typed function
+  moved: [src/shop/inventory.py]       # an AI-written method moved out...
+  written: [src/shop/alerts.py]        # ...into a new file, adapted; the rest typed
+formatter: ruff format                 # run over Python files before committing

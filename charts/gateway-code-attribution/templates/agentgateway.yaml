@@ -1,0 +1,120 @@
+{{- if eq .Values.gateway.type "agentgateway" }}
+{{- $fn := include "gca.fullname" . }}
+# Base config, owned by Helm. The portal renders the LIVE config ({{ $fn }}-agentgateway-live) from this base plus
+# the personal API keys (keyHash + metadata), so `helm upgrade` never wipes issued keys (docs/validation/R5).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fn }}-agentgateway-base
+  labels: {{- include "gca.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    config:
+      logging:
+        format: json
+      readinessAddr: 0.0.0.0:15021
+    llm:
+      port: 4000
+      policies:
+        apiKey:
+          mode: strict
+          location:
+            expression: >-
+              default(request.headers["x-api-key"],
+                default(request.headers["x-goog-api-key"],
+                  request.headers["authorization"].regexReplace("^Bearer ", "")))
+          keys: []
+        extProc:
+          host: {{ $fn }}-capture-extproc:9000
+          failureMode: failOpen
+          processingOptions:
+            requestHeaderMode: send
+            responseHeaderMode: send
+            requestBodyMode: none
+            responseBodyMode: fullDuplexStreamed
+          metadataContext:
+            gca:
+              credential_id: apiKey.credential_id
+              github_id: apiKey.github_id
+              path: request.path
+      models:
+        {{- if .Values.demo.enabled }}
+        - name: demo-openai
+          provider: openAI
+          params: {model: demo, baseUrl: "http://{{ $fn }}-demo-model:8080/v1", apiKey: demo}
+        - name: demo-anthropic
+          provider: anthropic
+          params: {model: demo, baseUrl: "http://{{ $fn }}-demo-model:8080/v1", apiKey: demo}
+        - name: demo-gemini
+          provider: gemini
+          params: {model: demo-gemini, baseUrl: "http://{{ $fn }}-demo-model:8080/v1beta", apiKey: demo}
+        {{- end }}
+        {{- range .Values.providers.models }}
+        - name: {{ .name }}
+          provider: {{ .provider }}
+          params:
+            model: {{ .model }}
+            apiKey: "$PROVIDER_{{ .provider | upper }}_KEY"
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fn }}-gateway
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.expose.nodePorts }}
+  type: NodePort
+  {{- end }}
+  selector: {{- include "gca.selector" (dict "root" . "component" "gateway") | nindent 4 }}
+  ports:
+    - {name: http, port: 4000, targetPort: 4000{{- if .Values.expose.nodePorts }}, nodePort: {{ .Values.expose.gateway }}{{- end }}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fn }}-gateway
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{- include "gca.selector" (dict "root" . "component" "gateway") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "gca.labels" . | nindent 8 }}
+        app.kubernetes.io/component: gateway
+    spec:
+      securityContext: {{- include "gca.podSecurity" . | nindent 8 }}
+      containers:
+        - name: agentgateway
+          image: {{ include "gca.image" .Values.gateway.agentgateway.image }}
+          args: ["-f", "/etc/agentgateway/config.yaml"]
+          ports:
+            - {name: http, containerPort: 4000}
+            - {name: ready, containerPort: 15021}
+          env:
+            {{- if .Values.providers.existingSecret }}
+            - name: PROVIDER_ANTHROPIC_KEY
+              valueFrom: {secretKeyRef: {name: {{ .Values.providers.existingSecret }}, key: ANTHROPIC_API_KEY, optional: true}}
+            - name: PROVIDER_OPENAI_KEY
+              valueFrom: {secretKeyRef: {name: {{ .Values.providers.existingSecret }}, key: OPENAI_API_KEY, optional: true}}
+            - name: PROVIDER_GEMINI_KEY
+              valueFrom: {secretKeyRef: {name: {{ .Values.providers.existingSecret }}, key: GEMINI_API_KEY, optional: true}}
+            {{- end }}
+          readinessProbe:
+            tcpSocket: {port: 4000}
+            periodSeconds: 5
+          securityContext: {{- include "gca.containerSecurity" . | nindent 12 }}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {memory: 512Mi}
+          volumeMounts:
+            # Directory mount (never subPath) so ConfigMap updates reach the running gateway (R5).
+            - {name: config, mountPath: /etc/agentgateway, readOnly: true}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ $fn }}-agentgateway-live
+---
+{{- end }}

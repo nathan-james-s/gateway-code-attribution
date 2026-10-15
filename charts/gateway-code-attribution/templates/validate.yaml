@@ -1,0 +1,16 @@
+{{- /* Fail fast instead of starting a partly configured stack (contracts/helm-values.md "Validation"). */ -}}
+{{- if not .Values.github.existingSecret -}}
+{{- fail "github.existingSecret is required: run `uv run gca setup github-app` (or `--existing` for an App made by hand) and install with -f values-github.yaml" -}}
+{{- end -}}
+{{- if and (eq .Values.prcheck.delivery "webhook") (not .Values.prcheck.publicUrl) -}}
+{{- fail "prcheck.delivery=webhook requires prcheck.publicUrl" -}}
+{{- end -}}
+{{- if and (not .Values.postgres.internal) (or (not .Values.postgres.external.host) (not .Values.postgres.external.existingSecret)) -}}
+{{- fail "postgres.internal=false requires postgres.external.host and postgres.external.existingSecret" -}}
+{{- end -}}
+{{- if .Values.grafana.enabled -}}
+{{- $ref := (index .Values.grafana.envValueFrom "GF_AUTH_GITHUB_CLIENT_ID").secretKeyRef.name -}}
+{{- if ne $ref .Values.github.existingSecret -}}
+{{- fail (printf "grafana.envValueFrom names Secret %q but github.existingSecret is %q: set both to the same Secret" $ref .Values.github.existingSecret) -}}
+{{- end -}}
+{{- end -}}

@@ -1,0 +1,29 @@
+config:
+  logging:
+    format: json
+    fields:
+      add:
+        probe.streaming: llm.streaming
+        probe.tool_calls: llm.toolCalls
+        probe.completion: llm.completion
+llm:
+  port: 13000
+  models:
+  - name: mock-openai
+    provider: openAI
+    params:
+      model: mock
+      baseUrl: http://127.0.0.1:18080/v1
+      apiKey: sk-mock
+  - name: mock-anthropic
+    provider: anthropic
+    params:
+      model: mock
+      baseUrl: http://127.0.0.1:18080/v1
+      apiKey: sk-mock
+  - name: mock-gemini
+    provider: gemini
+    params:
+      model: mock-gemini
+      baseUrl: http://127.0.0.1:18080/v1beta
+      apiKey: sk-mock

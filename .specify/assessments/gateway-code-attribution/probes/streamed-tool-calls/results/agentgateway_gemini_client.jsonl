@@ -1,0 +1,1 @@
+{"fmt": "gemini", "bytes": 560, "calls": [{"name": "write_file", "id": "write_file", "kind": "json", "done": true, "args_equal_truth": true, "fingerprints_equal_truth": true}], "n_calls": 1, "n_truth": 1}

@@ -1,0 +1,341 @@
+{
+  "uid": "gca-repository",
+  "title": "Repositories",
+  "description": "Merged changes per repository per day (final heads only).",
+  "editable": false,
+  "schemaVersion": 41,
+  "version": 1,
+  "tags": [
+    "gateway-code-attribution"
+  ],
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "templating": {
+    "list": [
+      {
+        "name": "broad",
+        "label": "Include broad matches",
+        "type": "custom",
+        "query": "No : without_broad,Yes : with_broad",
+        "current": {
+          "text": "No",
+          "value": "without_broad"
+        },
+        "options": [
+          {
+            "text": "No",
+            "value": "without_broad",
+            "selected": true
+          },
+          {
+            "text": "Yes",
+            "value": "with_broad",
+            "selected": false
+          }
+        ],
+        "description": "Broad matches are lower-confidence 'AI, modified' lines. When excluded they count as human."
+      },
+      {
+        "name": "repository",
+        "label": "Repository",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "gca"
+        },
+        "query": "SELECT DISTINCT repository FROM v_repository_daily ORDER BY 1",
+        "definition": "SELECT DISTINCT repository FROM v_repository_daily ORDER BY 1",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "AI share (merged)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT round(100.0 * sum(ai_lines_${broad}) / nullif(sum(attributable_lines), 0), 1) FROM v_repository_daily WHERE repository IN (${repository:sqlstring}) AND $__timeFilter(day)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Merged changes",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT coalesce(sum(changes), 0) FROM v_repository_daily WHERE repository IN (${repository:sqlstring}) AND $__timeFilter(day)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Attributable lines",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT coalesce(sum(attributable_lines), 0) FROM v_repository_daily WHERE repository IN (${repository:sqlstring}) AND $__timeFilter(day)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Not observed lines",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT coalesce(sum(not_observed), 0) FROM v_repository_daily WHERE repository IN (${repository:sqlstring}) AND $__timeFilter(day)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "AI share of attributable lines, by repository",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, repository AS metric, ai_pct_${broad} AS value FROM v_repository_daily WHERE repository IN (${repository:sqlstring}) AND $__timeFilter(day) ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "pointSize": 6,
+            "showPoints": "always"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Daily totals",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT day AS \"Day\", repository AS \"Repository\", changes AS \"Merged changes\", changes_not_fully_covered AS \"Not fully covered\", ai_lines_${broad} AS \"AI lines\", human_lines_${broad} AS \"Human lines\", indeterminate AS \"Indeterminate\", not_observed AS \"Not observed\", ai_pct_${broad} AS \"AI %\", array_to_string(algs, ', ') AS \"Algorithm\" FROM v_repository_daily WHERE repository IN (${repository:sqlstring}) AND $__timeFilter(day) ORDER BY day DESC, repository"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AI %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "What the outcomes mean",
+      "type": "link",
+      "targetBlank": true,
+      "url": "https://github.com/nathan-james-s/gateway-code-attribution/blob/main/docs/outcomes.md"
+    }
+  ]
+}

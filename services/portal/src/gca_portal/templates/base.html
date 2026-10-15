@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Gateway Code Attribution{% endblock %}</title>
+<style>
+  :root { --fg:#1f2328; --muted:#59636e; --bg:#ffffff; --card:#f6f8fa; --border:#d1d9e0; --accent:#0969da;
+          --ai:#8250df; --mod:#bf8700; --broad:#d4a72c; --human:#1a7f37; --ind:#59636e; --no:#cf222e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg:#e6edf3; --muted:#9198a1; --bg:#0d1117; --card:#151b23; --border:#3d444d; --accent:#4493f8;
+            --ai:#ab7df8; --mod:#d29922; --broad:#e3b341; --human:#3fb950; --ind:#9198a1; --no:#f85149; } }
+  body { font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:var(--fg);
+         background:var(--bg); margin:0; }
+  header { border-bottom:1px solid var(--border); padding:12px 24px; display:flex; gap:16px; align-items:center; }
+  header a { color:var(--fg); text-decoration:none; font-weight:600; }
+  main { max-width:960px; margin:24px auto; padding:0 16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:16px; margin:16px 0; }
+  .muted { color:var(--muted); }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:13px; }
+  pre { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px; overflow-x:auto; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:6px; padding:8px 14px; font-weight:600;
+           cursor:pointer; }
+  button.secondary { background:transparent; color:var(--fg); border:1px solid var(--border); }
+  table { border-collapse:collapse; width:100%; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--border); vertical-align:top; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:999px; font-size:12px; font-weight:600; color:#fff; }
+  .ai_unmodified { background:var(--ai); } .ai_modified.anchored { background:var(--mod); }
+  .ai_modified.broad { background:var(--broad); color:#1f2328; } .human { background:var(--human); }
+  .indeterminate { background:var(--ind); } .not_observed { background:var(--no); }
+  .spacer { flex:1; }
+</style>
+</head>
+<body>
+<header>
+  <a href="/">Gateway Code Attribution</a><span class="spacer"></span>
+  {% if who %}<a href="/me/setup">Tool setup</a><span class="muted">{{ who.github_login }}</span>
+  <form method="post" action="/auth/logout" style="margin:0"><button class="secondary">Sign out</button></form>{% endif %}
+</header>
+<main>{% block content %}{% endblock %}</main>
+</body>
+</html>

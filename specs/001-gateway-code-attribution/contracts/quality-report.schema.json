@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nathan-james-s/gateway-code-attribution/contracts/quality-report.schema.json",
+  "title": "Quality report (output of `gca eval`)",
+  "description": "Measured against the published scenario set. Release bar per FR-044 / SC-002 / SC-003. One entry per gateway.",
+  "type": "object",
+  "required": ["generated_at", "library_version", "alg", "scenario_set_version", "release_bar", "gateways", "passed"],
+  "properties": {
+    "generated_at": { "type": "string", "format": "date-time" },
+    "library_version": { "type": "string" },
+    "alg": { "type": "integer" },
+    "scenario_set_version": { "type": "string" },
+    "release_bar": {
+      "type": "object",
+      "required": ["min_accuracy", "max_false_ai_modified_anchored", "max_false_ai_modified_broad", "max_formatter_false_human", "max_silent_loss"],
+      "properties": {
+        "min_accuracy": { "const": 0.95 },
+        "max_false_ai_modified_anchored": { "const": 0.02 },
+        "max_false_ai_modified_broad": { "const": 0.05 },
+        "max_formatter_false_human": { "const": 0.10 },
+        "max_silent_loss": { "const": 0 }
+      }
+    },
+    "gateways": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["gateway", "gateway_version", "lines_total", "accuracy", "per_outcome", "false_ai_modified_anchored", "false_ai_modified_broad", "formatter_false_human", "history_rewrite_survival", "capture", "passed"],
+        "properties": {
+          "gateway": { "enum": ["agentgateway", "litellm"] },
+          "gateway_version": { "type": "string" },
+          "lines_total": { "type": "integer" },
+          "accuracy": { "type": "number", "minimum": 0, "maximum": 1, "description": "Correct / labelled attributable lines (excludes excluded paths)." },
+          "per_outcome": {
+            "type": "object",
+            "description": "Precision/recall/count per expected outcome.",
+            "additionalProperties": {
+              "type": "object",
+              "required": ["expected", "predicted", "correct", "precision", "recall"],
+              "properties": {
+                "expected": { "type": "integer" }, "predicted": { "type": "integer" }, "correct": { "type": "integer" },
+                "precision": { "type": "number" }, "recall": { "type": "number" }
+              }
+            }
+          },
+          "false_ai_modified_anchored": { "type": "number", "description": "Human lines labelled AI modified via anchored tier / lines labelled anchored." },
+          "false_ai_modified_broad": { "type": "number", "description": "Human lines labelled AI modified via broad tier / lines labelled broad." },
+          "formatter_false_human": { "type": "number", "description": "AI lines changed only by a formatter that were labelled human / such lines." },
+          "history_rewrite_survival": { "type": "number", "description": "AI lines in rewrite scenarios keeping AI attribution / such lines (SC-004 target 1.0)." },
+          "capture": {
+            "type": "object",
+            "required": ["responses", "injected_faults", "reported_faults", "silent_loss"],
+            "properties": {
+              "responses": { "type": "integer" },
+              "injected_faults": { "type": "integer" },
+              "reported_faults": { "type": "integer" },
+              "silent_loss": { "type": "integer", "description": "Responses neither captured nor reported as loss. MUST be 0." }
+            }
+          },
+          "passed": { "type": "boolean" },
+          "failures": { "type": "array", "items": { "type": "string" }, "description": "Names of release-bar measures missed." }
+        }
+      }
+    },
+    "cross_gateway_agreement": { "type": "number", "description": "Share of lines with identical outcome across gateways (SC-007 target 1.0)." },
+    "passed": { "type": "boolean", "description": "True only if every gateway passed and cross_gateway_agreement == 1.0." }
+  }
+}

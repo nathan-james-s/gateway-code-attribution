@@ -1,0 +1,20 @@
+apiVersion: v2
+name: gateway-code-attribution
+description: Reference stack for AI-code attribution at an AI gateway (agentgateway or LiteLLM), with a GitHub App PR check.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+license: Apache-2.0
+home: https://github.com/nathan-james-s/gateway-code-attribution
+sources:
+  - https://github.com/nathan-james-s/gateway-code-attribution
+keywords: [ai-gateway, attribution, agentgateway, litellm, github-app]
+dependencies:
+  - name: nats
+    version: "2.15.1"
+    repository: https://nats-io.github.io/k8s/helm/charts/
+    condition: nats.enabled
+  - name: grafana
+    version: "13.6.0"
+    repository: https://grafana-community.github.io/helm-charts
+    condition: grafana.enabled

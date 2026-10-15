@@ -1,0 +1,58 @@
+{{- $fn := include "gca.fullname" . }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fn }}-prcheck
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  selector: {{- include "gca.selector" (dict "root" . "component" "prcheck") | nindent 4 }}
+  ports:
+    - {name: http, port: 8080, targetPort: 8080}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fn }}-prcheck
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  # One replica polls; heads are claimed with SKIP LOCKED, so more workers would also be safe.
+  replicas: 1
+  selector:
+    matchLabels: {{- include "gca.selector" (dict "root" . "component" "prcheck") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "gca.labels" . | nindent 8 }}
+        app.kubernetes.io/component: prcheck
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {{- include "gca.podSecurity" . | nindent 8 }}
+      containers:
+        - name: prcheck
+          image: {{ include "gca.projectImage" (dict "root" . "name" "prcheck") }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - {name: http, containerPort: 8080}
+          env:
+            {{- include "gca.dbEnv" . | nindent 12 }}
+            - name: GCA_PRCHECK_APP_ID
+              valueFrom: {secretKeyRef: {name: {{ .Values.github.existingSecret }}, key: appId}}
+            - name: GCA_PRCHECK_PRIVATE_KEY
+              valueFrom: {secretKeyRef: {name: {{ .Values.github.existingSecret }}, key: privateKey}}
+            - {name: GCA_PRCHECK_DELIVERY, value: {{ .Values.prcheck.delivery | quote }}}
+            - {name: GCA_PRCHECK_PORTAL_URL, value: {{ .Values.portal.publicUrl | default "http://localhost:8080" | quote }}}
+            - {name: GCA_PRCHECK_HEADLINE_INCLUDES_BROAD, value: {{ .Values.prcheck.headlineIncludesBroad | quote }}}
+          readinessProbe:
+            httpGet: {path: /readyz, port: 8080}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: 8080}
+            periodSeconds: 15
+          securityContext: {{- include "gca.containerSecurity" . | nindent 12 }}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {memory: 1Gi}
+          volumeMounts:
+            {{- include "gca.keysMount" . | nindent 12 }}
+      volumes:
+        {{- include "gca.keysVolume" . | nindent 8 }}

@@ -1,0 +1,257 @@
+# Implementation Plan: Gateway Code Attribution Reference Stack
+
+**Branch**: `001-gateway-code-attribution` (spec directory; work on `claude/speckit-assess-intake-b6c123`) |
+**Date**: 2026-10-14 | **Spec**: [spec.md](./spec.md)
+
+***Input**: Feature specification from `specs/001-gateway-code-attribution/spec.md`
+
+## Summary
+
+Build an open-source reference stack, installed with one Helm chart, that attributes the lines added in each
+GitHub pull request using fingerprints of the model output captured at an AI gateway.
+
+**Capture.** The adopter picks **agentgateway 1.6.0** or **LiteLLM 1.105.1**.
+- On agentgateway, an external-processing service sees the client-facing response stream (fail open).
+- On LiteLLM, a `CustomLogger` callback sees the reassembled response.
+
+Both pass the output to one Python library, **`gcattr`**. It extracts code lines from tool calls, freeform patches
+and code blocks, and holds content in memory only. From that it computes keyed exact fingerprints (HMAC-SHA256)
+and keyed MinHash similarity signatures, and publishes **fingerprints only** to NATS JetStream. Ingest writes them
+to PostgreSQL and detects capture loss from sequence gaps and missing heartbeats.
+
+**PR check.** A **GitHub App** attributes every added line in the PR's `merge-base...head`, using the same library:
+- each line is credited to the author of the PR commit that added it;
+- it's matched only against that author's captured output, in three tiers: exact, anchored similarity, broad
+  similarity;
+- it's given one of four outcomes: `AI, unmodified`; `AI, modified` (anchored, high confidence, or broad, lower
+  confidence); `Human`; `Indeterminate`. Lines credited to an author with no gateway identity get the separate
+  state `Not observed`, which isn't an outcome and is never counted in percentages.
+
+**Reporting.**
+- **Grafana** shows aggregates per change, per repository and per team, plus coverage.
+- A **portal** handles GitHub sign-in, issues personal gateway credentials, enforces role-based per-developer
+  drill-down, and shows per-line results.
+
+**Demo and quality.** A keyless demo (a mock upstream model plus a scripted agent) exercises the real path. A
+scenario-set evaluation harness enforces the release bar in CI.
+
+Decisions and rationale: [research.md](./research.md).
+
+## Technical Context
+
+**Language/Version**: Python 3.12 for all components, in one uv workspace (R1). Helm chart and Kubernetes
+manifests; Grafana dashboards as JSON.
+
+**Primary Dependencies**:
+- agentgateway 1.6.0 (standalone mode, `extProc`, `apiKey`) and LiteLLM 1.105.1 (OSS proxy, `CustomLogger`,
+  virtual keys);
+- grpcio and Envoy `ext_proc` v3 protos (the capture-extproc service);
+- FastAPI and Jinja2 (portal, PR-check webhooks);
+- githubkit (GitHub REST and GraphQL, App auth);
+- nats-py (JetStream);
+- SQLAlchemy 2 + Alembic + psycopg 3;
+- Grafana OSS 13.2.4 (community Helm chart);
+- NATS server 2.15.1 (official Helm chart);
+- PostgreSQL 17 (official image).
+
+**Storage**: PostgreSQL 17. `captured_line` is partitioned by day with 90-day retention by default. Also NATS
+JetStream as a file-backed work queue (R13, R14).
+
+**Testing**:
+- pytest and Hypothesis (unit and determinism property tests);
+- golden fingerprint corpus for each algorithm version;
+- cross-gateway conformance suite (`tests/conformance/`);
+- testcontainers (Postgres, NATS) for integration;
+- end to end on kind;
+- privacy audit (SC-006);
+- performance with Locust (SC-009, SC-010, SC-013);
+- scenario-set evaluation (`gca eval`) as the release gate (R19, R20).
+
+**Target Platform**: Kubernetes ≥ 1.30 on Linux nodes (amd64 and arm64); kind for local and demo use. The library
+supports Linux and macOS with CPython 3.12.
+
+**Project Type**: a multi-service web application (gateway capture, ingest, PR check, portal), a reusable
+library with a CLI, and a Helm chart.
+
+**Performance Goals**:
+- PR check result within 2 minutes for PRs of up to 1,000 added lines (SC-009);
+- capture overhead ≤ 5% at p95 on response completion time (SC-010);
+- all at a 500-active-developer load (SC-013).
+
+**Constraints**:
+- **Fail open:** capture never blocks or delays a model response beyond SC-010 (FR-005a).
+- **No content at rest:** no code or prompt text in any storage, log, trace, metric or queue (Constitution II).
+- **Deterministic:** identical output for the same algorithm version, with the Unicode version pinned (R8).
+- **No paid tiers and no Bitnami** (Constitution IV, VI).
+- **Images pinned** by digest.
+
+**Scale/Scope**: up to 500 active developers per default install. That's about 90M captured lines over 90 days,
+roughly 30–40 GB of Postgres (R14). In-scope tools: Claude Code, Codex CLI, Gemini CLI, OpenCode. Forge:
+GitHub.com and Enterprise Cloud.
+
+## Constitution Check
+
+*GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design.* Constitution v1.0.1 (amended from
+v1.0.0 for note N1; no gate results changed).
+
+| Principle / section | Gate | Pre-research | Post-design |
+|---|---|---|---|
+| **I. Never Guess** | 4 outcomes + not observed; confidence on AI modified; broad separable; no AI without a capture match; loss counted | PASS (spec FR-009–FR-015, FR-028) | PASS. R10/R11 tiering and fallbacks; R12 loss detection from sequence gaps and heartbeats; `line_result.tier` and `confidence` in data-model.md |
+| **II. No Retained Code or Prompts** | Only keyed fingerprints and metadata; nothing in logs, traces or queues; similarity leakage assessed | PASS (FR-003, FR-004) | PASS with **two design obligations**: (a) capture uses `extProc` rather than CEL logging of tool calls (R2), and LiteLLM message logging is off (R3); (b) the PR check fingerprints compare-API patches in memory and gets authors from GraphQL blame (no clone); the CLI uses memory-backed checkouts (R11). R9 documents similarity leakage. ⚠ See note N1. |
+| **III. One Shared, Versioned Library** | Every component uses `gcattr`; `alg` recorded everywhere; determinism test | PASS (FR-031–FR-034) | PASS. Both capture adapters, the PR check, the CLI and eval import `gcattr`. Unicode version pinned per `alg` (R8). Golden corpus per `alg` (R20). |
+| **IV. Vendor and Gateway Neutrality** | No per-machine or per-tool install; identical results across gateways; no paid tiers; Apache-2.0 | PASS (FR-001, FR-006, SC-011) | PASS. Conformance suite (R4); LiteLLM virtual keys and callbacks are OSS, and JWT auth (enterprise) is avoided (R5). Grafana (AGPL) runs as a separate, unmodified service (R15). The agentgateway native-Gemini gap is closed by parsing the raw stream (R2). |
+| **V. Measure Before Claiming** | Published scenario set; release bar; probe vendor behaviour | PASS (FR-042–FR-045, SC-002, SC-003) | PASS. `gca eval` and the CI release gate (R19). Validation tasks for unproven vendor behaviour: R2 overhead, R3 Gemini via LiteLLM, R5 agentgateway reload, R6 real traffic per tool. |
+| **VI. Out of the Box, Reproducibly** | One install; keyless demo through the real path; pinned versions; no deprecated or paywalled deps; time to first result measured | PASS (FR-037–FR-039, SC-001) | PASS. One chart; own templates for LiteLLM and Postgres to avoid Bitnami (R17); `demo-model` and `demo-agent` (R18); e2e measures SC-001. |
+| **VII. Scope Discipline** | No Option C items | PASS | PASS. No third gateway, developer-side hook, signing, Agent Trace export, other forge or HA. CloudNativePG is documented only as a production path. |
+| Security & Data Handling | Keys generated or supplied at install and rotatable; least-privilege App; per-developer access control; US statement; checksums | PASS (FR-016, FR-023, FR-029, FR-029a, FR-035, FR-036) | PASS. Key generations (data-model.md); App permissions with reasons ([contracts/github-app.md](./contracts/github-app.md)); portal role enforcement; `SHA256SUMS` + attestations (R21). |
+| Development Workflow & Quality Gates | Determinism and scenario gates; conformance gate; data-path audit; clean-install gate; real traffic before support | PASS | PASS. Each maps to a CI job in R20 and quickstart.md. |
+
+**N1 (resolved by constitution v1.0.1):** Principle II's "demo data" rule now covers data the system produces or
+stores, and exempts authored synthetic inputs (demo fixtures, the sample repository, the scenario set). The design
+already complied: the demo's fixtures contain synthetic code by design, and SC-006's audit checks that nothing the
+system produces or stores contains code. Under v1.0.1, the recorded real-traffic corpus (`eval/corpus/`) must come
+from consenting owners.
+
+**Gate result: PASS.** No unjustified violations; Complexity Tracking is empty.
+
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+specs/001-gateway-code-attribution/
+├── plan.md              # This file
+├── research.md          # Phase 0 decisions (R1–R21)
+├── data-model.md        # Phase 1 entities, fields, states, validation
+├── quickstart.md        # Phase 1 runnable validation guide
+├── contracts/           # Phase 1 interface contracts
+│   ├── library-api.md
+│   ├── capture-event.schema.json
+│   ├── gateway-capture.md
+│   ├── github-app.md
+│   ├── portal-http.md
+│   ├── helm-values.md
+│   └── quality-report.schema.json
+├── checklists/
+│   └── requirements.md
+└── tasks.md             # Phase 2 (/speckit-tasks; not created here)
+```
+
+### Source Code (repository root)
+
+```text
+lib/                              # gcattr: the single, versioned matching library (Constitution III)
+├── pyproject.toml
+├── src/gcattr/
+│   ├── algorithm.py              # alg version, pinned Unicode version, thresholds, common-lines list version
+│   ├── normalize.py              # NFC, line endings, BOM
+│   ├── lexer.py                  # language-agnostic tokenizer
+│   ├── fingerprint.py            # keyed exact fingerprint (HMAC), key generations
+│   ├── similarity.py             # keyed shingles, MinHash, LSH bands
+│   ├── trivial.py                # indeterminate rules + versioned common-lines list
+│   ├── streams/                  # raw SSE reassembly: openai_chat, openai_responses, anthropic, gemini
+│   ├── adapters/litellm.py       # LiteLLM response objects → CapturedToolOutput
+│   ├── extract.py                # CapturedToolOutput → code lines (+ path) per R7
+│   ├── match.py                  # tiered, author-scoped, multiset matching (R11)
+│   ├── classify.py               # outcomes, confidence, not observed
+│   └── cli.py                    # `gca` CLI: fingerprint, attribute (local git), eval, setup
+└── tests/                        # unit, property (Hypothesis), golden corpus per alg
+
+services/
+├── core/                         # shared: config, DB models (SQLAlchemy), Alembic migrations, NATS client, roles
+├── capture-extproc/              # agentgateway ext_proc gRPC server (pass-through + background capture)
+├── capture-litellm/              # LiteLLM CustomLogger module + pinned LiteLLM image build
+├── ingest/                       # JetStream consumer → Postgres; sequence/heartbeat loss detection; watermark
+├── prcheck/                      # GitHub App: webhooks or polling, attribution worker, check runs
+├── portal/                       # GitHub sign-in, credentials, overrides, roles, per-developer + per-line views
+└── demo/                         # demo-model (mock upstream) + demo-agent (scripted tools + demo PR)
+
+charts/gateway-code-attribution/  # single Helm chart: gateway choice, Postgres, NATS, Grafana, services, demo
+  dashboards/                      # Grafana JSON (aggregate-only SQL views); inside the chart so Helm can read it
+
+eval/
+├── scenarios/                    # labelled scenario set (seeded from spec 002) + answer keys
+├── corpus/                       # recorded real traffic per tool and API (fixtures; synthetic or consented)
+└── harness/                      # runs each gateway locally + mock upstream → quality report
+
+tests/
+├── conformance/                  # cross-gateway parity (FR-006, SC-007)
+├── privacy/                      # stored-data / log / trace audit (SC-006)
+├── e2e/                          # kind install + demo + time-to-first-result (SC-001)
+└── perf/                         # Locust: SC-009, SC-010, SC-013
+
+docs/                             # install, per-tool routing, outcomes, privacy (R9), jurisdiction, sizing
+```
+
+**Structure Decision**:
+- **Workspace**: one uv workspace with the library in `lib/` and one package per service under `services/`,
+  sharing `services/core`.
+- **Library publishing**: the library is versioned and released on its own (R21). Services pin an exact `gcattr`
+  version, which is how the algorithm version deployed is controlled.
+- **Repo-level folders**: the chart, dashboards, evaluation and cross-cutting tests live at the repository root,
+  because they span services.
+
+## Phase 0 and Phase 1 Outputs
+
+- **Phase 0**: [research.md](./research.md). Decisions R1–R21, with every Technical Context unknown resolved.
+  Items marked **Validate** become explicit tasks, each with a fallback.
+- **Phase 1**:
+  - [data-model.md](./data-model.md)
+  - [contracts/](./contracts/), with seven contracts
+  - [quickstart.md](./quickstart.md)
+- **Agent context**: this Spec Kit install has no agent-context update script, so there's nothing to run.
+  `CLAUDE.md` will be created in implementation if needed.
+
+## Follow-ups (outside this plan)
+
+- ~~Constitution PATCH (N1)~~: done in v1.0.1.
+- **Validation tasks with fallbacks**, to be scheduled by `/speckit-tasks`:
+  - R2: ext_proc overhead and failOpen;
+  - R3: Gemini CLI through LiteLLM;
+  - R5: agentgateway key reload;
+  - R6: real traffic per tool;
+  - R14: sizing.
+
+## Implementation findings (recorded during /speckit-implement)
+
+- **R2 validated with two liveness gaps** (`docs/validation/R2-extproc.md`). agentgateway 1.6.0's `failOpen`
+  covers only requests that start after the processor fails. A processor that crashes mid-stream truncates
+  in-flight responses, and a slow processor stalls them (there's no processor timeout). `extProc` is kept with
+  mitigations (worker process, self-deadline, graceful drain, replicas). **Residual risk, accepted by the owner on
+  2026-10-14:** responses in flight during a processor *crash* are cut short. This is narrower than FR-005a. It's
+  documented in docs/coverage.md and reported upstream to agentgateway.
+- **R5 validated** (`docs/validation/R5-key-reload.md`): about 13 s gateway reload, and about 2 minutes end to end
+  with the ConfigMap sync.
+- **LiteLLM image**: the upstream image runs Python 3.13 / Unicode 15.1.0, which `gcattr` alg 1 refuses (R8). The
+  stack builds `gca-litellm` on `python:3.12-slim` (research R3 packaging finding).
+- **Portal sessions** are opaque random ids held server-side (the GitHub token never leaves the portal process),
+  so there is no cookie-signing secret. One portal replica; people sign in again after a restart.
+- **Dashboards live in the chart** (`charts/gateway-code-attribution/dashboards/`): Helm can only read files
+  inside a chart.
+- **Grafana and the GitHub secret**: a subchart can't read the parent's `github.existingSecret`, so the Grafana
+  values name the Secret directly and `validate.yaml` fails the install when the two disagree.
+- **Grafana sign-in needs the user's email**: the App also requests the *Email addresses: read* account
+  permission (contracts/github-app.md), and registers Grafana's callback URL next to the portal's.
+- **First live install (kind, agentgateway, 2026-10-14)** found four defects that unit tests missed, all fixed with
+  regression tests: (1) the capture ext_proc forked its worker pool after gRPC started, crashing the worker and
+  wedging the process, so the gateway failed open and nothing was captured. Workers now `spawn`, start before
+  gRPC, a broken pool is replaced and counted as loss, and a liveness probe answered from the event loop restarts
+  a wedged process; (2) the portal couldn't create the live gateway config before migrations, which run after
+  `helm --wait`: it now creates it with no keys, then re-syncs every 30 s; (3) githubkit's `.rest` holds only a
+  weak reference to its client, and App JWTs need `githubkit[auth-app]`; (4) githubkit's web-flow exchange spends
+  the one-time sign-in code before its own request, so the portal exchanges it with one direct request.
+- **Open gap (FR-005, SC-005)**: when the gateway fails open because it can't reach a *healthy* capture service,
+  heartbeats look normal and no loss is recorded. Detecting it needs a request count from the gateway itself
+  (agentgateway metrics) compared with `responses_seen`. To be planned with US4 (T088). Losses from a stopped or
+  wedged capture process are covered once T088 records missed heartbeats.
+- **End-to-end test design (T065)**: credentials come from an operator command run inside the portal pod
+  (`python -m gca_portal.admin_cli issue-credential`), since GitHub sign-in needs a browser; it needs exec access
+  to the pod, so it grants nothing new. Before the second gateway runs, captured fingerprints are cleared: the
+  demo code is identical across runs, so the second PR would otherwise match the first gateway's captures and the
+  parity check would prove nothing (seen with PR #3). One CI job runs both gateways, then the privacy audit.
+- **Demo "broad" case**: multiset matching (FR-013) lets an unchanged AI line consume its captured occurrence,
+  so the demo shows a broad match by *moving* an AI-written method to another file and adapting it.
+
+## Complexity Tracking
+
+No constitution violations to justify.

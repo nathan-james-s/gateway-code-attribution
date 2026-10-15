@@ -1,0 +1,52 @@
+name: inventory
+description: OpenCode (OpenAI Chat Completions) writes a stock tracker.
+steps:
+  - format: openai_chat
+    file: src/shop/inventory.py
+    write: |
+      """Stock levels for the demo shop."""
+
+      from __future__ import annotations
+
+      from collections import Counter
+
+
+      class Inventory:
+          def __init__(self) -> None:
+              self._stock: Counter[str] = Counter()
+
+          def receive(self, sku: str, quantity: int) -> None:
+              if quantity <= 0:
+                  raise ValueError("received quantity must be positive")
+              self._stock[sku] += quantity
+
+          def reserve(self, sku: str, quantity: int) -> bool:
+              if self._stock[sku] < quantity:
+                  return False
+              self._stock[sku] -= quantity
+              return True
+
+          def low_stock_skus(self, threshold: int = 3) -> list[str]:
+              return sorted(sku for sku, count in self._stock.items() if count <= threshold)
+human_edits:
+  # The developer moves the low-stock query out of inventory.py into a new alerts module and adapts it. The
+  # adapted line matches the AI output only by similarity, in another file: "AI, modified (broad)". The rest
+  # of the new file is "Human".
+  - file: src/shop/inventory.py
+    replace:
+      old: |2
+
+            def low_stock_skus(self, threshold: int = 3) -> list[str]:
+                return sorted(sku for sku, count in self._stock.items() if count <= threshold)
+      new: ""
+  - file: src/shop/alerts.py
+    write: |
+      """Low-stock alerts, written by hand."""
+
+      from .inventory import Inventory
+
+
+      class AlertingInventory(Inventory):
+          def low_stock_alerts(self, threshold: int = 3) -> list[str]:
+              skus = sorted(sku for sku, count in self._stock.items() if count <= threshold)
+              return [f"Low stock: {sku}" for sku in skus]

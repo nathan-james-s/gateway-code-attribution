@@ -1,0 +1,104 @@
+{{- $fn := include "gca.fullname" . }}
+{{- $portalUrl := .Values.portal.publicUrl | default "http://localhost:8080" }}
+{{- $gatewayUrl := .Values.gateway.publicUrl | default "http://localhost:4000" }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $fn }}-portal
+  labels: {{- include "gca.labels" . | nindent 4 }}
+automountServiceAccountToken: {{ eq .Values.gateway.type "agentgateway" }}
+{{- if eq .Values.gateway.type "agentgateway" }}
+---
+# The portal renders the live agentgateway config (base + one apiKey entry per active credential). It may read the
+# base ConfigMap and read/write the live one, and nothing else (R5).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $fn }}-portal
+  labels: {{- include "gca.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [{{ $fn }}-agentgateway-base, {{ $fn }}-agentgateway-live]
+    verbs: [get, update, patch]
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: [create]   # create cannot be limited by resourceNames; the portal only ever creates the live ConfigMap
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $fn }}-portal
+  labels: {{- include "gca.labels" . | nindent 4 }}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ $fn }}-portal}
+subjects:
+  - {kind: ServiceAccount, name: {{ $fn }}-portal, namespace: {{ .Release.Namespace }}}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fn }}-portal
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.expose.nodePorts }}
+  type: NodePort
+  {{- end }}
+  selector: {{- include "gca.selector" (dict "root" . "component" "portal") | nindent 4 }}
+  ports:
+    - {name: http, port: 8080, targetPort: 8080{{- if .Values.expose.nodePorts }}, nodePort: {{ .Values.expose.portal }}{{- end }}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fn }}-portal
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  # One replica: sessions are held in memory (sign-in again after a restart). Credential state lives in PostgreSQL.
+  replicas: 1
+  selector:
+    matchLabels: {{- include "gca.selector" (dict "root" . "component" "portal") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "gca.labels" . | nindent 8 }}
+        app.kubernetes.io/component: portal
+    spec:
+      serviceAccountName: {{ $fn }}-portal
+      securityContext: {{- include "gca.podSecurity" . | nindent 8 }}
+      containers:
+        - name: portal
+          image: {{ include "gca.projectImage" (dict "root" . "name" "portal") }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - {name: http, containerPort: 8080}
+          env:
+            {{- include "gca.dbEnv" . | nindent 12 }}
+            - {name: GCA_PORTAL_PUBLIC_URL, value: {{ $portalUrl | quote }}}
+            - {name: GCA_PORTAL_GATEWAY_PUBLIC_URL, value: {{ $gatewayUrl | quote }}}
+            - {name: GCA_PORTAL_GATEWAY_TYPE, value: {{ .Values.gateway.type | quote }}}
+            - {name: GCA_PORTAL_GITHUB_ORG, value: {{ .Values.github.org | quote }}}
+            - name: GCA_PORTAL_GITHUB_CLIENT_ID
+              valueFrom: {secretKeyRef: {name: {{ .Values.github.existingSecret }}, key: clientId}}
+            - name: GCA_PORTAL_GITHUB_CLIENT_SECRET
+              valueFrom: {secretKeyRef: {name: {{ .Values.github.existingSecret }}, key: clientSecret}}
+            {{- if eq .Values.gateway.type "agentgateway" }}
+            - {name: GCA_PORTAL_NAMESPACE, value: {{ .Release.Namespace | quote }}}
+            - {name: GCA_PORTAL_AGENTGATEWAY_BASE_CONFIGMAP, value: {{ printf "%s-agentgateway-base" $fn | quote }}}
+            - {name: GCA_PORTAL_AGENTGATEWAY_LIVE_CONFIGMAP, value: {{ printf "%s-agentgateway-live" $fn | quote }}}
+            {{- else }}
+            # Both gateways share the <fullname>-gateway Service name.
+            - {name: GCA_PORTAL_LITELLM_URL, value: {{ printf "http://%s-gateway:4000" $fn | quote }}}
+            - name: GCA_PORTAL_LITELLM_MASTER_KEY
+              valueFrom: {secretKeyRef: {name: {{ printf "%s-litellm-master" $fn }}, key: masterKey}}
+            {{- end }}
+          readinessProbe:
+            httpGet: {path: /readyz, port: 8080}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: 8080}
+            periodSeconds: 15
+          securityContext: {{- include "gca.containerSecurity" . | nindent 12 }}
+          resources:
+            requests: {cpu: 50m, memory: 192Mi}
+            limits: {memory: 512Mi}

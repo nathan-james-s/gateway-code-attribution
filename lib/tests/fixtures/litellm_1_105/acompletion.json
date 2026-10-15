@@ -1,0 +1,38 @@
+{
+ "call_type": "acompletion",
+ "response_obj": {
+  "id": "chatcmpl-demo",
+  "created": 1792011598,
+  "model": "demo-openai",
+  "object": "chat.completion",
+  "system_fingerprint": null,
+  "choices": [
+   {
+    "finish_reason": "tool_calls",
+    "index": 0,
+    "message": {
+     "content": "Working on it.",
+     "role": "assistant",
+     "tool_calls": [
+      {
+       "function": {
+        "arguments": "{\"path\": \"src/shop/inventory.py\", \"content\": \"\\\"\\\"\\\"Stock levels for the demo shop.\\\"\\\"\\\"\\n\\nfrom __future__ import annotations\\n\\nfrom collections import Counter\\n\\n\\nclass Inventory:\\n    def __init__(self) -> None:\\n        self._stock: Counter[str] = Counter()\\n\\n    def receive(self, sku: str, quantity: int) -> None:\\n        if quantity <= 0:\\n            raise ValueError(\\\"received quantity must be positive\\\")\\n        self._stock[sku] += quantity\\n\\n    def reserve(self, sku: str, quantity: int) -> bool:\\n        if self._stock[sku] < quantity:\\n            return False\\n        self._stock[sku] -= quantity\\n        return True\\n\\n    def low_stock_skus(self, threshold: int = 3) -> list[str]:\\n        return sorted(sku for sku, count in self._stock.items() if count <= threshold)\\n\"}",
+        "name": "write"
+       },
+       "id": "call_inventory_0",
+       "type": "function"
+      }
+     ],
+     "function_call": null
+    }
+   }
+  ],
+  "usage": {
+   "completion_tokens": 262,
+   "prompt_tokens": 16,
+   "total_tokens": 278,
+   "completion_tokens_details": null,
+   "prompt_tokens_details": null
+  }
+ }
+}
