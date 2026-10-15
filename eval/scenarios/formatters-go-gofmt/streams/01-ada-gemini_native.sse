@@ -1,0 +1,4 @@
+data: {"candidates": [{"content": {"role": "model", "parts": [{"text": "Working on it."}]}, "index": 0}], "modelVersion": "demo"}
+
+data: {"candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "write_file", "args": {"file_path": "/workspace/fmt/config.go", "content": "package config\n\nimport \"strings\"\n\ntype Plugin struct {\nName string\nEnabled bool\nPriority int\n}\n\nfunc ActiveNames(plugins []Plugin) string {\nnames := []string{}\nfor _, p := range plugins { if p.Enabled { names = append(names, p.Name) } }\nreturn strings.Join(names, \", \")\n}\n"}}}]}, "finishReason": "STOP", "index": 0}], "usageMetadata": {"promptTokenCount": 10, "candidatesTokenCount": 50, "totalTokenCount": 60}, "modelVersion": "demo"}
+

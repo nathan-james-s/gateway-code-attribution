@@ -1,0 +1,53 @@
+description: Unmodified, edited, typed and trivial lines across four API formats.
+category: seed
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 02-ada-openai_chat.sse
+  author: ada
+  api_format: openai_chat
+- file: 03-ada-gemini_native.sse
+  author: ada
+  api_format: gemini_native
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    src/pricing.py: "from dataclasses import dataclass\n\n\n@dataclass(frozen=True)\nclass LineItem:\n    sku: str\n    unit_price_cents:\
+      \ int\n    quantity: int\n\n\ndef subtotal_cents(items):\n    return sum(i.unit_price_cents * i.quantity for i in items)\n\
+      \n\ndef apply_discount(total_cents, percent):\n    if not 0 <= percent <= 100:\n        raise ValueError(f\"discount\
+      \ must be between 0 and 100, got {percent}\")\n    return total_cents - total_cents * percent // 100\n\n\ndef tax_cents(total_cents,\
+      \ rate=0.0825):\n    return round(total_cents * rate)\n\n\ndef format_cents(cents):\n    return f\"${cents / 100:,.2f}\"\
+      \n"
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    src/inventory.py: "class OutOfStock(Exception):\n    pass\n\n\ndef reserve(stock, sku, quantity):\n    available = stock.get(sku,\
+      \ 0)\n    if available < quantity:\n        raise OutOfStock(f\"{sku}: {available} left, {quantity} requested\")\n \
+      \   stock[sku] = available - quantity\n    return stock[sku]\n\n\ndef restock(stock, sku, quantity):\n    stock[sku]\
+      \ = stock.get(sku, 0) + max(quantity, 0)\n    return stock[sku]\n\n\ndef low_stock(stock, threshold=5):\n    return\
+      \ sorted(sku for sku, count in stock.items() if count <= threshold)\n"
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    src/receipts.ts: "export interface ReceiptLine {\n  sku: string;\n  quantity: number;\n  totalCents: number;\n}\n\nexport\
+      \ function receiptTotal(lines: ReceiptLine[]): number {\n  return lines.reduce((sum, line) => sum + line.totalCents,\
+      \ 0);\n}\n\n// Lines with a zero quantity are refunds and don't count as items.\nexport function receiptCount(lines:\
+      \ ReceiptLine[]): number {\n  return lines.filter((line) => line.quantity > 0).length;\n}\n"
+pr:
+  base: main
+  head: feature

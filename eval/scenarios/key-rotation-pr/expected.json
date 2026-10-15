@@ -1,0 +1,22 @@
+{
+ "lines": {
+  "billing/credit.py:1": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "billing/credit.py:2": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "billing/invoice.py:1": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "billing/invoice.py:2": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

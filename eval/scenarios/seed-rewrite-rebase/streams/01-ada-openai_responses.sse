@@ -1,0 +1,387 @@
+event: response.created
+data: {"type": "response.created", "sequence_number": 1, "response": {"id": "resp_demo", "object": "response", "created_at": 1, "model": "demo", "status": "in_progress", "output": []}}
+
+event: response.output_item.added
+data: {"type": "response.output_item.added", "sequence_number": 2, "output_index": 0, "item": {"type": "function_call", "id": "fc_0", "call_id": "call_001", "name": "write_file", "arguments": "", "status": "in_progress"}}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 3, "item_id": "fc_0", "output_index": 0, "delta": "{\"pat"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 4, "item_id": "fc_0", "output_index": 0, "delta": "h\": \""}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 5, "item_id": "fc_0", "output_index": 0, "delta": "src/r"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 6, "item_id": "fc_0", "output_index": 0, "delta": "ebase"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 7, "item_id": "fc_0", "output_index": 0, "delta": "_orde"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 8, "item_id": "fc_0", "output_index": 0, "delta": "rs.py"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 9, "item_id": "fc_0", "output_index": 0, "delta": "\", \"c"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 10, "item_id": "fc_0", "output_index": 0, "delta": "onten"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 11, "item_id": "fc_0", "output_index": 0, "delta": "t\": \""}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 12, "item_id": "fc_0", "output_index": 0, "delta": "def o"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 13, "item_id": "fc_0", "output_index": 0, "delta": "rder_"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 14, "item_id": "fc_0", "output_index": 0, "delta": "total"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 15, "item_id": "fc_0", "output_index": 0, "delta": "(orde"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 16, "item_id": "fc_0", "output_index": 0, "delta": "r):\\n"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 17, "item_id": "fc_0", "output_index": 0, "delta": "    l"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 18, "item_id": "fc_0", "output_index": 0, "delta": "ines "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 19, "item_id": "fc_0", "output_index": 0, "delta": "= ord"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 20, "item_id": "fc_0", "output_index": 0, "delta": "er.ge"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 21, "item_id": "fc_0", "output_index": 0, "delta": "t('li"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 22, "item_id": "fc_0", "output_index": 0, "delta": "nes',"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 23, "item_id": "fc_0", "output_index": 0, "delta": " [])\\"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 24, "item_id": "fc_0", "output_index": 0, "delta": "n    "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 25, "item_id": "fc_0", "output_index": 0, "delta": "gross"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 26, "item_id": "fc_0", "output_index": 0, "delta": " = su"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 27, "item_id": "fc_0", "output_index": 0, "delta": "m(lin"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 28, "item_id": "fc_0", "output_index": 0, "delta": "e['pr"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 29, "item_id": "fc_0", "output_index": 0, "delta": "ice']"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 30, "item_id": "fc_0", "output_index": 0, "delta": " * li"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 31, "item_id": "fc_0", "output_index": 0, "delta": "ne['q"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 32, "item_id": "fc_0", "output_index": 0, "delta": "ty'] "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 33, "item_id": "fc_0", "output_index": 0, "delta": "for l"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 34, "item_id": "fc_0", "output_index": 0, "delta": "ine i"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 35, "item_id": "fc_0", "output_index": 0, "delta": "n lin"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 36, "item_id": "fc_0", "output_index": 0, "delta": "es)\\n"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 37, "item_id": "fc_0", "output_index": 0, "delta": "    d"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 38, "item_id": "fc_0", "output_index": 0, "delta": "iscou"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 39, "item_id": "fc_0", "output_index": 0, "delta": "nt = "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 40, "item_id": "fc_0", "output_index": 0, "delta": "order"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 41, "item_id": "fc_0", "output_index": 0, "delta": ".get("}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 42, "item_id": "fc_0", "output_index": 0, "delta": "'disc"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 43, "item_id": "fc_0", "output_index": 0, "delta": "ount_"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 44, "item_id": "fc_0", "output_index": 0, "delta": "cents"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 45, "item_id": "fc_0", "output_index": 0, "delta": "', 0)"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 46, "item_id": "fc_0", "output_index": 0, "delta": "\\n   "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 47, "item_id": "fc_0", "output_index": 0, "delta": " retu"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 48, "item_id": "fc_0", "output_index": 0, "delta": "rn ma"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 49, "item_id": "fc_0", "output_index": 0, "delta": "x(gro"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 50, "item_id": "fc_0", "output_index": 0, "delta": "ss - "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 51, "item_id": "fc_0", "output_index": 0, "delta": "disco"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 52, "item_id": "fc_0", "output_index": 0, "delta": "unt, "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 53, "item_id": "fc_0", "output_index": 0, "delta": "0)\\n\\"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 54, "item_id": "fc_0", "output_index": 0, "delta": "n\\nde"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 55, "item_id": "fc_0", "output_index": 0, "delta": "f is_"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 56, "item_id": "fc_0", "output_index": 0, "delta": "paid("}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 57, "item_id": "fc_0", "output_index": 0, "delta": "order"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 58, "item_id": "fc_0", "output_index": 0, "delta": "):\\n "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 59, "item_id": "fc_0", "output_index": 0, "delta": "   re"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 60, "item_id": "fc_0", "output_index": 0, "delta": "turn "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 61, "item_id": "fc_0", "output_index": 0, "delta": "order"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 62, "item_id": "fc_0", "output_index": 0, "delta": ".get("}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 63, "item_id": "fc_0", "output_index": 0, "delta": "'stat"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 64, "item_id": "fc_0", "output_index": 0, "delta": "us') "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 65, "item_id": "fc_0", "output_index": 0, "delta": "in ('"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 66, "item_id": "fc_0", "output_index": 0, "delta": "paid'"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 67, "item_id": "fc_0", "output_index": 0, "delta": ", 're"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 68, "item_id": "fc_0", "output_index": 0, "delta": "funde"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 69, "item_id": "fc_0", "output_index": 0, "delta": "d')\\n"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 70, "item_id": "fc_0", "output_index": 0, "delta": "\"}"}
+
+event: response.function_call_arguments.done
+data: {"type": "response.function_call_arguments.done", "sequence_number": 71, "item_id": "fc_0", "output_index": 0, "arguments": "{\"path\": \"src/rebase_orders.py\", \"content\": \"def order_total(order):\\n    lines = order.get('lines', [])\\n    gross = sum(line['price'] * line['qty'] for line in lines)\\n    discount = order.get('discount_cents', 0)\\n    return max(gross - discount, 0)\\n\\n\\ndef is_paid(order):\\n    return order.get('status') in ('paid', 'refunded')\\n\"}"}
+
+event: response.output_item.done
+data: {"type": "response.output_item.done", "sequence_number": 72, "output_index": 0, "item": {"type": "function_call", "id": "fc_0", "call_id": "call_001", "name": "write_file", "arguments": "{\"path\": \"src/rebase_orders.py\", \"content\": \"def order_total(order):\\n    lines = order.get('lines', [])\\n    gross = sum(line['price'] * line['qty'] for line in lines)\\n    discount = order.get('discount_cents', 0)\\n    return max(gross - discount, 0)\\n\\n\\ndef is_paid(order):\\n    return order.get('status') in ('paid', 'refunded')\\n\"}", "status": "completed"}}
+
+event: response.output_item.added
+data: {"type": "response.output_item.added", "sequence_number": 73, "output_index": 1, "item": {"type": "function_call", "id": "fc_1", "call_id": "call_002", "name": "write_file", "arguments": "", "status": "in_progress"}}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 74, "item_id": "fc_1", "output_index": 1, "delta": "{\"pat"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 75, "item_id": "fc_1", "output_index": 1, "delta": "h\": \""}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 76, "item_id": "fc_1", "output_index": 1, "delta": "src/r"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 77, "item_id": "fc_1", "output_index": 1, "delta": "ebase"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 78, "item_id": "fc_1", "output_index": 1, "delta": "_ship"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 79, "item_id": "fc_1", "output_index": 1, "delta": "ping."}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 80, "item_id": "fc_1", "output_index": 1, "delta": "py\", "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 81, "item_id": "fc_1", "output_index": 1, "delta": "\"cont"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 82, "item_id": "fc_1", "output_index": 1, "delta": "ent\":"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 83, "item_id": "fc_1", "output_index": 1, "delta": " \"RAT"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 84, "item_id": "fc_1", "output_index": 1, "delta": "ES = "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 85, "item_id": "fc_1", "output_index": 1, "delta": "{'sta"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 86, "item_id": "fc_1", "output_index": 1, "delta": "ndard"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 87, "item_id": "fc_1", "output_index": 1, "delta": "': 49"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 88, "item_id": "fc_1", "output_index": 1, "delta": "9, 'e"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 89, "item_id": "fc_1", "output_index": 1, "delta": "xpres"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 90, "item_id": "fc_1", "output_index": 1, "delta": "s': 1"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 91, "item_id": "fc_1", "output_index": 1, "delta": "299, "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 92, "item_id": "fc_1", "output_index": 1, "delta": "'over"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 93, "item_id": "fc_1", "output_index": 1, "delta": "night"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 94, "item_id": "fc_1", "output_index": 1, "delta": "': 24"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 95, "item_id": "fc_1", "output_index": 1, "delta": "99}\\n"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 96, "item_id": "fc_1", "output_index": 1, "delta": "\\n\\nd"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 97, "item_id": "fc_1", "output_index": 1, "delta": "ef sh"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 98, "item_id": "fc_1", "output_index": 1, "delta": "ippin"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 99, "item_id": "fc_1", "output_index": 1, "delta": "g_cen"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 100, "item_id": "fc_1", "output_index": 1, "delta": "ts(me"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 101, "item_id": "fc_1", "output_index": 1, "delta": "thod,"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 102, "item_id": "fc_1", "output_index": 1, "delta": " weig"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 103, "item_id": "fc_1", "output_index": 1, "delta": "ht_kg"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 104, "item_id": "fc_1", "output_index": 1, "delta": "):\\n "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 105, "item_id": "fc_1", "output_index": 1, "delta": "   ba"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 106, "item_id": "fc_1", "output_index": 1, "delta": "se = "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 107, "item_id": "fc_1", "output_index": 1, "delta": "RATES"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 108, "item_id": "fc_1", "output_index": 1, "delta": "[meth"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 109, "item_id": "fc_1", "output_index": 1, "delta": "od]\\n"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 110, "item_id": "fc_1", "output_index": 1, "delta": "    s"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 111, "item_id": "fc_1", "output_index": 1, "delta": "urcha"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 112, "item_id": "fc_1", "output_index": 1, "delta": "rge ="}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 113, "item_id": "fc_1", "output_index": 1, "delta": " max("}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 114, "item_id": "fc_1", "output_index": 1, "delta": "0, ro"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 115, "item_id": "fc_1", "output_index": 1, "delta": "und(("}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 116, "item_id": "fc_1", "output_index": 1, "delta": "weigh"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 117, "item_id": "fc_1", "output_index": 1, "delta": "t_kg "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 118, "item_id": "fc_1", "output_index": 1, "delta": "- 2) "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 119, "item_id": "fc_1", "output_index": 1, "delta": "* 150"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 120, "item_id": "fc_1", "output_index": 1, "delta": "))\\n "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 121, "item_id": "fc_1", "output_index": 1, "delta": "   re"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 122, "item_id": "fc_1", "output_index": 1, "delta": "turn "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 123, "item_id": "fc_1", "output_index": 1, "delta": "base "}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 124, "item_id": "fc_1", "output_index": 1, "delta": "+ sur"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 125, "item_id": "fc_1", "output_index": 1, "delta": "charg"}
+
+event: response.function_call_arguments.delta
+data: {"type": "response.function_call_arguments.delta", "sequence_number": 126, "item_id": "fc_1", "output_index": 1, "delta": "e\\n\"}"}
+
+event: response.function_call_arguments.done
+data: {"type": "response.function_call_arguments.done", "sequence_number": 127, "item_id": "fc_1", "output_index": 1, "arguments": "{\"path\": \"src/rebase_shipping.py\", \"content\": \"RATES = {'standard': 499, 'express': 1299, 'overnight': 2499}\\n\\n\\ndef shipping_cents(method, weight_kg):\\n    base = RATES[method]\\n    surcharge = max(0, round((weight_kg - 2) * 150))\\n    return base + surcharge\\n\"}"}
+
+event: response.output_item.done
+data: {"type": "response.output_item.done", "sequence_number": 128, "output_index": 1, "item": {"type": "function_call", "id": "fc_1", "call_id": "call_002", "name": "write_file", "arguments": "{\"path\": \"src/rebase_shipping.py\", \"content\": \"RATES = {'standard': 499, 'express': 1299, 'overnight': 2499}\\n\\n\\ndef shipping_cents(method, weight_kg):\\n    base = RATES[method]\\n    surcharge = max(0, round((weight_kg - 2) * 150))\\n    return base + surcharge\\n\"}", "status": "completed"}}
+
+event: response.completed
+data: {"type": "response.completed", "sequence_number": 129, "response": {"id": "resp_demo", "object": "response", "created_at": 1, "model": "demo", "status": "completed", "output": [{"type": "function_call", "id": "fc_0", "call_id": "call_001", "name": "write_file", "arguments": "{\"path\": \"src/rebase_orders.py\", \"content\": \"def order_total(order):\\n    lines = order.get('lines', [])\\n    gross = sum(line['price'] * line['qty'] for line in lines)\\n    discount = order.get('discount_cents', 0)\\n    return max(gross - discount, 0)\\n\\n\\ndef is_paid(order):\\n    return order.get('status') in ('paid', 'refunded')\\n\"}", "status": "completed"}, {"type": "function_call", "id": "fc_1", "call_id": "call_002", "name": "write_file", "arguments": "{\"path\": \"src/rebase_shipping.py\", \"content\": \"RATES = {'standard': 499, 'express': 1299, 'overnight': 2499}\\n\\n\\ndef shipping_cents(method, weight_kg):\\n    base = RATES[method]\\n    surcharge = max(0, round((weight_kg - 2) * 150))\\n    return base + surcharge\\n\"}", "status": "completed"}], "usage": {"input_tokens": 10, "input_tokens_details": {"cached_tokens": 0}, "output_tokens": 50, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 60}}}
+

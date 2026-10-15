@@ -1,0 +1,91 @@
+{
+ "lines": {
+  "fmt/config.go:1": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.go:10": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.go:11": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/config.go:12": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/config.go:13": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/config.go:14": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/config.go:15": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/config.go:16": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.go:17": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.go:18": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/config.go:19": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.go:2": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.go:3": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.go:4": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.go:5": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/config.go:6": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.go:7": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.go:8": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.go:9": {
+   "outcome": "indeterminate",
+   "tags": []
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

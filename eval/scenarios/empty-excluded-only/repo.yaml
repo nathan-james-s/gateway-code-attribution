@@ -1,0 +1,28 @@
+description: 'A PR that only touches excluded files: nothing attributable.'
+category: empty
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-openai_chat.sse
+  author: ada
+  api_format: openai_chat
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    package-lock.json: '{"lockfileVersion": 3, "packages": {}}
+
+      '
+    vendor/lib/thing.js: 'module.exports = function thing(a, b) { return a + b; };
+
+      '
+pr:
+  base: main
+  head: feature

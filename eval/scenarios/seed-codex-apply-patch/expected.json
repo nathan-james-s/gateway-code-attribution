@@ -1,0 +1,39 @@
+{
+ "lines": {
+  "cli/args.py:1": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "cli/args.py:2": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "cli/args.py:3": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "cli/args.py:4": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "cli/args.py:5": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "cli/args.py:6": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "cli/args.py:7": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "cli/args.py:8": {
+   "outcome": "indeterminate",
+   "tags": []
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

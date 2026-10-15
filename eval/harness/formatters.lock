@@ -1,0 +1,11 @@
+# Formatter versions used to author the formatter scenarios (T103). Scenario files already contain the formatted
+# code, so running the eval never needs these; regenerating eval/scenarios/formatters-* does.
+formatters:
+  black:
+    version: "24.10.0"            # Python, via `uv run --with black==<version>`
+  prettier:
+    version: "3.3.3"              # TypeScript, via npx in the image below
+    image: node:22.11.0-alpine3.20
+  gofmt:
+    version: "go1.23.3"           # Go, the image's toolchain
+    image: golang:1.23.3-alpine3.20

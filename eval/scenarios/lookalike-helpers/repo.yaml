@@ -1,0 +1,28 @@
+description: Human-written helpers resembling common AI output.
+category: lookalike
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    svc/backoff.py: "import random\n\n\ndef jittered_backoff(base, attempt, cap=30.0):\n    ceiling = min(cap, base * 2 **\
+      \ attempt)\n    return random.uniform(0, ceiling)\n\n\ndef with_timeout(fn, seconds):\n    deadline = time.monotonic()\
+      \ + seconds\n    result = fn()\n    if time.monotonic() > deadline:\n        raise TimeoutError(f'took longer than {seconds}s')\n\
+      \    return result\n\n\ndef call_with_retries(fn, tries=4, pause=0.25):\n    for n in range(tries):\n        try:\n\
+      \            return fn(timeout=pause * 8)\n        except ConnectionError:\n            if n + 1 == tries:\n       \
+      \         raise\n            time.sleep(pause * (n + 1))\n"
+pr:
+  base: main
+  head: feature

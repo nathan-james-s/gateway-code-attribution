@@ -1,0 +1,46 @@
+{
+ "lines": {
+  "lib/batching.py:1": {
+   "outcome": "ai_modified",
+   "tier": "broad",
+   "tags": []
+  },
+  "lib/batching.py:2": {
+   "outcome": "ai_modified",
+   "tier": "broad",
+   "tags": []
+  },
+  "lib/batching.py:3": {
+   "outcome": "human",
+   "tags": []
+  },
+  "lib/batching.py:4": {
+   "outcome": "human",
+   "tags": []
+  },
+  "lib/util.py:1": {
+   "outcome": "ai_modified",
+   "tier": "broad",
+   "tags": [
+    "path_only"
+   ]
+  },
+  "lib/util.py:2": {
+   "outcome": "ai_modified",
+   "tier": "broad",
+   "tags": [
+    "path_only"
+   ]
+  },
+  "lib/util.py:3": {
+   "outcome": "human",
+   "tags": []
+  },
+  "lib/util.py:4": {
+   "outcome": "human",
+   "tags": []
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

@@ -8,11 +8,17 @@ Protect `main` and require these checks (constitution "Development Workflow & Qu
 |---|---|---|---|
 | `lint`, `test-lib`, `test-services`, `helm-lint` | `ci.yml` | baseline | every PR |
 | `golden-frozen` | `ci.yml` | golden corpora never change; a new one comes with a higher `ALG` (Principle III, FR-032) | every PR |
+| `release-bar` | `gates.yml` | the spec's SC-002/SC-003 numbers equal the schema's `release_bar` constants (FR-044) | every PR |
 | `no-recorder` | `gates.yml` | no retained code or prompts (Principle II) | every PR |
 | `conformance` | `gates.yml` | gateway capture changes | `lib/**`, `services/core/**`, `services/capture-*/**` |
 | `clean-install-and-privacy` | `gates.yml` | stack changes (clean install of each gateway to first result, M7; identical outcomes across gateways) and data-path changes (privacy audit, same cluster) | `lib/**`, `services/**`, `charts/**` |
 
 Jobs skipped by their path filter report success, so they can stay required.
+
+`release-gate` (`release-gate.yml`) runs the scenario set through both gateways on every PR to `main` and uploads
+the quality report. `release.yml` requires it, so no release is published below the bar (Principle V). Make it a
+required merge check once it passes: today attribution accuracy is just under the 95% bar (plan.md
+"Implementation findings").
 
 ## Repository secrets
 

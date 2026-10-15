@@ -14,6 +14,11 @@ members = ["lib", "services/*", "eval/harness"]
 [tool.uv.sources]
 gcattr = { workspace = true }
 gca-core = { workspace = true }
+gca-capture-extproc = { workspace = true }
+gca-capture-litellm = { workspace = true }
+gca-ingest = { workspace = true }
+gca-prcheck = { workspace = true }
+gca-demo = { workspace = true }
 
 [dependency-groups]
 dev = [

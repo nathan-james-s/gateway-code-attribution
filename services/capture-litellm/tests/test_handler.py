@@ -184,3 +184,27 @@ async def test_unrecognised_call_without_credential_is_unknown_credential(handle
     )
     sent = await _flush(handler)
     assert [(m["kind"], m.get("cause")) for m in sent] == [("failure", "unknown_credential")]
+
+
+class _Err(Exception):
+    def __init__(self, status: int | None) -> None:
+        super().__init__("boom")
+        self.status_code = status
+
+
+async def test_failed_call_after_output_may_have_started_is_loss(handler: GcaHandler) -> None:
+    """The eval found LiteLLM ending a stream it couldn't read mid-response and calling only the failure hook.
+    That is loss (the developer may have seen output), unless the provider refused the call outright."""
+    for status in (None, 500, 502):
+        kw = {**_kwargs(call_type="aresponses"), "exception": _Err(status)}
+        await handler.async_log_failure_event(kw, None, None, None)
+    for status in (400, 401, 429):  # refused before any output: nothing was lost
+        await handler.async_log_failure_event({**_kwargs(), "exception": _Err(status)}, None, None, None)
+    await handler.async_log_failure_event(
+        {**_kwargs(call_type="aembedding"), "exception": _Err(500)}, None, None, None
+    )
+    await handler.async_log_failure_event({**_kwargs(alias=None), "exception": _Err(None)}, None, None, None)
+    sent = await _flush(handler)
+    assert [(m["cause"], m.get("api_format")) for m in sent if m["kind"] == "failure"] == [
+        ("unexpected_format", "openai_responses")
+    ] * 3 + [("unknown_credential", "openai_chat")]

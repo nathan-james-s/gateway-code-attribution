@@ -290,6 +290,26 @@ docs/                             # install, per-tool routing, outcomes, privacy
   edits can't move the expected outputs; `.gitattributes` keeps those files byte-exact. `check-alg-bump.sh` allows
   exactly one exception to "never change a corpus": the first corpus for the current `ALG`. The contract's
   defaults `alg=ALG` on `attribute()` and `extract()` were missing and are now in place.
+- **Eval runner (T106)**: both real gateways run locally through `gca_eval.gateways` (the conformance harness now
+  uses the same module). Captured messages go through ingest's real store into a testcontainers PostgreSQL in
+  publication order; NATS is only transport, so it isn't run, and a `dropped` fault removes one message there.
+  Lines are read with `gcattr.gitlocal` (shown equal to the PR check in T097) and matched with the PR check's own
+  `match_lines`. Each (scenario, alias) gets its own test account, so scenarios can't match each other.
+- **Silent loss found on LiteLLM (T106)**: given a schema-deviant Responses stream, LiteLLM 1.105.1 ends the
+  client's response mid-stream and calls only the failure callback, which capture ignored: silent loss. The
+  callback now records `unexpected_format` for a generative call that fails after the provider accepted it (not a
+  4xx refusal), because output may already have reached the developer.
+- **First quality measurements (T107, T109)**: 16 scenarios, 246 labelled lines. No line was wrongly called AI
+  modified at any threshold, rewrite survival is 100% and silent loss 0, but accuracy is about 92% at the
+  provisional thresholds (0.50 anchored / 0.75 broad) and 94.8% at the best calibrated pair (0.40 / 0.70), under
+  the 95% bar. The misses are human edits of short AI lines (a renamed identifier or a changed literal on a line of
+  6-10 tokens): token 3-gram shingling scores those below 0.40, so no threshold recovers them without risking false
+  matches. Calibration splits by line, stratified by outcome and tier (a split by scenario put every broad example
+  in the held-out part). Thresholds are not written yet: T113 calibrates on the scenario set plus the real-traffic
+  corpus and freezes them, and `check-alg-bump.sh` now freezes a golden corpus only once a release contains it.
+- **Release gate (T110)**: `release-gate.yml` runs on PRs to `main` and is called by `release.yml`, so nothing is
+  published below the bar. It isn't a required merge check yet: it will fail until the accuracy finding above is
+  resolved (T113 or an algorithm change under a new `ALG`).
 - **Role details (T083, T084)**: `portal.adminLogins` are always admins (break-glass, and the only admins on a
   personal account), so a revoke doesn't remove them; an admin can't revoke their own admin role. One override
   per (developer, role, team), latest wins; clearing it returns to the GitHub default. `visible_roles` may also

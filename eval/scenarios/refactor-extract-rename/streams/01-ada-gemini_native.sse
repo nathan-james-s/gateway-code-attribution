@@ -1,0 +1,4 @@
+data: {"candidates": [{"content": {"role": "model", "parts": [{"text": "Working on it."}]}, "index": 0}], "modelVersion": "demo"}
+
+data: {"candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "write_file", "args": {"file_path": "/workspace/reports/sales.py", "content": "def monthly_totals(orders):\n    totals = {}\n    for order in orders:\n        month = order['created'][:7]\n        totals[month] = totals.get(month, 0) + order['total']\n    return dict(sorted(totals.items()))\n\n\ndef best_month(orders):\n    totals = monthly_totals(orders)\n    return max(totals, key=totals.get)\n"}}}]}, "finishReason": "STOP", "index": 0}], "usageMetadata": {"promptTokenCount": 10, "candidatesTokenCount": 50, "totalTokenCount": 60}, "modelVersion": "demo"}
+

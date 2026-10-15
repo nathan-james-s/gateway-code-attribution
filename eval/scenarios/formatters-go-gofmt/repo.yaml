@@ -1,0 +1,25 @@
+description: AI output passed through gofmt before committing (SC-003).
+category: formatters
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-gemini_native.sse
+  author: ada
+  api_format: gemini_native
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    fmt/config.go: "package config\n\nimport \"strings\"\n\ntype Plugin struct {\n\tName     string\n\tEnabled  bool\n\tPriority\
+      \ int\n}\n\nfunc ActiveNames(plugins []Plugin) string {\n\tnames := []string{}\n\tfor _, p := range plugins {\n\t\t\
+      if p.Enabled {\n\t\t\tnames = append(names, p.Name)\n\t\t}\n\t}\n\treturn strings.Join(names, \", \")\n}\n"
+pr:
+  base: main
+  head: feature

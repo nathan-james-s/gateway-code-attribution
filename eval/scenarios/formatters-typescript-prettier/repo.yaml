@@ -1,0 +1,27 @@
+description: AI output passed through prettier before committing (SC-003).
+category: formatters
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-openai_chat.sse
+  author: ada
+  api_format: openai_chat
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    fmt/plugins.ts: "export type Plugin = { name: string; enabled: boolean; priority?: number };\nexport function activePlugins(plugins:\
+      \ Plugin[]): Plugin[] {\n  return plugins\n    .filter((p) => p.enabled)\n    .sort((a, b) => (b.priority ?? 0) - (a.priority\
+      \ ?? 0));\n}\nexport function pluginNames(plugins: Plugin[]): string {\n  return activePlugins(plugins)\n    .map((p)\
+      \ => p.name)\n    .join(\", \");\n}\nexport const DEFAULT_PLUGINS: Plugin[] = [\n  { name: \"auth\", enabled: true,\
+      \ priority: 10 },\n  { name: \"audit\", enabled: false },\n];\n"
+pr:
+  base: main
+  head: feature

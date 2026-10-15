@@ -1,0 +1,184 @@
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "Working on it."}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "id": "call_001", "type": "function", "function": {"name": "write_file", "arguments": ""}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "{\"pat"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "h\": \""}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "src/i"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "nvent"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ory.p"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "y\", \""}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "conte"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "nt\": "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "\"clas"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "s Out"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "OfSto"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ck(Ex"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "cepti"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "on):\\"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "n    "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "pass\\"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "n\\n\\n"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "def r"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "eserv"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "e(sto"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ck, s"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ku, q"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "uanti"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ty):\\"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "n    "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "avail"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "able "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "= sto"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ck.ge"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "t(sku"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": ", 0)\\"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "n    "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "if av"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ailab"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "le < "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "quant"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ity:\\"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "n    "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "    r"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "aise "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "OutOf"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "Stock"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "(f\\\"{"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "sku}:"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": " {ava"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ilabl"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "e} le"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ft, {"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "quant"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ity} "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "reque"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "sted\\"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "\")\\n "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "   st"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ock[s"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ku] ="}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": " avai"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "lable"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": " - qu"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "antit"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "y\\n  "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "  ret"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "urn s"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "tock["}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "sku]\\"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "n\\n\\n"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "def r"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "estoc"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "k(sto"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ck, s"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ku, q"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "uanti"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ty):\\"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "n    "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "stock"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "[sku]"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": " = st"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "ock.g"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "et(sk"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "u, 0)"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": " + qu"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "antit"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "y\\n  "}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "  ret"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "urn s"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "tock["}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "sku]\\"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {"tool_calls": [{"index": 0, "function": {"arguments": "n\"}"}}]}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-demo", "object": "chat.completion.chunk", "created": 1, "model": "demo", "choices": [{"index": 0, "delta": {}, "finish_reason": "tool_calls"}]}
+
+data: [DONE]
+

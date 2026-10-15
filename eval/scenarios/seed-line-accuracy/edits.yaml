@@ -1,0 +1,9 @@
+edits:
+- file: src/pricing.py
+  edits:
+  - error message gains the value
+  - tax default 0.08 -> 0.0825
+- file: src/inventory.py
+  edits:
+  - restock guards against negative quantities
+  - low_stock typed by hand

@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# T095: a golden corpus is frozen once it lands (Constitution III, FR-032, FR-033).
+# T095: a golden corpus is frozen once it has been released (Constitution III, FR-032, FR-033).
 #
-# Fails when this change edits, adds to or deletes any file of a corpus that exists on the base (lib/tests/golden/
-# alg-<n>/), unless alg <n> is being retired (its directory deleted and <n> no longer in SUPPORTED_ALGS). A new
-# corpus directory must be for the new ALG, and ALG must go up in the same change. The one exception is the first
-# corpus for the current ALG when the base has none for it (how alg-1's corpus was introduced).
+# Fails when this change edits, adds to or deletes any file of a corpus that a release (a `v*` tag) contains
+# (lib/tests/golden/alg-<n>/), unless alg <n> is being retired (its directory deleted and <n> no longer in
+# SUPPORTED_ALGS). Before alg <n> is first released its corpus may still change: threshold calibration (T109, T113)
+# is allowed until then and regenerates it. A new corpus directory must be for the new ALG, and ALG must go up in
+# the same change; the exception is the first corpus for the current ALG when the base has none for it.
 #
 #   scripts/check-alg-bump.sh [BASE_REF]      (default: origin/main)
 set -euo pipefail
@@ -42,16 +43,26 @@ explain() {  # explain <corpus dir> <message>: once per corpus directory
   fail=1
 }
 
+released() {  # released <n>: does any release tag contain the alg-<n> corpus?
+  local tag
+  for tag in $(git tag -l 'v*'); do
+    git cat-file -e "$tag:lib/tests/golden/alg-$1" 2>/dev/null && return 0
+  done
+  return 1
+}
+
 while IFS=$'\t' read -r status path rest; do
   [ -z "${status:-}" ] && continue
   for p in "$path" ${rest:-}; do
     [[ "$p" =~ ^lib/tests/golden/alg-([0-9]+)/ ]] || continue
     n=${BASH_REMATCH[1]}
-    if git cat-file -e "$BASE:lib/tests/golden/alg-$n" 2>/dev/null; then
+    if released "$n"; then
       if [[ "$status" == D* ]] && [ ! -d "lib/tests/golden/alg-$n" ] && [[ " $HEAD_SUPPORTED " != *" $n "* ]]; then
         continue  # alg n retired: its whole corpus goes with it
       fi
-      explain "alg-$n" "the alg-$n golden corpus changed ($status $p)."
+      explain "alg-$n" "the alg-$n golden corpus changed ($status $p), and alg $n has been released."
+    elif git cat-file -e "$BASE:lib/tests/golden/alg-$n" 2>/dev/null; then
+      continue  # alg n hasn't been released yet: its corpus may still change (T109, T113)
     elif [ "$n" = "$HEAD_ALG" ] && { [ "$HEAD_ALG" -gt "$BASE_ALG" ] || [ "$n" = "$BASE_ALG" ]; }; then
       continue  # the corpus for a new ALG, or the first corpus for the current one
     else
@@ -63,5 +74,5 @@ done < <(git diff --name-status -M "$BASE" -- lib/tests/golden/)
 if [ "$HEAD_ALG" -gt "$BASE_ALG" ] && [ ! -d "lib/tests/golden/alg-$HEAD_ALG" ]; then
   explain "alg-$HEAD_ALG" "ALG went from $BASE_ALG to $HEAD_ALG without a lib/tests/golden/alg-$HEAD_ALG corpus."
 fi
-[ "$fail" = 0 ] && echo "golden corpora unchanged (ALG $HEAD_ALG; supported: $HEAD_SUPPORTED)"
+[ "$fail" = 0 ] && echo "golden corpus check passed (ALG $HEAD_ALG; supported: $HEAD_SUPPORTED)"
 exit "$fail"

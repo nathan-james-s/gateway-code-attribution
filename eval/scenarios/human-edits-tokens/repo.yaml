@@ -1,0 +1,33 @@
+description: Small human edits to AI lines, with same-file anchors.
+category: human-edits
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 02-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    app/users.py: "import re\n\nEMAIL = re.compile(r'^[^@\\s]+@[^@\\s]+\\.[a-z]{2,}$')\n\n\ndef normalize_email(address):\n\
+      \    cleaned = address.strip().lower()\n    if not EMAIL.fullmatch(cleaned):\n        raise ValueError(f'invalid email\
+      \ address: {address!r}')\n    return cleaned\n\n\ndef display_name(first, last, middle=None):\n    parts = [first, middle,\
+      \ last]\n    return ' '.join(p for p in parts if p)\n\n\ndef username_for(first, last, taken):\n    stem = (first[0]\
+      \ + last).lower()\n    candidate, n = stem, 1\n    while candidate in taken:\n        n += 1\n        candidate = f'{stem}{n}'\n\
+      \    return candidate\n\n\ndef is_admin(user):\n    return 'admin' in user.get('roles', ())\n"
+    app/flags.py: "FEATURES = {'beta_search': False, 'new_checkout': True}\n\n\ndef enabled(name):\n    return FEATURES.get(name,\
+      \ False)\n"
+pr:
+  base: main
+  head: feature

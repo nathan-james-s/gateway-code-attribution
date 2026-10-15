@@ -1,0 +1,150 @@
+{
+ "lines": {
+  "svc/backoff.py:1": {
+   "outcome": "indeterminate",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:10": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:11": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:12": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:13": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:14": {
+   "outcome": "indeterminate",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:15": {
+   "outcome": "indeterminate",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:16": {
+   "outcome": "indeterminate",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:17": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:18": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:19": {
+   "outcome": "indeterminate",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:2": {
+   "outcome": "indeterminate",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:20": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:21": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:22": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:23": {
+   "outcome": "indeterminate",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:24": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:3": {
+   "outcome": "indeterminate",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:4": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:5": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:6": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:7": {
+   "outcome": "indeterminate",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:8": {
+   "outcome": "indeterminate",
+   "tags": [
+    "lookalike"
+   ]
+  },
+  "svc/backoff.py:9": {
+   "outcome": "human",
+   "tags": [
+    "lookalike"
+   ]
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

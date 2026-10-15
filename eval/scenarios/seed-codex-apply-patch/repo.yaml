@@ -1,0 +1,24 @@
+description: A file added through Codex's freeform apply_patch.
+category: seed
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-openai_responses.sse
+  author: ada
+  api_format: openai_responses
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    cli/args.py: "import argparse\n\n\ndef parser():\n    p = argparse.ArgumentParser(prog='shop')\n    p.add_argument('--verbose',\
+      \ action='store_true')\n    p.add_argument('--region', default='us-east')\n    return p\n"
+pr:
+  base: main
+  head: feature

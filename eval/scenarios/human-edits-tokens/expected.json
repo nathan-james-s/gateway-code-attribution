@@ -1,0 +1,147 @@
+{
+ "lines": {
+  "app/flags.py:1": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "app/flags.py:2": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/flags.py:3": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/flags.py:4": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "app/flags.py:5": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "retyped"
+   ]
+  },
+  "app/users.py:1": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:10": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:11": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:12": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:13": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "app/users.py:14": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "app/users.py:15": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "app/users.py:16": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:17": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:18": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "app/users.py:19": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "app/users.py:2": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:20": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "app/users.py:21": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "app/users.py:22": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "app/users.py:23": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "app/users.py:24": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:25": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:26": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:27": {
+   "outcome": "human",
+   "tags": []
+  },
+  "app/users.py:28": {
+   "outcome": "human",
+   "tags": []
+  },
+  "app/users.py:3": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "app/users.py:4": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:5": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "app/users.py:6": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "app/users.py:7": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "app/users.py:8": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "app/users.py:9": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

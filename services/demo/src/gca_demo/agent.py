@@ -43,12 +43,14 @@ class DemoError(RuntimeError):
 
 
 # ---------------------------------------------------------------------------------------------- talking to the gateway
-def gateway_sender(base_url: str, credential: str, gateway: str) -> Sender:
+def gateway_sender(
+    base_url: str, credential: str, gateway: str, extra_headers: dict[str, str] | None = None
+) -> Sender:
     base = base_url.rstrip("/")
     client = httpx.Client(timeout=120)
 
     def send(api_format: str, text: str) -> bytes:
-        ua = {"User-Agent": f"gca-demo/0.1 ({api_format})"}
+        ua = {"User-Agent": f"gca-demo/0.1 ({api_format})", **(extra_headers or {})}
         if api_format == "anthropic_messages":
             url = f"{base}/v1/messages"
             headers = {**ua, "x-api-key": credential, "anthropic-version": "2023-06-01"}

@@ -1,12 +1,25 @@
 [project]
 name = "gca-eval"
 version = "0.1.0"
+description = "Scenario set, evaluation runner, quality report and threshold calibration (User Story 6). Never shipped in an image."
 requires-python = ">=3.12,<3.13"
 license = "Apache-2.0"
 dependencies = [
     "gcattr",
     "gca-core",
+    "gca-capture-extproc",
+    "gca-capture-litellm",
+    "gca-ingest",
+    "gca-prcheck",
+    "gca-demo",
+    "grpcio>=1.66",
+    "pyyaml>=6.0",
+    "jsonschema>=4.23",
+    "testcontainers[postgres]>=4.8",
 ]
+
+[project.entry-points."gca.commands"]
+eval = "gca_eval.cli:register"
 
 [build-system]
 requires = ["hatchling>=1.25"]

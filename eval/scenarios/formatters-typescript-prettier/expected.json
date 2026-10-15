@@ -1,0 +1,93 @@
+{
+ "lines": {
+  "fmt/plugins.ts:1": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/plugins.ts:10": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/plugins.ts:11": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/plugins.ts:12": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/plugins.ts:13": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/plugins.ts:14": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/plugins.ts:15": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/plugins.ts:2": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/plugins.ts:3": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/plugins.ts:4": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/plugins.ts:5": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/plugins.ts:6": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/plugins.ts:7": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/plugins.ts:8": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/plugins.ts:9": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

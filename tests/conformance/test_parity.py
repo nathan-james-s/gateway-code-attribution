@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-import yaml
 
 from gca_demo.sessions import marker, sessions
 
@@ -34,56 +33,15 @@ def results() -> Iterator[dict[str, dict[str, Any]]]:
         pytest.skip("uv is required to run the pinned LiteLLM")
     tmp = Path(tempfile.mkdtemp(prefix="gca-conformance-"))
     keys = h.write_keys(tmp / "keys")
-    upstream = h.Upstream()
-    extproc = h.ExtProc(keys)
-    ag_port, ll_port = h.free_port(), h.free_port()
-    (tmp / "agentgateway.yaml").write_text(
-        yaml.safe_dump(h.agentgateway_config(ag_port, extproc.port, upstream.port))
-    )
-    ag = h.Proc(
-        [str(h.agentgateway_binary()), "-f", str(tmp / "agentgateway.yaml")], {}, tmp / "agentgateway.log"
-    )
-    (tmp / "conformance_callback.py").write_text(h.CALLBACK)
-    (tmp / "litellm.yaml").write_text(yaml.safe_dump(h.litellm_config(upstream.port)))
-    out = h.FileCollector(tmp / "litellm-messages.jsonl")
-    ll = h.Proc(
-        [
-            "uv",
-            "run",
-            "--quiet",
-            "--with",
-            h.LITELLM,
-            "litellm",
-            "--config",
-            str(tmp / "litellm.yaml"),
-            "--port",
-            str(ll_port),
-        ],
-        {
-            "PYTHONPATH": str(tmp),
-            "GCA_KEYS_DIR": str(keys),
-            "GCA_CONFORMANCE_OUT": str(out.path),
-            "LITELLM_LOG": "ERROR",
-        },
-        tmp / "litellm.log",
-    )
-    try:
-        h.wait_port(ag_port, 60, ag.proc)
-        h.wait_port(ll_port, 900, ll.proc)  # the first run installs LiteLLM into uv's cache
-        send_ag = h.sender(f"http://127.0.0.1:{ag_port}", h.AG_KEY, "agentgateway")
-        send_ll = h.sender(f"http://127.0.0.1:{ll_port}", h.LL_MASTER, "litellm")
+    with h.stack(keys, [h.CREDENTIAL], h.respond) as s:
         res: dict[str, dict[str, Any]] = {}
         for case_id, fmt, text in CASES:
             res[case_id] = {
-                "agentgateway": h.replay(send_ag, lambda: list(extproc.messages), fmt, text),
-                "litellm": h.replay(send_ll, lambda: out.messages, fmt, text),
+                gw: h.canonical(h.replay(s.send(gw, h.CREDENTIAL), lambda gw=gw: s.messages(gw), fmt, text))
+                for gw in ("agentgateway", "litellm")
             }
         yield res
-    finally:
-        ag.stop()
-        ll.stop()
-        extproc.stop()
-        upstream.stop()
+    shutil.rmtree(tmp, ignore_errors=True)
 
 
 @pytest.mark.parametrize("case_id", [c[0] for c in CASES])
