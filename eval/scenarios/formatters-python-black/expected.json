@@ -87,11 +87,8 @@
    "tags": []
   },
   "fmt/config.py:6": {
-   "outcome": "ai_modified",
-   "tier": "any",
-   "tags": [
-    "formatter"
-   ]
+   "outcome": "ai_unmodified",
+   "tags": []
   },
   "fmt/config.py:7": {
    "outcome": "ai_unmodified",
@@ -102,11 +99,8 @@
    "tags": []
   },
   "fmt/config.py:9": {
-   "outcome": "ai_modified",
-   "tier": "any",
-   "tags": [
-    "formatter"
-   ]
+   "outcome": "ai_unmodified",
+   "tags": []
   }
  },
  "loss": {},

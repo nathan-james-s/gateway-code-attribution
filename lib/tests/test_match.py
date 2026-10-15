@@ -12,9 +12,9 @@ L_ANCH_SRC = (
     "result = compute_total(order.items, discount=customer.discount, "
     "tax_rate=region.tax_rate, currency=order.currency)"
 )
-L_ANCH_PR = (  # ~0.72 similar to L_ANCH_SRC
+L_ANCH_PR = (  # ~0.66 similar to L_ANCH_SRC: above the anchored threshold, below the broad one
     "result = compute_total(order.items, discount=customer.discount, "
-    "tax_rate=region.tax_rate, currency=default_currency)"
+    "tax=region.tax_rate, currency=default_currency)"
 )
 L_BROAD_SRC = "for index, item in enumerate(items): totals[item.category] += item.price * item.quantity"
 L_BROAD_PR = "for idx, item in enumerate(items): totals[item.category] += item.price * item.quantity"  # ~0.94
@@ -56,14 +56,15 @@ def test_anchored_requires_an_exact_match_in_the_same_file() -> None:
 def test_path_match_without_exact_match_is_not_an_anchor() -> None:
     cands = _captured([L_ANCH_SRC])
     res = attribute([_line(L_ANCH_PR)], {ALICE: cands}, {1: TEST_KEY}, 1)
-    assert res[0].outcome == "human"  # ~0.72 is below the broad threshold, and a path alone does not anchor
+    assert res[0].outcome == "human"  # ~0.66 is below the broad threshold, and a path alone does not anchor
+    assert res[0].tier != "anchored"
 
 
 def test_no_cross_file_anchoring_when_capture_names_another_file() -> None:
     other = _captured([L_ANCH_SRC], path="/repo/lib/other.py", event="ev1")
     same = _captured([L_EXACT], path="/repo/src/app.py", event="ev1")
     res = attribute([_line(L_EXACT, 1), _line(L_ANCH_PR, 2)], {ALICE: same + other}, {1: TEST_KEY}, 1)
-    assert res[1].outcome == "human"
+    assert res[1].outcome == "human" and res[1].tier != "anchored"
 
 
 def test_broad_tier() -> None:
@@ -103,3 +104,61 @@ def test_expired_key_cannot_match() -> None:
     old = _captured([L_EXACT], key=TEST_KEY)
     res = attribute([_line(L_EXACT)], {ALICE: old}, {2: TEST_KEY_2}, 1)
     assert res[0].outcome == "human"
+
+
+# ------------------------------------------------------------------------------------- formatter splits (T109)
+L_RAISE_SRC = "if missing: raise KeyError('missing config keys: ' + ', '.join(missing))"
+L_CHAIN_SRC = "return plugins.filter(p => p.enabled).sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))"
+
+
+def test_wrapped_one_ai_line_over_several_is_ai_modified() -> None:
+    cands = _captured([L_ANCH_SRC], path=None)
+    wrapped = [
+        "result = compute_total(",
+        "    order.items,",
+        "    discount=customer.discount,",
+        "    tax_rate=region.tax_rate,",
+        "    currency=order.currency,",
+        ")",
+    ]
+    res = attribute([_line(t, n) for n, t in enumerate(wrapped, 1)], {ALICE: cands}, {1: TEST_KEY}, 1)
+    assert [r.outcome for r in res] == ["ai_modified"] * 5 + ["indeterminate"]
+    assert {r.matched_capture_event_id for r in res[:5]} == {"ev1"}
+
+
+def test_split_fragment_joins_the_part_that_matched() -> None:
+    cands = _captured([L_EXACT, L_RAISE_SRC])
+    lines = [
+        _line(L_EXACT, 1),
+        _line("if missing:", 2),
+        _line('    raise KeyError("missing config keys: " + ", ".join(missing))', 3),
+    ]
+    res = attribute(lines, {ALICE: cands}, {1: TEST_KEY}, 1)
+    assert [r.outcome for r in res] == ["ai_unmodified", "ai_modified", "ai_modified"]
+    assert res[1].tier == res[2].tier == "anchored"
+
+
+def test_split_fragment_of_a_method_chain() -> None:
+    cands = _captured([L_EXACT, L_CHAIN_SRC], path="/repo/src/plugins.ts")
+    chain = [
+        L_EXACT,
+        "return plugins",
+        "    .filter((p) => p.enabled)",
+        "    .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));",
+    ]
+    lines = [_line(t, n, "src/plugins.ts") for n, t in enumerate(chain, 1)]
+    res = attribute(lines, {ALICE: cands}, {1: TEST_KEY}, 1)
+    assert res[3].outcome == "ai_modified"  # the main part matches on its own
+    assert res[2].outcome == "ai_modified" and res[2].matched_capture_event_id == "ev1"
+
+
+def test_an_unrelated_line_next_to_a_match_stays_human() -> None:
+    cands = _captured([L_EXACT, L_RAISE_SRC])
+    lines = [
+        _line(L_EXACT, 1),
+        _line('log.warning("config incomplete for %s", path)', 2),
+        _line('    raise KeyError("missing config keys: " + ", ".join(missing))', 3),
+        _line("notify_admins(settings.ADMIN_EMAILS)", 4),
+    ]
+    res = attribute(lines, {ALICE: cands}, {1: TEST_KEY}, 1)
+    assert [r.outcome for r in res] == ["ai_unmodified", "human", "ai_modified", "human"]

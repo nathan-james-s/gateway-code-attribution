@@ -21,8 +21,8 @@ gca version
    fingerprints of the last one to three path components. Nothing in a fingerprint can be turned back into code
    without the key. `gcattr.io.fingerprint_outputs` does this for a whole response, numbering its tool calls.
 3. **Attributes added lines.** `attribute(lines, candidates_by_author, keys, alg)` matches each `AddedLine` against
-   the captures of the developer it's credited to, in tiers (exact; anchored similarity; broad similarity), each
-   capture used at most once. `summarize(outcomes)` counts the results with and without broad matches.
+   the captures of the developer it's credited to, in tiers (exact; anchored similarity; broad similarity; then
+   lines a formatter wrapped or split, joined back together), each capture used at most once. `summarize(outcomes)` counts the results with and without broad matches.
 
 See [outcomes.md](outcomes.md) for what each outcome means, and
 [contracts/library-api.md](../specs/001-gateway-code-attribution/contracts/library-api.md) for the full API.

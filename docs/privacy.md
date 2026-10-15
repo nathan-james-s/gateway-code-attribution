@@ -22,7 +22,7 @@ responsible for their own compliance (FR-040).
 | Data | Where | Holds |
 |---|---|---|
 | Exact fingerprint | `captured_line.exact_fp` | first 16 bytes of HMAC-SHA256(key, normalized tokens) |
-| Similarity signature | `captured_line.minhash` | 32 keyed MinHash values over the line's token 3-grams |
+| Similarity signature | `captured_line.minhash` | 32 keyed MinHash values over the line's token 2-grams |
 | LSH bands | `lsh_band` | 8 keyed hashes of groups of 4 MinHash values |
 | Path fingerprints | `captured_line.path_suffix_fps` | keyed hashes of the last 1 to 3 path components named by the tool call |
 | Capture metadata | `capture_event` | time, developer, model name, API format, tool hint, counts. No content |

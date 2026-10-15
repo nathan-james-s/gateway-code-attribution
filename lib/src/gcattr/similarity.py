@@ -12,13 +12,15 @@ __all__ = ["jaccard", "lsh_bands", "minhash", "shingles"]
 
 _MASK64 = (1 << 64) - 1
 _MIX = 0x9E3779B97F4A7C15
-_SHINGLE = 3
+_SHINGLE = 2
 
 
 def shingles(tokens: list[Token]) -> list[str]:
-    """Token 3-grams; the whole token list as one shingle for lines of 3-4 tokens."""
+    """Token 2-grams; the whole token list as one shingle for lines of up to 3 tokens. Bigrams, not trigrams: one
+    changed token on a short line removes two shingles instead of three, so an edited 6-10 token line stays
+    recognizably similar (measured on the scenario set, T109)."""
     texts = [t.text for t in tokens]
-    if len(texts) <= 4:
+    if len(texts) <= _SHINGLE + 1:
         return ["\x1f".join(texts)] if texts else []
     return ["\x1f".join(texts[i : i + _SHINGLE]) for i in range(len(texts) - _SHINGLE + 1)]
 

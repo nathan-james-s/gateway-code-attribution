@@ -11,8 +11,8 @@ from .conftest import TEST_KEY
 
 
 def test_shingles_whole_list_for_short_lines() -> None:
-    assert len(shingles(tokenize("a = b"))) == 1
-    assert len(shingles(tokenize("a = b + c"))) == 3
+    assert len(shingles(tokenize("a = b"))) == 1  # up to 3 tokens: one shingle
+    assert len(shingles(tokenize("a = b + c"))) == 4  # token bigrams
 
 
 def test_minhash_and_bands_shape_and_determinism() -> None:

@@ -307,9 +307,26 @@ docs/                             # install, per-tool routing, outcomes, privacy
   matches. Calibration splits by line, stratified by outcome and tier (a split by scenario put every broad example
   in the held-out part). Thresholds are not written yet: T113 calibrates on the scenario set plus the real-traffic
   corpus and freezes them, and `check-alg-bump.sh` now freezes a golden corpus only once a release contains it.
+- **Matching changes from the eval (T109; alg 1, not yet released, so no new `ALG`)**: the full two-gateway run
+  also showed formatter output mostly coming out human (85% of formatter-changed AI lines). Four changes, each
+  checked against the scenario set: (1) shingles are token 2-grams, so one changed token on a short line costs
+  two shingles instead of three; (2) a string literal's quote style is canonical (`'x'` and `"x"` are one token
+  when the body has no `"`), so black's requoting is not a modification; (3) a *wrapped* tier joins runs of
+  consecutive unmatched lines and matches them as one line, for one AI line a formatter spread over several;
+  (4) a *split* tier joins an unmatched fragment to the neighbouring lines that matched a candidate by similarity
+  when that raises their similarity to it, for a fragment split off a line whose main part matched (`if missing:`
+  from its `raise`, one link of a method chain). The two new tiers need no new fingerprint and report anchored or
+  broad as before; they're research R11 steps 7-8. Result at the provisional thresholds: accuracy 87.4% → 96.7%,
+  formatter false human 85% → 0%, still no line wrongly called AI modified, rewrite survival 100%, silent loss
+  0. The remaining misses are heavier human edits of AI lines (8 lines). Calibration on this set now picks the
+  lowest pair on the grid (0.35 / 0.50; 98.4%): the synthetic set has too few close human lookalikes to push the
+  thresholds back up, so they stay provisional until T113 adds the real-traffic corpus. Calibration also
+  requires anchored ≤ broad and breaks ties toward the higher broad threshold. With 2-grams, the demo's
+  `scn-edited` example of an honest miss (one renamed token on a 7-token line) sat at about 0.50, right at the
+  anchored threshold, so its outcome depended on the key; the demo now rewrites that line instead.
 - **Release gate (T110)**: `release-gate.yml` runs on PRs to `main` and is called by `release.yml`, so nothing is
-  published below the bar. It isn't a required merge check yet: it will fail until the accuracy finding above is
-  resolved (T113 or an algorithm change under a new `ALG`).
+  published below the bar. It failed on the first measurements above; with the matching changes the scenario
+  set meets the bar on both gateways. It isn't a required merge check yet.
 - **Role details (T083, T084)**: `portal.adminLogins` are always admins (break-glass, and the only admins on a
   personal account), so a revoke doesn't remove them; an admin can't revoke their own admin role. One override
   per (developer, role, team), latest wins; clearing it returns to the GitHub default. `visible_roles` may also

@@ -8,7 +8,8 @@ and tier: with a dozen scenarios, a split by scenario put every broad example in
 always runs on whole scenarios (multiset matching depends on every line); only the scoring is split. The pair
 chosen maximizes accuracy subject to
 `false_ai_modified_anchored <= 0.02` and `false_ai_modified_broad <= 0.05` (the release bar); ties go to the
-higher, more conservative thresholds. The held-out 30% reports how the choice generalizes.
+more conservative pair (the higher broad threshold first), and the anchored threshold never exceeds the broad one.
+The held-out 30% reports how the choice generalizes.
 
 `--write` puts the chosen pair into `gcattr.algorithm.PARAMS[ALG]`. That is only allowed before `alg` is first
 released: afterwards a threshold change alters outcomes, so it needs a new `ALG` (Constitution III).
@@ -112,14 +113,17 @@ def calibrate(
             m = _measures(rerun, cal, bar)
             m.update(anchored_threshold=a, broad_threshold=b)
             m["eligible"] = (
-                m["false_ai_modified_anchored"] <= bar["max_false_ai_modified_anchored"]
+                a <= b  # anchoring exists to allow a lower bar than broad, never a higher one
+                and m["false_ai_modified_anchored"] <= bar["max_false_ai_modified_anchored"]
                 and m["false_ai_modified_broad"] <= bar["max_false_ai_modified_broad"]
             )
             grid.append(m)
     eligible = [g for g in grid if g["eligible"]]
     if not eligible:
         raise RuntimeError("no threshold pair meets the false AI modified limits on the calibration split")
-    best = max(eligible, key=lambda g: (g["accuracy"], g["anchored_threshold"], g["broad_threshold"]))
+    # Ties go to the more conservative pair: the higher broad threshold first (unanchored matches carry the most
+    # risk on real traffic), then the higher anchored one.
+    best = max(eligible, key=lambda g: (g["accuracy"], g["broad_threshold"], g["anchored_threshold"]))
     a, b = best["anchored_threshold"], best["broad_threshold"]
     chosen = _rerun(base, a, b, result.keys)
     now = _rerun(base, current.anchored_threshold, current.broad_threshold, result.keys)

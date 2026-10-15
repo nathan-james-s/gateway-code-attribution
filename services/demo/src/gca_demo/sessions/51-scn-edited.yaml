@@ -1,6 +1,6 @@
 name: scn-edited
 kind: scenario
-description: AI-written lines, then the developer renames a variable.
+description: AI-written lines, then the developer renames a variable and rewrites the last line.
 steps:
   - format: anthropic_messages
     file: src/scenarios/coupons.py
@@ -26,9 +26,10 @@ human_edits:
   - file: src/scenarios/coupons.py
     replace: {old: "    discount = subtotal_cents", new: "    amount = subtotal_cents"}
   - file: src/scenarios/coupons.py
-    replace: {old: "    return min(discount, subtotal_cents)", new: "    return min(amount, subtotal_cents)"}
+    replace: {old: "    return min(discount, subtotal_cents)", new: "    return amount if amount <= subtotal_cents else subtotal_cents"}
 expect:
   # One renamed token in a 15-token line: similarity about 0.9, anchored by the file's exact matches.
   ai_modified: ["amount = subtotal_cents * coupon.percent_off // 100"]
-  # One renamed token in a 7-token line changes most of its shingles: similarity about 0.25, so human.
-  human: ["return min(amount, subtotal_cents)"]
+  # Rewritten, sharing no token pair with what the AI wrote: human. (A one-token rename of this 7-token line
+  # would sit at about 0.50, right at the anchored threshold, so its outcome would depend on the key.)
+  human: ["return amount if amount <= subtotal_cents else subtotal_cents"]
