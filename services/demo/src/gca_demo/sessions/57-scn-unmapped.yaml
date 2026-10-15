@@ -1,0 +1,24 @@
+name: scn-unmapped
+kind: scenario
+description: One commit by the mapped developer, one by an account with no gateway credential.
+steps:
+  - format: openai_chat
+    file: src/scenarios/gift_cards.py
+    write: |
+      """Gift card balances for the scenario suite."""
+
+
+      def remaining_balance_cents(card_value_cents: int, spent_cents: int) -> int:
+          if spent_cents > card_value_cents:
+              raise ValueError("gift card overdrawn")
+          return card_value_cents - spent_cents
+human_edits:
+  - file: src/scenarios/legacy_import.py
+    author: unmapped
+    write: |
+      """Legacy order import, committed by an account with no gateway credential."""
+
+
+      def parse_legacy_order(row: str) -> tuple[str, int]:
+          order_id, amount = row.split(";", 1)
+          return order_id.strip(), int(amount.strip())

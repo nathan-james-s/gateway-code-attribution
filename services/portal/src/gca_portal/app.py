@@ -25,9 +25,10 @@ from sqlalchemy.orm import Session
 from gca_core import github as gh
 from gca_core.db.models_identity import Developer, GatewayCredential
 
-from . import credentials
+from . import admin, admin_keys, credentials
 from .backends import CredentialBackend, make_backend
 from .config import PortalConfig, portal_config
+from .keysecret import KeySecret
 from .sessions import SessionData, SessionStore
 
 log = logging.getLogger("gca.portal")
@@ -86,8 +87,11 @@ def create_app(
     backend: CredentialBackend | None = None,
     exchange: Callable[..., Any] = gh.exchange_code,
     user_client: Callable[[str], Any] = gh.UserClient.from_token,
+    key_secret: KeySecret | None = None,
 ) -> FastAPI:
     cfg = cfg or portal_config()
+    if key_secret is None and cfg.fingerprint_secret:
+        key_secret = KeySecret(cfg.namespace, cfg.fingerprint_secret)
     store = SessionStore(cfg.session_ttl_seconds)
 
     @asynccontextmanager
@@ -103,6 +107,8 @@ def create_app(
             try:
                 await asyncio.to_thread(backend.ensure)  # the gateway can start before migrations run
                 await asyncio.to_thread(sync_keys)
+                if key_secret is not None:  # expired key generations leave the Secret (T076)
+                    await asyncio.to_thread(admin_keys.sync_secret, engine, key_secret)
             except Exception as exc:
                 log.warning("key sync failed, retrying: %s", type(exc).__name__)
             await asyncio.sleep(RESYNC_SECONDS)
@@ -287,5 +293,7 @@ def create_app(
             "changes.html",
             {"who": who, "owner": owner, "repo": repo, "pr": pr, "head": head, "lines": lines},
         )
+
+    app.include_router(admin.create_router(engine, cfg, backend, current, user_client, TEMPLATES, key_secret))
 
     return app

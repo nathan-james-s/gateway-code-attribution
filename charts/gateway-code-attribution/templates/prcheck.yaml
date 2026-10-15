@@ -42,6 +42,9 @@ spec:
             - {name: GCA_PRCHECK_DELIVERY, value: {{ .Values.prcheck.delivery | quote }}}
             - {name: GCA_PRCHECK_PORTAL_URL, value: {{ .Values.portal.publicUrl | default "http://localhost:8080" | quote }}}
             - {name: GCA_PRCHECK_HEADLINE_INCLUDES_BROAD, value: {{ .Values.prcheck.headlineIncludesBroad | quote }}}
+            - {name: GCA_PRCHECK_PENDING_CAP_MINUTES, value: {{ .Values.prcheck.pendingCapMinutes | quote }}}
+            - name: GCA_PRCHECK_WEBHOOK_SECRET
+              valueFrom: {secretKeyRef: {name: {{ .Values.github.existingSecret }}, key: webhookSecret}}
           readinessProbe:
             httpGet: {path: /readyz, port: 8080}
             periodSeconds: 5
@@ -56,3 +59,32 @@ spec:
             {{- include "gca.keysMount" . | nindent 12 }}
       volumes:
         {{- include "gca.keysVolume" . | nindent 8 }}
+{{- if and (eq .Values.prcheck.delivery "webhook") .Values.prcheck.ingress.enabled }}
+---
+# GitHub delivers webhooks to {{ .Values.prcheck.publicUrl }}/webhooks/github (contracts/github-app.md).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fn }}-prcheck
+  labels: {{- include "gca.labels" . | nindent 4 }}
+  {{- with .Values.prcheck.ingress.annotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.prcheck.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.prcheck.ingress.tlsSecret }}
+  tls:
+    - hosts: [{{ (urlParse $.Values.prcheck.publicUrl).host | quote }}]
+      secretName: {{ . }}
+  {{- end }}
+  rules:
+    - host: {{ (urlParse .Values.prcheck.publicUrl).host | quote }}
+      http:
+        paths:
+          - path: /webhooks/github
+            pathType: Exact
+            backend:
+              service: {name: {{ $fn }}-prcheck, port: {number: 8080}}
+{{- end }}

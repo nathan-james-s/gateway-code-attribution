@@ -32,6 +32,9 @@ def _pct(value: float | None) -> str:
 
 
 def title(summary: dict[str, Any], coverage_status: str, include_broad: bool) -> str:
+    if coverage_status == "not_observed":  # FR-015: say so plainly, never as human
+        n = summary["counts"]["not_observed"]
+        return f"Not observed · {n} lines · no commit author in this change uses a gateway credential"
     pct = summary["percentages_with_broad" if include_broad else "percentages_without_broad"]
     ind = summary["counts"]["indeterminate"]
     return f"AI {_pct(pct['ai'])} · human {_pct(pct['human'])} · indeterminate {ind} lines · coverage: {coverage_status}"

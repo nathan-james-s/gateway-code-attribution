@@ -1,0 +1,24 @@
+name: scn-new-push
+kind: scenario
+description: A second push to an open PR; the first head keeps its result.
+steps:
+  - format: openai_responses
+    file: src/scenarios/stock_sync.py
+    write: |
+      """Warehouse stock sync for the scenario suite."""
+
+
+      def merge_stock_counts(local: dict[str, int], warehouse: dict[str, int]) -> dict[str, int]:
+          merged = dict(local)
+          for sku, count in warehouse.items():
+              merged[sku] = max(merged.get(sku, 0), count)
+          return merged
+  - format: openai_responses
+    file: src/scenarios/stock_report.py
+    push: second
+    write: |
+      """Warehouse stock report for the scenario suite."""
+
+
+      def low_stock_report(counts: dict[str, int], threshold: int = 5) -> list[str]:
+          return [f"{sku}: {count}" for sku, count in sorted(counts.items()) if count <= threshold]

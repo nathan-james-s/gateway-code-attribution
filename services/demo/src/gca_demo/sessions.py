@@ -15,7 +15,7 @@ from typing import Any
 
 import yaml
 
-__all__ = ["Session", "Step", "ToolCall", "marker", "parse_marker", "sessions", "tool_calls"]
+__all__ = ["Session", "Step", "ToolCall", "demo_sessions", "marker", "parse_marker", "sessions", "tool_calls"]
 
 API_FORMATS = ("anthropic_messages", "openai_chat", "openai_responses", "gemini_native")
 _MARKER = re.compile(r"gca-demo session=([a-z0-9-]+) step=(\d+)")
@@ -28,6 +28,8 @@ class Step:
     write: str | None = None
     edit_old: str | None = None
     edit_new: str | None = None
+    author: str = "first"  # scenarios: which developer's credential sends it and whose commit holds it
+    push: str = "first"  # scenarios: which push the file lands in
 
 
 @dataclass(frozen=True)
@@ -36,6 +38,8 @@ class Session:
     description: str
     steps: tuple[Step, ...]
     human_edits: tuple[dict[str, Any], ...] = field(default_factory=tuple)
+    kind: str = "demo"  # "demo" (gca demo run) or "scenario" (gca demo scenarios)
+    expect: dict[str, Any] = field(default_factory=dict)  # scenario answer-key hints
 
 
 @dataclass(frozen=True)
@@ -61,7 +65,15 @@ def _step(d: dict[str, Any]) -> Step:
     edit = d.get("edit") or {}
     if bool(d.get("write") is not None) == bool(edit):
         raise ValueError(f"step for {d['file']} needs exactly one of write or edit")
-    return Step(d["format"], d["file"], d.get("write"), edit.get("old"), edit.get("new"))
+    return Step(
+        d["format"],
+        d["file"],
+        d.get("write"),
+        edit.get("old"),
+        edit.get("new"),
+        d.get("author", "first"),
+        d.get("push", "first"),
+    )
 
 
 @cache
@@ -74,10 +86,17 @@ def sessions() -> dict[str, Session]:
         out[d["name"]] = Session(
             d["name"],
             d.get("description", ""),
-            tuple(_step(s) for s in d["steps"]),
+            tuple(_step(s) for s in d.get("steps") or ()),
             tuple(d.get("human_edits") or ()),
+            d.get("kind", "demo"),
+            d.get("expect") or {},
         )
     return out
+
+
+def demo_sessions() -> dict[str, Session]:
+    """The sessions `gca demo run` plays (scenario sessions belong to `gca demo scenarios`)."""
+    return {k: v for k, v in sessions().items() if v.kind == "demo"}
 
 
 def _patch(step: Step) -> str:

@@ -1,0 +1,25 @@
+name: scn-two-authors
+kind: scenario
+description: Two mapped developers, each committing their own AI output.
+steps:
+  - format: anthropic_messages
+    file: src/scenarios/reviews.py
+    write: |
+      """Product review scores for the scenario suite."""
+
+
+      def average_rating(ratings: list[int]) -> float:
+          if not ratings:
+              raise ValueError("no ratings yet")
+          return round(sum(ratings) / len(ratings), 1)
+  - format: openai_chat
+    file: src/scenarios/wishlist.py
+    author: second
+    write: |
+      """Wishlists for the scenario suite."""
+
+
+      def add_to_wishlist(wishlist: list[str], sku: str, limit: int = 50) -> list[str]:
+          if sku in wishlist or len(wishlist) >= limit:
+              return wishlist
+          return [*wishlist, sku]

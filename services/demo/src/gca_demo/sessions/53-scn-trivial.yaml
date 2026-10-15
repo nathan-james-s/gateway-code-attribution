@@ -1,0 +1,14 @@
+name: scn-trivial
+kind: scenario
+description: Braces, blank lines and common statements are indeterminate.
+steps:
+  - format: openai_responses
+    file: web/src/scenarios/flags.ts
+    write: |
+      export function isFeatureEnabled(flags: Record<string, boolean>, featureName: string): boolean {
+        if (featureName in flags) {
+          return flags[featureName];
+        } else {
+          return false;
+        }
+      }

@@ -1,0 +1,14 @@
+name: scn-typed
+kind: scenario
+description: Lines the developer typed, with no AI involved.
+human_edits:
+  - file: src/scenarios/audit_notes.py
+    write: |
+      """Audit notes, typed by hand for the scenario suite."""
+
+      AUDIT_PREFIX = "audit-note"
+
+
+      def audit_line(order_id: str, message: str) -> str:
+          stamp = order_id.upper().replace("-", "")
+          return f"{AUDIT_PREFIX}:{stamp}:{message.strip()}"

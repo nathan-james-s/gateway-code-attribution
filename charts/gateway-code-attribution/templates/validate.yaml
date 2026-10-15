@@ -14,3 +14,14 @@
 {{- fail (printf "grafana.envValueFrom names Secret %q but github.existingSecret is %q: set both to the same Secret" $ref .Values.github.existingSecret) -}}
 {{- end -}}
 {{- end -}}
+{{- if and .Values.providers.models (not .Values.providers.existingSecret) -}}
+{{- fail "providers.models needs providers.existingSecret: a Secret with ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY" -}}
+{{- end -}}
+{{- range .Values.providers.models -}}
+{{- if not (has .provider (list "anthropic" "openAI" "gemini")) -}}
+{{- fail (printf "providers.models[%s].provider must be anthropic, openAI or gemini, not %q" .name .provider) -}}
+{{- end -}}
+{{- if not (and .name .model) -}}
+{{- fail "each providers.models entry needs name, provider and model" -}}
+{{- end -}}
+{{- end -}}

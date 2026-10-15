@@ -1,0 +1,34 @@
+name: scn-edited
+kind: scenario
+description: AI-written lines, then the developer renames a variable.
+steps:
+  - format: anthropic_messages
+    file: src/scenarios/coupons.py
+    write: |
+      """Coupon validation for the scenario suite."""
+
+      from dataclasses import dataclass
+
+
+      @dataclass(frozen=True)
+      class Coupon:
+          code: str
+          percent_off: int
+          minimum_cents: int
+
+
+      def coupon_discount_cents(coupon: Coupon, subtotal_cents: int) -> int:
+          if subtotal_cents < coupon.minimum_cents:
+              return 0
+          discount = subtotal_cents * coupon.percent_off // 100
+          return min(discount, subtotal_cents)
+human_edits:
+  - file: src/scenarios/coupons.py
+    replace: {old: "    discount = subtotal_cents", new: "    amount = subtotal_cents"}
+  - file: src/scenarios/coupons.py
+    replace: {old: "    return min(discount, subtotal_cents)", new: "    return min(amount, subtotal_cents)"}
+expect:
+  # One renamed token in a 15-token line: similarity about 0.9, anchored by the file's exact matches.
+  ai_modified: ["amount = subtotal_cents * coupon.percent_off // 100"]
+  # One renamed token in a 7-token line changes most of its shingles: similarity about 0.25, so human.
+  human: ["return min(amount, subtotal_cents)"]

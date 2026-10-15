@@ -1,0 +1,18 @@
+name: scn-unmodified
+kind: scenario
+description: AI-written lines committed unchanged.
+steps:
+  - format: openai_chat
+    file: src/scenarios/shipping.py
+    write: |
+      """Shipping cost rules for the scenario suite."""
+
+      FREE_SHIPPING_THRESHOLD_CENTS = 5000
+      FLAT_RATE_CENTS = 499
+
+
+      def shipping_cents(subtotal_cents: int, express: bool = False) -> int:
+          if subtotal_cents >= FREE_SHIPPING_THRESHOLD_CENTS and not express:
+              return 0
+          surcharge = 1000 if express else 0
+          return FLAT_RATE_CENTS + surcharge

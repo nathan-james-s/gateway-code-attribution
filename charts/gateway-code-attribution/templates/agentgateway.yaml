@@ -49,12 +49,14 @@ data:
           provider: gemini
           params: {model: demo-gemini, baseUrl: "http://{{ $fn }}-demo-model:8080/v1beta", apiKey: demo}
         {{- end }}
+        {{- $keyFiles := dict "anthropic" "ANTHROPIC_API_KEY" "openAI" "OPENAI_API_KEY" "gemini" "GEMINI_API_KEY" }}
         {{- range .Values.providers.models }}
+        # Bring-your-own provider key (FR-039), read from the mounted providers.existingSecret.
         - name: {{ .name }}
           provider: {{ .provider }}
           params:
             model: {{ .model }}
-            apiKey: "$PROVIDER_{{ .provider | upper }}_KEY"
+            apiKey: {file: /var/run/gca/providers/{{ get $keyFiles .provider }}}
         {{- end }}
 ---
 apiVersion: v1
@@ -93,15 +95,6 @@ spec:
           ports:
             - {name: http, containerPort: 4000}
             - {name: ready, containerPort: 15021}
-          env:
-            {{- if .Values.providers.existingSecret }}
-            - name: PROVIDER_ANTHROPIC_KEY
-              valueFrom: {secretKeyRef: {name: {{ .Values.providers.existingSecret }}, key: ANTHROPIC_API_KEY, optional: true}}
-            - name: PROVIDER_OPENAI_KEY
-              valueFrom: {secretKeyRef: {name: {{ .Values.providers.existingSecret }}, key: OPENAI_API_KEY, optional: true}}
-            - name: PROVIDER_GEMINI_KEY
-              valueFrom: {secretKeyRef: {name: {{ .Values.providers.existingSecret }}, key: GEMINI_API_KEY, optional: true}}
-            {{- end }}
           readinessProbe:
             tcpSocket: {port: 4000}
             periodSeconds: 5
@@ -112,9 +105,16 @@ spec:
           volumeMounts:
             # Directory mount (never subPath) so ConfigMap updates reach the running gateway (R5).
             - {name: config, mountPath: /etc/agentgateway, readOnly: true}
+            {{- if .Values.providers.existingSecret }}
+            - {name: providers, mountPath: /var/run/gca/providers, readOnly: true}
+            {{- end }}
       volumes:
         - name: config
           configMap:
             name: {{ $fn }}-agentgateway-live
+        {{- if .Values.providers.existingSecret }}
+        - name: providers
+          secret: {secretName: {{ .Values.providers.existingSecret }}, defaultMode: 0400}
+        {{- end }}
 ---
 {{- end }}

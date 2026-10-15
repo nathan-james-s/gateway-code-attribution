@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Administration</h1>
+
+<h2>Identity overrides</h2>
+<p class="muted">Map a GitHub account to a developer, for service accounts or people with several accounts. Lines
+credited to the account are then matched against that developer's captured output (FR-016).</p>
+<table>
+  <tr><th>GitHub account</th><th>Maps to</th><th>Reason</th><th>Added</th><th></th></tr>
+  {% for o in overrides %}
+  <tr><td>{{ o.github_login or o.github_id }}</td><td>{{ o.developer_login }}</td><td>{{ o.reason }}</td>
+      <td>{{ o.created_at.strftime("%Y-%m-%d") }}</td>
+      <td><form method="post" action="/admin/overrides/{{ o.id }}/delete" style="margin:0">
+          <button class="secondary">Remove</button></form></td></tr>
+  {% else %}<tr><td colspan="5" class="muted">No overrides.</td></tr>{% endfor %}
+</table>
+<form method="post" action="/admin/overrides" class="card">
+  <label>GitHub account <input name="github_login" required></label>
+  <label>maps to developer (GitHub login, signed in at least once) <input name="developer_login" required></label>
+  <label>Reason <input name="reason" required></label>
+  <button>Add override</button>
+</form>
+
+<h2>Gateway credentials</h2>
+<table>
+  <tr><th>Developer</th><th>Gateway</th><th>Issued</th><th></th></tr>
+  {% for c in credentials %}
+  <tr><td>{{ c.github_login }}</td><td>{{ c.gateway_type }}</td><td>{{ c.issued_at.strftime("%Y-%m-%d %H:%M") }}</td>
+      <td><form method="post" action="/admin/credentials/{{ c.id }}/revoke" style="margin:0">
+          <button class="secondary">Revoke</button></form></td></tr>
+  {% else %}<tr><td colspan="4" class="muted">No active credentials.</td></tr>{% endfor %}
+</table>
+
+<h2>Fingerprint key</h2>
+<table>
+  <tr><th>Generation</th><th>Status</th><th>Retired</th><th>Expires</th></tr>
+  {% for k in keys %}
+  <tr><td>{{ k.id }}</td><td>{{ k.status }}</td><td>{{ k.retired_at.strftime("%Y-%m-%d") if k.retired_at else "" }}</td>
+      <td>{{ k.expires_at.strftime("%Y-%m-%d") if k.expires_at else "" }}</td></tr>
+  {% endfor %}
+</table>
+{% if can_rotate %}
+<form method="post" action="/admin/keys/rotate"><button>Rotate the fingerprint key</button></form>
+<p class="muted">The old generation keeps matching until it expires after the retention period. Capture picks up
+the new key within about two minutes.</p>
+{% else %}<p class="muted">Rotation is unavailable: the portal has no fingerprint key Secret configured.</p>{% endif %}
+{% endblock %}

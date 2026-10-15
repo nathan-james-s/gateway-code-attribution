@@ -1,0 +1,19 @@
+name: scn-pending
+kind: scenario
+description: A PR opened while ingest is paused waits for capture, then completes.
+steps:
+  - format: anthropic_messages
+    file: src/scenarios/loyalty.py
+    write: |
+      """Loyalty points for the scenario suite."""
+
+      POINTS_PER_DOLLAR = 3
+      REDEMPTION_CENTS_PER_POINT = 2
+
+
+      def points_earned(subtotal_cents: int) -> int:
+          return subtotal_cents // 100 * POINTS_PER_DOLLAR
+
+
+      def redemption_value_cents(points: int) -> int:
+          return points * REDEMPTION_CENTS_PER_POINT

@@ -6,11 +6,10 @@ kind: ServiceAccount
 metadata:
   name: {{ $fn }}-portal
   labels: {{- include "gca.labels" . | nindent 4 }}
-automountServiceAccountToken: {{ eq .Values.gateway.type "agentgateway" }}
-{{- if eq .Values.gateway.type "agentgateway" }}
+automountServiceAccountToken: true
 ---
-# The portal renders the live agentgateway config (base + one apiKey entry per active credential). It may read the
-# base ConfigMap and read/write the live one, and nothing else (R5).
+# Least privilege (R5, FR-036): the portal rotates the fingerprint key Secret, and with agentgateway renders the
+# live gateway config (base + one apiKey entry per active credential). Nothing else.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -18,12 +17,18 @@ metadata:
   labels: {{- include "gca.labels" . | nindent 4 }}
 rules:
   - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [{{ include "gca.fingerprintSecret" . }}]
+    verbs: [get, patch]
+  {{- if eq .Values.gateway.type "agentgateway" }}
+  - apiGroups: [""]
     resources: [configmaps]
     resourceNames: [{{ $fn }}-agentgateway-base, {{ $fn }}-agentgateway-live]
     verbs: [get, update, patch]
   - apiGroups: [""]
     resources: [configmaps]
     verbs: [create]   # create cannot be limited by resourceNames; the portal only ever creates the live ConfigMap
+  {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -33,7 +38,6 @@ metadata:
 roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: {{ $fn }}-portal}
 subjects:
   - {kind: ServiceAccount, name: {{ $fn }}-portal, namespace: {{ .Release.Namespace }}}
-{{- end }}
 ---
 apiVersion: v1
 kind: Service
@@ -78,12 +82,15 @@ spec:
             - {name: GCA_PORTAL_GATEWAY_PUBLIC_URL, value: {{ $gatewayUrl | quote }}}
             - {name: GCA_PORTAL_GATEWAY_TYPE, value: {{ .Values.gateway.type | quote }}}
             - {name: GCA_PORTAL_GITHUB_ORG, value: {{ .Values.github.org | quote }}}
+            - {name: GCA_PORTAL_ADMIN_LOGINS, value: {{ .Values.portal.adminLogins | toJson | quote }}}
+            - {name: GCA_PORTAL_FINGERPRINT_SECRET, value: {{ include "gca.fingerprintSecret" . | quote }}}
+            - {name: GCA_PORTAL_RETENTION_DAYS, value: {{ .Values.attribution.retentionDays | quote }}}
             - name: GCA_PORTAL_GITHUB_CLIENT_ID
               valueFrom: {secretKeyRef: {name: {{ .Values.github.existingSecret }}, key: clientId}}
             - name: GCA_PORTAL_GITHUB_CLIENT_SECRET
               valueFrom: {secretKeyRef: {name: {{ .Values.github.existingSecret }}, key: clientSecret}}
-            {{- if eq .Values.gateway.type "agentgateway" }}
             - {name: GCA_PORTAL_NAMESPACE, value: {{ .Release.Namespace | quote }}}
+            {{- if eq .Values.gateway.type "agentgateway" }}
             - {name: GCA_PORTAL_AGENTGATEWAY_BASE_CONFIGMAP, value: {{ printf "%s-agentgateway-base" $fn | quote }}}
             - {name: GCA_PORTAL_AGENTGATEWAY_LIVE_CONFIGMAP, value: {{ printf "%s-agentgateway-live" $fn | quote }}}
             {{- else }}

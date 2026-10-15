@@ -16,7 +16,7 @@ from functools import cache
 from pathlib import Path
 
 from gca_demo import agent, model
-from gca_demo.sessions import sessions
+from gca_demo.sessions import demo_sessions, sessions
 
 ROOT = Path(__file__).resolve().parents[2]
 SAMPLE_REPO = ROOT / "services/demo/sample-repo"
@@ -68,7 +68,7 @@ def _files_as_pushed() -> list[str]:
     with tempfile.TemporaryDirectory() as tmp:
         repo = Path(tmp) / "repo"
         shutil.copytree(SAMPLE_REPO, repo, ignore=shutil.ignore_patterns("__pycache__", ".*_cache"))
-        agent.play(repo, sessions().values(), send)
+        agent.play(repo, demo_sessions().values(), send)
         agent.format_python(repo)
         return [p.read_text(errors="replace") for p in repo.rglob("*") if p.is_file()]
 

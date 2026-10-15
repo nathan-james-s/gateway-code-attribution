@@ -28,6 +28,11 @@ prcheck:
   publicUrl: ""
   pendingCapMinutes: 10         # R12
   headlineIncludesBroad: false
+  ingress:                      # webhook mode: route {publicUrl}/webhooks/github to the PR check
+    enabled: false
+    className: ""
+    annotations: {}
+    tlsSecret: ""
 
 attribution:
   matchingWindowDays: 14
@@ -129,3 +134,4 @@ expose:                         # local clusters: kind maps localhost ports to t
 
 portal:
   publicUrl: ""                 # browser-reachable URL; localhost works for the demo
+  adminLogins: []               # GitHub logins with the admin role besides github.org's owners (needed on a personal account)
