@@ -23,7 +23,7 @@ import httpx
 
 from gcattr import CapturedToolOutput, CaptureFailure, parse_stream
 
-from .sessions import Session, demo_sessions, marker
+from .sessions import FAULTS, Session, demo_sessions, fault_marker, marker
 
 __all__ = ["apply_human_edit", "apply_output", "play", "register"]
 
@@ -187,6 +187,29 @@ def play(repo: Path, chosen: Iterable[Session], send: Sender) -> list[CapturedTo
     return outputs
 
 
+def parse_faults(spec: str | None) -> dict[str, int]:
+    """``truncated=N,unexpected_format=M`` -> counts (T092)."""
+    out: dict[str, int] = {}
+    for part in (spec or "").split(","):
+        if not part.strip():
+            continue
+        kind, _, n = part.partition("=")
+        kind = kind.strip()
+        if kind not in FAULTS or not n.strip().isdigit():
+            raise DemoError(f"--inject-faults takes {'=N,'.join(FAULTS)}=N; got {part!r}")
+        out[kind] = out.get(kind, 0) + int(n)
+    return out
+
+
+def inject_faults(faults: dict[str, int], send: Sender) -> None:
+    """Send broken responses through the gateway. Capture must count each one as loss, never as human."""
+    for kind, count in faults.items():
+        for n in range(count):
+            send(FAULTS[kind], fault_marker(kind, n))
+        if count:
+            print(f"  injected {count} {kind} response{'s' if count != 1 else ''} ({FAULTS[kind]})")
+
+
 def format_python(repo: Path) -> None:
     ruff = shutil.which("ruff")
     args = ["format", "--no-cache", "."]  # no cache dir, so nothing extra gets committed
@@ -225,6 +248,12 @@ def _cmd_run(args: argparse.Namespace) -> int:
     credential = args.credential or os.environ.get("GCA_CREDENTIAL")
     if not credential:
         raise SystemExit("set GCA_CREDENTIAL (from the portal's Get gateway credential) or pass --credential")
+    faults = parse_faults(args.inject_faults)
+    send = gateway_sender(args.gateway_url, credential, args.gateway)
+    if faults:
+        inject_faults(faults, send)
+    if args.faults_only:
+        return 0
     all_sessions = demo_sessions()
     chosen = [all_sessions[n] for n in (args.sessions or sorted(all_sessions))]
     login, email = _gh_identity()
@@ -234,7 +263,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
         branch = f"gca-demo-{time.strftime('%Y%m%d-%H%M%S')}"
         _run(["git", "checkout", "-q", "-b", branch], repo)
         print(f"Playing {len(chosen)} sessions through {args.gateway_url} ...")
-        play(repo, chosen, gateway_sender(args.gateway_url, credential, args.gateway))
+        play(repo, chosen, send)
         format_python(repo)
         _commit(repo, "Demo: discount pricing, inventory and receipts", login, email)
         _run(["git", "push", "-q", "-u", "origin", branch], repo)
@@ -307,6 +336,12 @@ def register(sub: Any) -> None:
     p.add_argument("--gateway", choices=["agentgateway", "litellm"], default="agentgateway")
     p.add_argument("--credential", default=None, help="personal gateway key (default: $GCA_CREDENTIAL)")
     p.add_argument("--sessions", nargs="*", help="session names (default: all)")
+    p.add_argument(
+        "--inject-faults",
+        metavar="truncated=N,unexpected_format=M",
+        help="first send N truncated and M schema-deviant responses through the gateway (coverage testing)",
+    )
+    p.add_argument("--faults-only", action="store_true", help="only inject the faults; open no PR")
     p.set_defaults(func=lambda a: _guard(_cmd_run, a))
     from .scenarios import register as register_scenarios
 

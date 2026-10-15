@@ -13,9 +13,9 @@ from gca_core.db.base import u32_to_i32
 from gca_core.db.models_capture import CapturedLine, LshBand
 from gca_core.messages import line_from_wire
 
-__all__ = ["handle", "mark_stale_instances"]
+from .loss import STALE_AFTER_SECONDS, close_heartbeat_loss, mark_stale_instances, record_failure, track_seq
 
-STALE_AFTER_SECONDS = 15
+__all__ = ["STALE_AFTER_SECONDS", "handle", "mark_stale_instances"]
 
 
 def _ts(value: str | None) -> datetime:
@@ -175,43 +175,17 @@ def _event(conn: Connection, msg: dict[str, Any]) -> None:
 
 def _failure(conn: Connection, msg: dict[str, Any]) -> None:
     _, developer_id = _credential(conn, msg.get("credential_id"))
-    conn.execute(
-        text(
-            "INSERT INTO capture_loss (id, instance_id, cause, period_start, period_end, count, developer_id,"
-            " gateway_type, api_format, tool_hint) VALUES (gen_random_uuid(), :iid, CAST(:cause AS loss_cause),"
-            " :ps, :pe, :count, :dev, CAST(:gw AS gateway_type), CAST(:fmt AS api_format), :hint)"
-        ),
-        {
-            "iid": uuid.UUID(msg["instance_id"]),
-            "cause": msg["cause"],
-            "ps": _ts(msg["period_start"]),
-            "pe": _ts(msg["period_end"]),
-            "count": msg["count"],
-            "dev": developer_id,
-            "gw": msg["gateway_type"],
-            "fmt": msg.get("api_format"),
-            "hint": msg.get("tool_hint"),
-        },
-    )
+    record_failure(conn, msg, developer_id, _ts)
 
 
 def handle(conn: Connection, msg: dict[str, Any]) -> None:
     """Store one validated capture message inside the caller's transaction."""
     kind = msg["kind"]
+    track_seq(conn, msg, _ts(msg["sent_at"]))  # before last_seq moves (T088)
     if kind == "event":
         _event(conn, msg)
     elif kind == "failure":
         _failure(conn, msg)
     _touch_instance(conn, msg, heartbeat=kind == "heartbeat")
-
-
-def mark_stale_instances(conn: Connection) -> int:
-    """Active instances without a heartbeat for STALE_AFTER_SECONDS become stale (U1: never freeze the watermark)."""
-    result = conn.execute(
-        text(
-            "UPDATE capture_instance SET status = 'stale' WHERE status = 'active' "
-            "AND last_heartbeat_at < now() - make_interval(secs => :s)"
-        ),
-        {"s": STALE_AFTER_SECONDS},
-    )
-    return int(result.rowcount or 0)
+    if kind == "heartbeat":
+        close_heartbeat_loss(conn, uuid.UUID(msg["instance_id"]), msg["gateway_type"], _ts(msg["sent_at"]))

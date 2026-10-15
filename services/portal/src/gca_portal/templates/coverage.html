@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Coverage</h1>
+<p>Loss over time, observed and not-observed tool, API and gateway combinations, and the interactions the gateway
+can never see are on the <a href="{{ c.dashboard_url }}">Coverage dashboard</a> in Grafana.</p>
+
+<h2>Capture loss, last {{ c.days }} days</h2>
+<p class="muted">Responses the gateway served that capture couldn't fingerprint. None count as human; PRs whose
+matching window overlaps a loss are marked incomplete.</p>
+<table>
+  <tr><th>Cause</th><th>Count</th><th>Still ongoing</th></tr>
+  {% for l in c.capture_loss %}
+  <tr><td><code>{{ l.cause }}</code></td><td>{{ l.lost }}</td><td>{{ "yes" if l.ongoing else "" }}</td></tr>
+  {% else %}<tr><td colspan="3" class="muted">No capture loss recorded.</td></tr>{% endfor %}
+</table>
+
+<h2>PR authors without a gateway credential</h2>
+<p>{{ c.unmapped_accounts }} GitHub account{{ "s" if c.unmapped_accounts != 1 }} credited in PRs over the last
+{{ c.days }} days {{ "has" if c.unmapped_accounts == 1 else "have" }} no gateway credential, so
+{{ c.not_observed_lines }} line{{ "s" if c.not_observed_lines != 1 }} are <em>not observed</em> (FR-015). Ask them
+to sign in here and get a credential, or map a service account to its owner with an identity override.</p>
+{% if c.unmapped is defined %}
+<table>
+  <tr><th>GitHub account</th><th>Lines</th><th>Changes</th><th>Repositories</th></tr>
+  {% for u in c.unmapped %}
+  <tr><td>{% if u.github_login %}<a href="https://github.com/{{ u.github_login }}">{{ u.github_login }}</a>{% else %}#{{ u.github_id }}{% endif %}</td>
+      <td>{{ u.lines }}</td><td>{{ u.changes }}</td><td>{{ u.repositories|join(", ") }}</td></tr>
+  {% endfor %}
+</table>
+{% else %}<p class="muted">Admins see which accounts these are.</p>{% endif %}
+{% endblock %}

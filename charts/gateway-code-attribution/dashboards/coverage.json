@@ -1,0 +1,428 @@
+{
+  "uid": "gca-coverage",
+  "title": "Coverage",
+  "description": "Capture loss by cause, observed and not-observed tool, API and gateway combinations, unmapped PR authors, and the documented blind spots (FR-030).",
+  "editable": false,
+  "schemaVersion": 41,
+  "version": 1,
+  "tags": [
+    "gateway-code-attribution"
+  ],
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "templating": {
+    "list": [
+      {
+        "name": "gateway",
+        "label": "Gateway",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "gca"
+        },
+        "query": "SELECT gateway_type FROM v_capture_daily UNION SELECT gateway_type FROM v_coverage_daily ORDER BY 1",
+        "definition": "SELECT gateway_type FROM v_capture_daily UNION SELECT gateway_type FROM v_coverage_daily ORDER BY 1",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Responses captured",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT coalesce(sum(responses), 0) FROM v_capture_daily WHERE gateway_type IN (${gateway:sqlstring}) AND $__timeFilter(day)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Responses lost",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT coalesce(sum(lost), 0) FROM v_coverage_daily WHERE gateway_type IN (${gateway:sqlstring}) AND $__timeFilter(day) AND cause NOT IN ('seq_gap', 'heartbeat_missed')"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "description": "Responses the gateway served that capture couldn't fingerprint, by any self-reported cause. None of them count as human.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Capture not reporting",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT coalesce(sum(seconds), 0) FROM v_coverage_daily WHERE gateway_type IN (${gateway:sqlstring}) AND $__timeFilter(day) AND cause = 'heartbeat_missed'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "description": "Time a capture instance (or all of them) stopped sending heartbeats. The gateway fails open, so responses in these periods weren't captured; PRs whose matching window overlaps are marked incomplete.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Not observed lines",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT coalesce(sum(not_observed_lines), 0) FROM v_unmapped_daily WHERE $__timeFilter(day)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "description": "Lines in PRs credited to GitHub accounts without a gateway credential. The portal's /coverage page lists the accounts (admins).",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "none"
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Capture loss by cause",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 16,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, cause AS metric, sum(lost) AS value FROM v_coverage_daily WHERE gateway_type IN (${gateway:sqlstring}) AND $__timeFilter(day) GROUP BY 1, 2 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "bars",
+            "stacking": {
+              "mode": "normal"
+            },
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Unmapped PR authors per day",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT day AS time, unmapped_accounts AS \"Accounts\" FROM v_unmapped_daily WHERE $__timeFilter(day) ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Observed combinations",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT gateway_type AS \"Gateway\", api_format AS \"API format\", tool AS \"Tool\", sum(responses) AS \"Responses\", sum(captured) AS \"Fully captured\", sum(partial) AS \"Partly captured\", sum(unknown_credential) AS \"Unknown credential\", string_agg(DISTINCT alg::text, ', ') AS \"Algorithm\" FROM v_capture_daily WHERE gateway_type IN (${gateway:sqlstring}) AND $__timeFilter(day) GROUP BY 1, 2, 3 ORDER BY 4 DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Not-observed combinations",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT gateway_type AS \"Gateway\", api_format AS \"API format\", tool AS \"Tool\", sum(lost) AS \"Responses\" FROM v_coverage_daily WHERE gateway_type IN (${gateway:sqlstring}) AND $__timeFilter(day) AND cause = 'unsupported_combination' GROUP BY 1, 2, 3 ORDER BY 4 DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "description": "Model responses through the gateway on a route, API format or tool capture can't read (FR-007)."
+    },
+    {
+      "id": 9,
+      "type": "table",
+      "title": "Capture loss detail",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "gca"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "gca"
+          },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT day AS \"Day\", gateway_type AS \"Gateway\", cause AS \"Cause\", api_format AS \"API format\", tool AS \"Tool\", lost AS \"Count\", periods AS \"Periods\", ongoing AS \"Ongoing\", round(seconds) AS \"Seconds\" FROM v_coverage_daily WHERE gateway_type IN (${gateway:sqlstring}) AND $__timeFilter(day) ORDER BY day DESC, lost DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 10,
+      "type": "text",
+      "title": "What the gateway can never observe",
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Attribution only sees model output that passes through the gateway. Code from anything else lands as **human**\n(\"no match to observed AI output\"), or as **not observed** when its author has no gateway credential. These are\nknown blind spots, not errors (FR-040, FR-041).\n\n## Out of scope for v1\n\n- **GitHub Copilot**: inline completions and next-edit suggestions go to GitHub's service, not through a\n  configurable endpoint. Copilot Chat in some editors allows custom endpoints, but it isn't validated here.\n- **Cursor**: Tab completions, Composer and inline edit use Cursor's own backend.\n\n## Never observable\n\n- Chat output copied from a browser tab or another app and pasted into the editor.\n- Any coding tool, plug-in or agent that isn't pointed at the gateway, or that a developer runs with their own\n  provider key.\n- Model output produced before the developer got a gateway credential, or older than the matching window\n  (14 days by default).\n\n## Partly observable\n\n- Formatter rewrites of AI code: lines that change shape can drop from *AI, unmodified* to *AI, modified* or\n  *human* (the release bar tracks this; see SC-003).\n- Responses the gateway let through while capture was down. They're recorded as capture loss and show as\n  *incomplete coverage* on affected changes (US4)."
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "Unmapped PR authors (portal)",
+      "type": "link",
+      "targetBlank": true,
+      "url": "__GCA_PORTAL_URL__/coverage"
+    },
+    {
+      "title": "What the outcomes mean",
+      "type": "link",
+      "targetBlank": true,
+      "url": "https://github.com/nathan-james-s/gateway-code-attribution/blob/main/docs/outcomes.md"
+    }
+  ]
+}

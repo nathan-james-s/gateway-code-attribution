@@ -26,12 +26,14 @@ from google.protobuf.json_format import MessageToDict
 from gca_core.capture_runtime import CaptureRuntime
 
 from . import worker
-from .api_format import api_format_for_path, model_from_path, session_id, tool_hint
+from .api_format import UNSUPPORTED, classify, model_from_path, session_id, tool_hint
 from .lag import LagMonitor
 
 log = logging.getLogger("gca.capture_extproc")
 
 MAX_STREAM_BYTES = 8 * 1024 * 1024
+# Fault injection for the end-to-end test (T093d): delay each echoed chunk. Off (0) in every real install.
+ECHO_DELAY_SECONDS = float(os.environ.get("GCA_CAPTURE_TEST_ECHO_DELAY_SECONDS", "0"))
 
 
 def _headers(header_map: Any) -> dict[str, str]:
@@ -110,6 +112,8 @@ class CaptureProcessor(pbg.ExternalProcessorServicer):
                     body = req.response_body.body
                     eos = req.response_body.end_of_stream
                     # Echo first, unchanged. Nothing below may delay it.
+                    if ECHO_DELAY_SECONDS:
+                        await asyncio.sleep(ECHO_DELAY_SECONDS)
                     yield _echo(body, eos)
                     if capture and not overflow:
                         if self.lag.degraded or len(buf) + len(body) > MAX_STREAM_BYTES:
@@ -140,15 +144,20 @@ class CaptureProcessor(pbg.ExternalProcessorServicer):
         overflow: bool,
         capture: bool,
     ) -> None:
-        api_format = api_format_for_path(path)
+        api_format = classify(path)
         if api_format is None or not capture:
-            return  # not a model response (or draining): nothing to attribute
+            return  # a route that never carries code (or draining): nothing to attribute
         if status is not None and not status.startswith("2"):
             return  # provider error bodies carry no model output
         credential = meta.get("credential_id")
         hint = tool_hint(headers)
+        known = None if api_format == UNSUPPORTED else api_format
         if not credential:
-            self.runtime.emit_failure("unknown_credential", api_format=api_format, tool_hint=hint)
+            self.runtime.emit_failure("unknown_credential", api_format=known, tool_hint=hint)
+            return
+        if known is None:
+            # A model route capture can't read: counted against the developer, never dropped silently (FR-007).
+            self.runtime.emit_failure("unsupported_combination", credential_id=credential, tool_hint=hint)
             return
         if overflow:
             self.runtime.emit_failure(

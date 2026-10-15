@@ -260,6 +260,26 @@ docs/                             # install, per-tool routing, outcomes, privacy
   but `portal_settings` kept its column defaults. The migrations Job now applies them
   (`gca_core.bootstrap.apply_settings`), writing only values that changed since the chart last applied them
   (`portal_settings.helm_values`, migration 0004), so upgrades don't undo the settings page.
+- **Capture outages (T088)**: a clean shutdown sends a `shutting_down` heartbeat, so scaling capture to zero
+  recorded no loss at all, while the gateway failed open and nothing was captured. Ingest now opens a
+  `heartbeat_missed` loss with no instance when no instance of the installed gateway (`GCA_GATEWAY_TYPE`) has
+  been active for 15 seconds; rolling updates keep one replica up and don't trigger it. A stale instance's loss
+  also closes when a replacement instance starts, since a crashed process never resumes under its old ID.
+- **Loss accounting is exact under redelivery (T088)**: sequence numbers are assigned only on a successful
+  publish, so a gap is real loss; a late message splits its gap row (`seq_first`/`seq_last`), and failure
+  reports are deduplicated by `source_seq`. Before this, a redelivered failure report was counted twice.
+- **Coverage views (T091)** are three views rather than one: `v_coverage_daily` (loss), `v_capture_daily`
+  (observed combinations, with `alg`) and `v_unmapped_daily` (counts only). The portal lists unmapped accounts to
+  admins only, looking logins up with the admin's own token; only account IDs are stored.
+- **Unsupported routes (T090)**: the agentgateway processor now reports a model route it can't read (for example
+  legacy `/v1/completions`) as `unsupported_combination` instead of dropping it; routes that can't carry code
+  (models, embeddings, token counting, audio, images, files) are ignored. LiteLLM capture now records the tool
+  from the request headers LiteLLM passes to callbacks.
+- **Fault injection (T092, T093)**: `gca demo run --inject-faults truncated=N,unexpected_format=M [--faults-only]`.
+  The Responses parser is lenient, so `response.completed` missing `created_at` alone isn't a fault for it; the
+  injected event also loses its `type`, which is. The capture processor has two test-only delays,
+  `GCA_CAPTURE_TEST_PARSE_DELAY_SECONDS` and `GCA_CAPTURE_TEST_ECHO_DELAY_SECONDS` (0 by default). Per R2 there's no
+  gateway timeout on the echo path, so T093(d) checks that a slow echo still completes, not that it's cut off.
 - **Role details (T083, T084)**: `portal.adminLogins` are always admins (break-glass, and the only admins on a
   personal account), so a revoke doesn't remove them; an admin can't revoke their own admin role. One override
   per (developer, role, team), latest wins; clearing it returns to the GitHub default. `visible_roles` may also

@@ -30,6 +30,7 @@ from gcattr import ALG, AddedLine, Candidate, FingerprintKey, LineOutcome
 
 from . import checkrun
 from .config import PrcheckConfig
+from .coverage import loss_reasons
 from .diff import MAX_ADDED_LINES, MAX_BLOB_BYTES, added_from_blobs, added_from_patch
 from .exclusions import Rules, load_rules
 
@@ -245,15 +246,18 @@ def store_result(engine: Engine, head_id: uuid.UUID, alg: int, result: HeadResul
 
 
 def coverage_for(
-    lines: Sequence[AddedLine], outcomes: Sequence[LineOutcome], *, capped_minutes: float | None = None
+    lines: Sequence[AddedLine],
+    outcomes: Sequence[LineOutcome],
+    *,
+    capped_minutes: float | None = None,
+    losses: Sequence[str] = (),
 ) -> tuple[str, list[str]]:
     """(coverage_status, reasons).
 
     - not_observed: no commit author of the change is mapped (FR-015);
-    - incomplete: capture hadn't caught up when the pending cap expired (FR-017, R12);
+    - incomplete: capture hadn't caught up when the pending cap expired (FR-017, R12), or capture lost
+      something in the matching window that could be a credited author's (``losses``, from coverage.py; T089);
     - complete otherwise. Lines from unmapped authors in a partly mapped PR are noted as a reason.
-
-    Capture-loss overlap (also incomplete) arrives with US4 (T089).
     """
     unmapped = sum(1 for o in outcomes if o.outcome == "not_observed")
     if lines and unmapped == len(outcomes):
@@ -264,7 +268,9 @@ def coverage_for(
         else []
     )
     if capped_minutes is not None:
-        return "incomplete", [f"capture had not caught up after {capped_minutes:g} minutes", *reasons]
+        reasons = [f"capture had not caught up after {capped_minutes:g} minutes", *reasons]
+    if capped_minutes is not None or losses:
+        return "incomplete", [*reasons, *losses]
     return "complete", reasons
 
 
@@ -284,7 +290,10 @@ async def process_head(
     outcomes, devs, key_gens = await asyncio.to_thread(
         match_lines, engine, lines, keys.all, h.event_received_at
     )
-    coverage, coverage_reasons = coverage_for(lines, outcomes, capped_minutes=capped)
+    with engine.connect() as conn:
+        window = conn.execute(text("SELECT matching_window_days FROM portal_settings WHERE id = 1")).scalar()
+        losses = loss_reasons(conn, set(devs.values()), h.event_received_at, int(window or 14))
+    coverage, coverage_reasons = coverage_for(lines, outcomes, capped_minutes=capped, losses=losses)
     reasons = [*coverage_reasons, *reasons]
     result = HeadResult(lines, outcomes, devs, excluded, coverage, reasons, key_gens, merge_base)
     summary = store_result(engine, head_id, ALG, result)

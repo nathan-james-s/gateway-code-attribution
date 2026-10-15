@@ -253,6 +253,13 @@ class UserClient:
             return []
         return [s for s in slugs if await self.team_role(org, s, login) == "maintainer"]
 
+    async def login_for_id(self, account_id: int) -> str | None:
+        try:
+            resp = await self.gh.rest.users.async_get_by_id(account_id)
+        except Exception:
+            return None
+        return str(resp.parsed_data.login)
+
     async def user_by_login(self, login: str) -> dict[str, Any] | None:
         try:
             resp = await self.gh.rest.users.async_get_by_username(login)

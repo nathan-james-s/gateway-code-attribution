@@ -15,6 +15,7 @@ from typing import Any
 from gca_core.capture_runtime import CaptureRuntime
 from gca_core.keys import KeyRing
 from gca_core.nats import connect_jetstream, ensure_stream
+from gca_core.tools import session_id, tool_hint
 from gcattr import ALG, CapturedToolOutput, CaptureFailure, extract, from_litellm
 
 try:  # LiteLLM is present in the gca-litellm image; tests can run without it.
@@ -52,6 +53,15 @@ _NO_CODE = {
     "arerank",
     "pass_through_endpoint",
 }
+
+
+def _request_headers(kwargs: dict[str, Any], md: dict[str, Any]) -> dict[str, str]:
+    """The client's request headers, lower-cased, as the LiteLLM proxy passes them to callbacks."""
+    lp = kwargs.get("litellm_params") or {}
+    raw = md.get("headers") or (lp.get("proxy_server_request") or {}).get("headers") or {}
+    if not isinstance(raw, dict):
+        return {}
+    return {str(k).lower(): str(v) for k, v in raw.items()}
 
 
 def _metadata(kwargs: dict[str, Any]) -> dict[str, Any]:
@@ -135,15 +145,15 @@ class GcaHandler(CustomLogger):  # type: ignore[misc]
         md = _metadata(kwargs)
         credential = md.get("user_api_key_alias")
         api_format = _CALL_FORMATS.get(call_type)
-        if api_format is None:
-            if call_type not in _NO_CODE:
-                # A generative route we don't parse yet: report it rather than drop it silently.
-                rt.emit_failure(
-                    "unsupported_combination", credential_id=str(credential) if credential else None
-                )
+        hint = tool_hint(_request_headers(kwargs, md))
+        if api_format is None and call_type in _NO_CODE:
             return
         if not credential:
-            rt.emit_failure("unknown_credential", api_format=api_format)
+            rt.emit_failure("unknown_credential", api_format=api_format, tool_hint=hint)
+            return
+        if api_format is None:
+            # A generative route we don't parse yet: report it rather than drop it silently (FR-007).
+            rt.emit_failure("unsupported_combination", credential_id=str(credential), tool_hint=hint)
             return
         result = await asyncio.to_thread(fingerprint_response, response_obj, call_type, self.ring())
         failures: list[str] = result["failures"]
@@ -163,14 +173,15 @@ class GcaHandler(CustomLogger):  # type: ignore[misc]
                 status=status,
                 failure_cause=failures[0] if failures else None,
                 credential_id=str(credential),
-                tool_hint=None,
-                session_id=None,
+                tool_hint=hint,
+                session_id=session_id(_request_headers(kwargs, md)),
             )
         for i, cause in enumerate(failures):
             rt.emit_failure(
                 cause,
                 credential_id=str(credential),
                 api_format=api_format,
+                tool_hint=hint,
                 count_as_response=status == "failed" and i == 0,
             )
 

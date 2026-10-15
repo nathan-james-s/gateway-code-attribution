@@ -80,6 +80,7 @@ spec:
             {{- include "gca.dbEnv" . | nindent 12 }}
             - {name: GCA_PORTAL_PUBLIC_URL, value: {{ $portalUrl | quote }}}
             - {name: GCA_PORTAL_GATEWAY_PUBLIC_URL, value: {{ $gatewayUrl | quote }}}
+            - {name: GCA_PORTAL_GRAFANA_URL, value: {{ .Values.grafana.publicUrl | default "http://localhost:3000" | quote }}}
             - {name: GCA_PORTAL_GATEWAY_TYPE, value: {{ .Values.gateway.type | quote }}}
             - {name: GCA_PORTAL_GITHUB_ORG, value: {{ .Values.github.org | quote }}}
             - {name: GCA_PORTAL_ADMIN_LOGINS, value: {{ .Values.portal.adminLogins | toJson | quote }}}

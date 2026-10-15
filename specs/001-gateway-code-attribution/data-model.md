@@ -191,6 +191,11 @@ One non-trivial normalized line of model output. Partitioned by day on `captured
 | `count` | int | responses or messages affected; for `seq_gap`, the missing sequence span |
 | `developer_id` | uuid, nullable | set when known (self-reported failures carry it) |
 | `gateway_type`, `api_format`, `tool_hint` | | for the coverage breakdown (FR-030) |
+| `seq_first`, `seq_last` | bigint, nullable | `seq_gap` only: the missing span; a late message inside it splits the row |
+| `source_seq` | bigint, nullable | the `failure` message the row came from; unique per instance, so redelivery counts once |
+
+`instance_id` is null for a **capture outage**: no instance of the installed gateway active for 15 seconds
+(`heartbeat_missed`, from the last heartbeat until an instance is active again).
 
 **Rule**: every capture failure creates or extends a `CaptureLoss` row. Ingest never discards a failure without
 recording it (FR-005, SC-005).

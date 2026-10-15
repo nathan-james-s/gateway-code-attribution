@@ -7,13 +7,17 @@ this process's memory for the duration of the call only.
 from __future__ import annotations
 
 import json
+import os
 import re
+import time
 from typing import Any
 
 from gca_core.keys import KeyRing
 from gcattr import ALG, CapturedToolOutput, CaptureFailure, extract, parse_stream
 
 _ring: KeyRing | None = None
+# Fault injection for the end-to-end test (T093d): a slow parser must never slow the developer's response.
+PARSE_DELAY_SECONDS = float(os.environ.get("GCA_CAPTURE_TEST_PARSE_DELAY_SECONDS", "0"))
 _MODEL = re.compile(rb'"(?:model|modelVersion)"\s*:\s*"([^"]{1,128})"')
 
 
@@ -36,6 +40,8 @@ def model_from_stream(data: bytes) -> str | None:
 def fingerprint(api_format: str, data: bytes) -> dict[str, Any]:
     """Return fingerprints (no content) for one response: lines, failures, counts, model."""
     assert _ring is not None, "worker not initialised"
+    if PARSE_DELAY_SECONDS:
+        time.sleep(PARSE_DELAY_SECONDS)
     _ring.reload()
     key = _ring.active
     lines = []

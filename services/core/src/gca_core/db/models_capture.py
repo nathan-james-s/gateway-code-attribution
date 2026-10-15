@@ -164,6 +164,10 @@ class CaptureLoss(Base):
     gateway_type: Mapped[GatewayType] = mapped_column(_GW, nullable=False)
     api_format: Mapped[ApiFormat | None] = mapped_column(_FMT)
     tool_hint: Mapped[str | None] = mapped_column(String(64))
+    # Migration 0005: the missing span of a seq_gap, and the failure message a row came from (deduplication).
+    seq_first: Mapped[int | None] = mapped_column(BigInteger)
+    seq_last: Mapped[int | None] = mapped_column(BigInteger)
+    source_seq: Mapped[int | None] = mapped_column(BigInteger)
 
 
 __all__ = [
