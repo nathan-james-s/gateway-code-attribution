@@ -70,12 +70,12 @@ spec:
               valueFrom: {secretKeyRef: {name: {{ $mk }}, key: masterKey}}
             - {name: LITELLM_LOG, value: ERROR}
             {{- if .Values.providers.existingSecret }}
-            - name: PROVIDER_ANTHROPIC_KEY
-              valueFrom: {secretKeyRef: {name: {{ .Values.providers.existingSecret }}, key: ANTHROPIC_API_KEY, optional: true}}
-            - name: PROVIDER_OPENAI_KEY
-              valueFrom: {secretKeyRef: {name: {{ .Values.providers.existingSecret }}, key: OPENAI_API_KEY, optional: true}}
-            - name: PROVIDER_GEMINI_KEY
-              valueFrom: {secretKeyRef: {name: {{ .Values.providers.existingSecret }}, key: GEMINI_API_KEY, optional: true}}
+            {{- $names := list "ANTHROPIC_API_KEY" "OPENAI_API_KEY" "GEMINI_API_KEY" }}
+            {{- range .Values.providers.models }}{{ with .apiKeyName }}{{ $names = append $names . }}{{ end }}{{ end }}
+            {{- range $names | uniq }}
+            - name: {{ include "gca.providerKeyEnv" . }}
+              valueFrom: {secretKeyRef: {name: {{ $.Values.providers.existingSecret }}, key: {{ . }}, optional: true}}
+            {{- end }}
             {{- end }}
           readinessProbe:
             httpGet: {path: /health/liveliness, port: 4000}

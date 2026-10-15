@@ -162,6 +162,31 @@ providers:
 Install with `-f values-byo.yaml` as well. Demo routes stay available alongside in demo mode. Then point your tools
 at the gateway: [tools/](tools/README.md).
 
+### Through OpenRouter (or another compatible service)
+
+A model can go to any service that speaks the provider's API, with `baseUrl`, and use its own key, with
+`apiKeyName` (the key's name in the Secret). [OpenRouter](https://openrouter.ai) speaks both the Anthropic
+Messages and the OpenAI Chat Completions APIs at `https://openrouter.ai/api/v1`, with one key for every model:
+
+```bash
+read -rs "OPENROUTER_API_KEY?OpenRouter API key: " && \
+  kubectl -n gca create secret generic provider-keys --from-literal=OPENROUTER_API_KEY="$OPENROUTER_API_KEY"; \
+  unset OPENROUTER_API_KEY
+```
+
+```yaml
+providers:
+  existingSecret: provider-keys
+  models:   # model: OpenRouter's model id (openrouter.ai/models)
+    - {name: claude-sonnet-5-5, provider: anthropic, model: anthropic/claude-sonnet-5.5,
+       baseUrl: "https://openrouter.ai/api/v1", apiKeyName: OPENROUTER_API_KEY}
+    - {name: claude-haiku-5-5, provider: anthropic, model: anthropic/claude-haiku-5.5,
+       baseUrl: "https://openrouter.ai/api/v1", apiKeyName: OPENROUTER_API_KEY}
+```
+
+`baseUrl` is the API root ending in `/v1`; the chart adjusts it for LiteLLM, which adds `/v1` itself for
+Anthropic. Tools still talk to the gateway with their gateway key, never with the OpenRouter key.
+
 ## 4. Run the demo
 
 1. Open http://localhost:8080, sign in with GitHub, choose **Get gateway credential**, and copy the key. It's shown

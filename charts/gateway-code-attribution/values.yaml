@@ -11,8 +11,11 @@ gateway:
     image: {repository: ghcr.io/nathan-james-s/gca-litellm, tag: v1.105.1-gca0.1.0, digest: ""}
 
 providers:                      # BYO hosted key mode (FR-039); empty in demo mode
-  existingSecret: ""            # Secret with ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY
-  models: []                    # [{name, provider: anthropic|openAI|gemini, model}]
+  existingSecret: ""            # Secret with ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY (or your own key names)
+  models: []                    # [{name, provider: anthropic|openAI|gemini, model, baseUrl?, apiKeyName?}]
+                                # baseUrl: an API-compatible service instead of the provider itself, for example
+                                #   OpenRouter: https://openrouter.ai/api/v1 (docs/install.md)
+                                # apiKeyName: the key in existingSecret (default: the provider's name above)
 
 demo:
   enabled: false                # true -> deploys demo-model and routes demo model names to it (FR-038)
