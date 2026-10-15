@@ -6,6 +6,7 @@ import json
 import re
 from collections.abc import Iterator
 
+from .algorithm import ALG
 from .fingerprint import FingerprintKey, exact_fp, path_suffix_fps
 from .lexer import tokenize
 from .normalize import normalize_line, split_lines
@@ -142,7 +143,7 @@ def code_units(output: CapturedToolOutput) -> list[CodeUnit]:
 
 
 def extract(
-    output: CapturedToolOutput, key: FingerprintKey, alg: int, tool_call_ordinal: int = 0
+    output: CapturedToolOutput, key: FingerprintKey, alg: int = ALG, tool_call_ordinal: int = 0
 ) -> list[LineFingerprint]:
     """Normalize, tokenize, drop trivial lines, and fingerprint every code line of ``output``.
 

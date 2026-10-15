@@ -1,0 +1,52 @@
+{
+ "call_type": "agenerate_content_stream",
+ "response_obj": {
+  "id": "027fa280-9927-458f-adb6-34ca54d5c989",
+  "created": 1792011628,
+  "model": "demo",
+  "object": "chat.completion",
+  "system_fingerprint": null,
+  "choices": [
+   {
+    "finish_reason": "tool_calls",
+    "index": 0,
+    "message": {
+     "content": "Working on it.",
+     "role": "assistant",
+     "tool_calls": [
+      {
+       "function": {
+        "arguments": "{\"file_path\": \"src/shop/receipt.py\", \"content\": \"\\\"\\\"\\\"Plain-text receipts.\\\"\\\"\\\"\\n\\nfrom __future__ import annotations\\n\\nfrom .cart import Cart\\n\\n\\ndef format_cents(cents: int) -> str:\\n    return f\\\"${cents // 100}.{cents % 100:02d}\\\"\\n\\n\\ndef render_receipt(cart: Cart) -> str:\\n    lines = []\\n    for item in cart.items:\\n        amount = format_cents(item.price_cents * item.quantity)\\n        lines.append(f\\\"{item.quantity} x {item.name:<20} {amount:>10}\\\")\\n    lines.append(f\\\"{'Subtotal':<25} {format_cents(cart.subtotal_cents()):>10}\\\")\\n    return \\\"\\\\n\\\".join(lines)\\n\"}",
+        "name": "write_file"
+       },
+       "id": "call_d3e2e9eb053d438bb7d2d7a1bddf",
+       "type": "function"
+      }
+     ],
+     "function_call": null
+    }
+   }
+  ],
+  "usage": {
+   "completion_tokens": 50,
+   "prompt_tokens": 10,
+   "total_tokens": 60,
+   "completion_tokens_details": {
+    "accepted_prediction_tokens": null,
+    "audio_tokens": null,
+    "reasoning_tokens": null,
+    "rejected_prediction_tokens": null,
+    "text_tokens": 50,
+    "image_tokens": null,
+    "video_tokens": null
+   },
+   "prompt_tokens_details": {
+    "audio_tokens": null,
+    "cached_tokens": null,
+    "text_tokens": null,
+    "image_tokens": null,
+    "video_tokens": null
+   }
+  }
+ }
+}

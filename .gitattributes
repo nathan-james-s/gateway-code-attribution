@@ -1,0 +1,2 @@
+# Golden corpus files are compared byte for byte (T094): never convert line endings.
+lib/tests/golden/alg-*/** -text

@@ -1,0 +1,167 @@
+# Release from a `v*` tag (T098; research R21). One tag releases everything at the same version:
+#   - the gcattr wheel and sdist, with SHA256SUMS, to PyPI (trusted publishing, attestations) and the GitHub Release;
+#   - the service images to ghcr.io, multi-arch, with build provenance; digests go in the release notes;
+#   - the Helm chart, packaged with a checksum and pushed to ghcr.io as an OCI artifact.
+#
+# One-time setup by the maintainer (docs/maintainers.md): a PyPI trusted publisher for this repository, workflow
+# `release.yml`, environment `pypi`; and a GitHub environment named `pypi`.
+name: release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  versions:  # the tag, the library, the chart and the image tag must all agree
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          python3 - "$version" <<'PY'
+          import re, sys, tomllib
+          want = sys.argv[1]
+          found = {
+              "lib/pyproject.toml": tomllib.load(open("lib/pyproject.toml", "rb"))["project"]["version"],
+              "Chart.yaml version": re.search(r"^version:\s*(\S+)", open("charts/gateway-code-attribution/Chart.yaml").read(), re.M).group(1),
+              "Chart.yaml appVersion": re.search(r'^appVersion:\s*"?([^"\s]+)', open("charts/gateway-code-attribution/Chart.yaml").read(), re.M).group(1),
+              "values.yaml images.tag": re.search(r'^images:\n(?:  .*\n)*?  tag:\s*"?([^"\s]+)', open("charts/gateway-code-attribution/values.yaml").read(), re.M).group(1),
+          }
+          bad = {k: v for k, v in found.items() if v != want}
+          if bad:
+              sys.exit(f"tag v{want} doesn't match: {bad}")
+          PY
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  library:
+    needs: versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --all-packages -p 3.12
+      - run: uv run pytest lib/tests  # the golden corpus, once more, on the tagged commit
+      - run: uv build lib --out-dir dist
+      - run: cd dist && sha256sum * > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with: {name: library, path: dist/}
+
+  pypi:
+    needs: library
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write  # trusted publishing; the action also uploads PEP 740 attestations
+    steps:
+      - uses: actions/download-artifact@v4
+        with: {name: library, path: dist/}
+      - run: rm dist/SHA256SUMS
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  images:
+    needs: versions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    strategy:
+      matrix:
+        include:
+          - {service: capture-extproc, image: gca-capture-extproc}
+          - {service: capture-litellm, image: gca-litellm}
+          - {service: ingest, image: gca-ingest}
+          - {service: prcheck, image: gca-prcheck}
+          - {service: portal, image: gca-portal}
+          - {service: demo, image: gca-demo}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/${{ matrix.service }}/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ matrix.image }}:${{ needs.versions.outputs.version }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ needs.versions.outputs.version }}
+            org.opencontainers.image.licenses=Apache-2.0
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ matrix.image }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+      - run: echo "${{ env.REGISTRY }}/${{ matrix.image }}:${{ needs.versions.outputs.version }}@${{ steps.build.outputs.digest }}" > digest-${{ matrix.image }}.txt
+      - uses: actions/upload-artifact@v4
+        with: {name: "digest-${{ matrix.image }}", path: "digest-${{ matrix.image }}.txt"}
+
+  chart:
+    needs: versions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - run: scripts/helm-repos.sh && helm dependency build charts/gateway-code-attribution
+      - run: helm lint charts/gateway-code-attribution --set github.existingSecret=gca-github-app
+      - run: |
+          mkdir -p chart && helm package charts/gateway-code-attribution -d chart
+          cd chart && sha256sum *.tgz > CHART-SHA256SUMS
+      - name: Push to ghcr.io (OCI)
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+          helm push chart/gateway-code-attribution-*.tgz "oci://${{ env.REGISTRY }}/charts" 2>&1 | tee chart/push.log
+      - uses: actions/upload-artifact@v4
+        with: {name: chart, path: chart/}
+
+  github-release:
+    needs: [versions, library, pypi, images, chart]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with: {path: out}
+      - name: Release notes with digests and checksums
+        run: |
+          v="${{ needs.versions.outputs.version }}"
+          {
+            echo "## gcattr $v"
+            echo "Algorithm version and Unicode pin: \`gca version\`. Wheel and sdist checksums are in \`SHA256SUMS\`."
+            echo
+            echo "## Images"
+            echo '```'
+            cat out/digest-*/digest-*.txt
+            echo '```'
+            echo
+            echo "## Helm chart"
+            echo "\`helm install gca oci://${{ env.REGISTRY }}/charts/gateway-code-attribution --version $v\`"
+            echo '```'
+            cat out/chart/CHART-SHA256SUMS
+            grep -i "digest" out/chart/push.log || true
+            echo '```'
+          } > notes.md
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --notes-file notes.md \
+            out/library/* out/chart/*.tgz out/chart/CHART-SHA256SUMS

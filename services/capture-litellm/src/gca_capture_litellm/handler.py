@@ -16,7 +16,8 @@ from gca_core.capture_runtime import CaptureRuntime
 from gca_core.keys import KeyRing
 from gca_core.nats import connect_jetstream, ensure_stream
 from gca_core.tools import session_id, tool_hint
-from gcattr import ALG, CapturedToolOutput, CaptureFailure, extract, from_litellm
+from gcattr import ALG, from_litellm
+from gcattr.io import fingerprint_outputs
 
 try:  # LiteLLM is present in the gca-litellm image; tests can run without it.
     from litellm.integrations.custom_logger import CustomLogger
@@ -78,22 +79,12 @@ def fingerprint_response(response_obj: Any, call_type: str, ring: KeyRing) -> di
     ring.reload()
     key = ring.active
     api_format = _CALL_FORMATS.get(call_type, "openai_chat")
-    lines = []
-    failures: list[str] = []
-    tool_calls = 0
-    for result in from_litellm(response_obj, call_type, api_format):  # type: ignore[arg-type]
-        if isinstance(result, CaptureFailure):
-            failures.append(result.cause)
-            continue
-        assert isinstance(result, CapturedToolOutput)
-        if result.kind != "text_block":
-            tool_calls += 1
-        lines.extend(extract(result, key, ALG, tool_call_ordinal=tool_calls))
+    result = fingerprint_outputs(from_litellm(response_obj, call_type, api_format), key, ALG)  # type: ignore[arg-type]
     return {
         "api_format": api_format,
-        "lines": lines,
-        "failures": failures,
-        "tool_call_count": tool_calls,
+        "lines": result.lines,
+        "failures": result.failures,
+        "tool_call_count": result.tool_call_count,
         "key_gen": key.key_gen,
     }
 

@@ -13,7 +13,8 @@ import time
 from typing import Any
 
 from gca_core.keys import KeyRing
-from gcattr import ALG, CapturedToolOutput, CaptureFailure, extract, parse_stream
+from gcattr import ALG, parse_stream
+from gcattr.io import fingerprint_outputs
 
 _ring: KeyRing | None = None
 # Fault injection for the end-to-end test (T093d): a slow parser must never slow the developer's response.
@@ -44,21 +45,11 @@ def fingerprint(api_format: str, data: bytes) -> dict[str, Any]:
         time.sleep(PARSE_DELAY_SECONDS)
     _ring.reload()
     key = _ring.active
-    lines = []
-    failures: list[str] = []
-    tool_calls = 0
-    for result in parse_stream(api_format, [data]):  # type: ignore[arg-type]
-        if isinstance(result, CaptureFailure):
-            failures.append(result.cause)
-            continue
-        assert isinstance(result, CapturedToolOutput)
-        if result.kind != "text_block":
-            tool_calls += 1
-        lines.extend(extract(result, key, ALG, tool_call_ordinal=tool_calls))
+    result = fingerprint_outputs(parse_stream(api_format, [data]), key, ALG)  # type: ignore[arg-type]
     return {
-        "lines": lines,
-        "failures": failures,
-        "tool_call_count": tool_calls,
+        "lines": result.lines,
+        "failures": result.failures,
+        "tool_call_count": result.tool_call_count,
         "model": model_from_stream(data) or "unknown",
         "alg": ALG,
         "key_gen": key.key_gen,
