@@ -5,7 +5,9 @@
 
 **Created**: 2026-10-14
 
-**Status**: Draft
+**Status**: Complete (2026-10-16). Every task in [tasks.md](./tasks.md) is done, and the clean-machine run is
+recorded in [docs/validation/quickstart-run.md](../../docs/validation/quickstart-run.md). The first public release
+(v0.1.0) is deferred by the owner; SC-012 (adoption) follows it.
 
 **Input**: User description: "@.specify/assessments/gateway-code-attribution/decision.md" (the assessment's go
 decision and its suggested input). The core of that input:
