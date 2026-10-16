@@ -10,6 +10,7 @@ default) is sent as several ``part`` messages of one event, sharing its ``event_
 from __future__ import annotations
 
 import base64
+import binascii
 import json
 import uuid
 from datetime import UTC, datetime
@@ -93,20 +94,39 @@ def line_to_wire(fp: LineFingerprint) -> dict[str, Any]:
     return out
 
 
+# Decoded sizes of a line's binary fields. JSON Schema can't check what a base64 string holds, and the default
+# decoder skips characters outside the alphabet, so a malformed field would decode to the wrong length and fail
+# the database's checks at insert: ingest would retry the message forever. Strict decoding here makes it a
+# contract violation instead, rejected (and so counted as loss) like any other.
+EXACT_FP_BYTES = 16
+SIGNATURE_BYTES = 128 * 4  # MinHash signature: 128 big-endian uint32 values
+BAND_BYTES = 8
+PATH_FP_BYTES = 16
+
+
+def _strict(value: Any, size: int, field: str) -> bytes:
+    try:
+        raw = base64.b64decode(value, validate=True)
+    except (binascii.Error, TypeError, ValueError) as exc:
+        raise MessageError(f"line field {field!r} is not valid base64") from exc
+    if len(raw) != size:
+        raise MessageError(f"line field {field!r} must decode to {size} bytes, not {len(raw)}")
+    return raw
+
+
 def _unpack_u32(raw: bytes) -> tuple[int, ...]:
-    if len(raw) % 4:
-        raise MessageError("a signature is a whole number of 32-bit values")
     return tuple(int.from_bytes(raw[i : i + 4], "big") for i in range(0, len(raw), 4))
 
 
 def line_from_wire(d: dict[str, Any]) -> dict[str, Any]:
+    """Decode one line's fingerprints, strictly: raises ``MessageError`` for anything but exact sizes."""
     return {
         "tool_call_ordinal": int(d["t"]),
         "line_ordinal": int(d["l"]),
-        "exact_fp": base64.b64decode(d["x"]),
-        "minhash": _unpack_u32(base64.b64decode(d["m"])),
-        "lsh_bands": tuple(base64.b64decode(b) for b in d["b"]),
-        "path_suffix_fps": tuple(base64.b64decode(p) for p in d.get("p", [])),
+        "exact_fp": _strict(d["x"], EXACT_FP_BYTES, "x"),
+        "minhash": _unpack_u32(_strict(d["m"], SIGNATURE_BYTES, "m")),
+        "lsh_bands": tuple(_strict(b, BAND_BYTES, "b") for b in d["b"]),
+        "path_suffix_fps": tuple(_strict(p, PATH_FP_BYTES, "p") for p in d.get("p", [])),
     }
 
 
@@ -210,6 +230,9 @@ def validate(msg: dict[str, Any]) -> dict[str, Any]:
         jsonschema.validate(msg, _schema())
     except jsonschema.ValidationError as exc:
         raise MessageError(exc.message) from exc
+    if kind == "event":
+        for line in msg["lines"]:
+            line_from_wire(line)  # every binary field decodes, strictly, to its exact size
     return msg
 
 

@@ -346,6 +346,11 @@ docs/                             # install, per-tool routing, outcomes, privacy
   900 KB is sent as `part`s of one `event_id` that ingest stores as one event (lines unique per event, tool call
   and line, so a redelivered part adds nothing; migration 0006), and a message the server refuses anyway is
   dropped at once and reported as `publish_failed`.
+- **Binary fields are decoded strictly**: JSON Schema can't check what a base64 string holds, and Python's default
+  decoder skips characters outside the alphabet, so a malformed `x`, `m`, `b` or `p` decoded to the wrong length
+  and failed the database's checks at insert; ingest naks such a message and its consumer has no delivery limit,
+  so it would have been retried forever (true of `x`, `b` and `p` since v1). Validation now decodes every binary
+  field strictly to its exact size, so a malformed message is rejected and counted as loss.
 - **The PR check no longer loads the whole matching window (T109)**: it loaded every captured line of each
   credited developer in the window into memory (1.8M lines, about 10 GB at 128 values, for 10,000 lines a day
   over 180 days). `gcattr.lookup_keys` lists the exact fingerprints and band hashes `attribute` can look up
