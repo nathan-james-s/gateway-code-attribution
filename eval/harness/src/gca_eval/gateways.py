@@ -118,18 +118,33 @@ class _Upstream(BaseHTTPRequestHandler):
         self.send_header("content-type", "text/event-stream")
         self.send_header("transfer-encoding", "chunked")
         self.end_headers()
-        for i in range(0, len(data), CHUNK):
-            c = data[i : i + CHUNK]
-            self.wfile.write(b"%x\r\n%s\r\n" % (len(c), c))
-            self.wfile.flush()
+        pace = self.server.stream_seconds  # type: ignore[attr-defined]
+        if pace:
+            # Like a model: one SSE event at a time, spread over `stream_seconds` (performance runs, T114).
+            events = [e + b"\n\n" for e in data.split(b"\n\n") if e]
+            for e in events:
+                self.wfile.write(b"%x\r\n%s\r\n" % (len(e), e))
+                self.wfile.flush()
+                time.sleep(pace / len(events))
+        else:
+            for i in range(0, len(data), CHUNK):
+                c = data[i : i + CHUNK]
+                self.wfile.write(b"%x\r\n%s\r\n" % (len(c), c))
+                self.wfile.flush()
         self.wfile.write(b"0\r\n\r\n")
         self.wfile.flush()
 
 
+class _Server(ThreadingHTTPServer):
+    request_queue_size = 1024  # the default 5 refuses bursts of connections, which gateways answer with 503
+
+
 class Upstream:
-    def __init__(self, respond: Respond) -> None:
-        self.server = ThreadingHTTPServer(("127.0.0.1", 0), _Upstream)
+    def __init__(self, respond: Respond, stream_seconds: float = 0.0) -> None:
+        self.server = _Server(("127.0.0.1", 0), _Upstream)
+        self.server.daemon_threads = True
         self.server.respond = respond  # type: ignore[attr-defined]
+        self.server.stream_seconds = stream_seconds  # type: ignore[attr-defined]
         self.port = self.server.server_address[1]
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
 
@@ -210,10 +225,10 @@ class ExtProc:
 
 
 def agentgateway_config(
-    port: int, extproc_port: int, upstream: int, credentials: list[Credential]
+    port: int, extproc_port: int, upstream: int, credentials: list[Credential], capture: bool = True
 ) -> dict[str, Any]:
     base = f"http://127.0.0.1:{upstream}"
-    return {
+    cfg = {
         "llm": {
             "port": port,
             "policies": {
@@ -270,6 +285,9 @@ def agentgateway_config(
             ],
         }
     }
+    if not capture:  # the baseline for measuring capture's overhead (T114)
+        del cfg["llm"]["policies"]["extProc"]  # type: ignore[index]
+    return cfg
 
 
 # ---------------------------------------------------------------------------------------------- litellm
@@ -301,9 +319,9 @@ handler = Collected()
 '''
 
 
-def litellm_config(upstream: int) -> dict[str, Any]:
+def litellm_config(upstream: int, capture: bool = True) -> dict[str, Any]:
     base = f"http://127.0.0.1:{upstream}"
-    return {
+    cfg: dict[str, Any] = {
         "model_list": [
             {
                 "model_name": "demo-openai",
@@ -321,6 +339,9 @@ def litellm_config(upstream: int) -> dict[str, Any]:
         "litellm_settings": {"callbacks": ["gca_eval_callback.handler"]},
         "general_settings": {"master_key": LITELLM_MASTER},
     }
+    if not capture:
+        cfg["litellm_settings"] = {}
+    return cfg
 
 
 class Proc:
@@ -375,23 +396,34 @@ def stack(
     credentials: list[Credential],
     respond: Respond,
     gateways: tuple[str, ...] = GATEWAYS,
+    *,
+    capture: bool = True,
+    stream_seconds: float = 0.0,
 ) -> Iterator[Stack]:
-    """Start the requested gateways in front of one upstream; stop everything afterwards."""
+    """Start the requested gateways in front of one upstream; stop everything afterwards. ``capture=False`` runs
+    them without capture, and ``stream_seconds`` paces each response like a model; both are for performance runs
+    (tests/perf, T114)."""
     if "litellm" in gateways and shutil.which("uv") is None:
         raise RuntimeError("uv is required to run the pinned LiteLLM")
     tmp = Path(tempfile.mkdtemp(prefix="gca-gateways-"))
-    upstream = Upstream(respond)
+    upstream = Upstream(respond, stream_seconds)
     procs: list[Proc] = []
     collectors: dict[str, Any] = {}
     ports: dict[str, int] = {}
     extproc = None
     try:
         if "agentgateway" in gateways:
-            extproc = ExtProc(keys_dir)
+            extproc = ExtProc(keys_dir) if capture else None
             ports["agentgateway"] = free_port()
             (tmp / "agentgateway.yaml").write_text(
                 yaml.safe_dump(
-                    agentgateway_config(ports["agentgateway"], extproc.port, upstream.port, credentials)
+                    agentgateway_config(
+                        ports["agentgateway"],
+                        extproc.port if extproc else 0,
+                        upstream.port,
+                        credentials,
+                        capture,
+                    )
                 )
             )
             ag = Proc(
@@ -400,12 +432,12 @@ def stack(
                 tmp / "agentgateway.log",
             )
             procs.append(ag)
-            collectors["agentgateway"] = extproc
+            collectors["agentgateway"] = extproc or FileCollector(tmp / "no-capture.jsonl")
             wait_port(ports["agentgateway"], 60, ag.proc)
         if "litellm" in gateways:
             ports["litellm"] = free_port()
             (tmp / "gca_eval_callback.py").write_text(CALLBACK)
-            (tmp / "litellm.yaml").write_text(yaml.safe_dump(litellm_config(upstream.port)))
+            (tmp / "litellm.yaml").write_text(yaml.safe_dump(litellm_config(upstream.port, capture)))
             out = FileCollector(tmp / "litellm-messages.jsonl")
             ll = Proc(
                 ["uv", "run", "--quiet", "--with", LITELLM, "litellm", "--config", str(tmp / "litellm.yaml"),

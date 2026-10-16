@@ -16,7 +16,7 @@ metadata:
   name: {{ $fn }}-capture-extproc
   labels: {{- include "gca.labels" . | nindent 4 }}
 spec:
-  replicas: 2   # R2 mitigation 4
+  replicas: {{ .Values.capture.replicas }}   # R2 mitigation 4: at least 2
   selector:
     matchLabels: {{- include "gca.selector" (dict "root" . "component" "capture-extproc") | nindent 6 }}
   template:

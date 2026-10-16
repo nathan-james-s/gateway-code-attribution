@@ -46,6 +46,9 @@ else
 fi
 
 kubectl get namespace "$NS" >/dev/null 2>&1 || kubectl create namespace "$NS"
+# Every pod in the release meets Pod Security "restricted" (T116); have the cluster enforce it.
+kubectl label namespace "$NS" pod-security.kubernetes.io/enforce=restricted \
+  pod-security.kubernetes.io/warn=restricted --overwrite >/dev/null
 if [ -n "$SECRET" ]; then kubectl apply -n "$NS" -f "$SECRET" >/dev/null && echo "==> applied $SECRET"; fi
 
 scripts/helm-repos.sh

@@ -54,6 +54,10 @@ jobs:
           scripts/helm-repos.sh
           helm dependency build charts/gateway-code-attribution
           helm lint charts/gateway-code-attribution --set github.existingSecret=gca-github-app
+      - name: image digests (Constitution VI)
+        run: scripts/check-image-digests.sh
+      - name: configuration reference is current (docs/configuration.md)
+        run: pip install --quiet pyyaml && python3 scripts/gen-config-reference.py --check
       - name: kubeconform
         run: |
           curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz

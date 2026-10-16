@@ -1,0 +1,86 @@
+{{- /*
+NetworkPolicies (T116). Only the services that use them reach PostgreSQL, NATS, the capture processor and the
+demo model; everything else in the namespace is refused. Ingress to what people and tools use (gateway, portal,
+PR check webhooks, Grafana) is not restricted here. Egress is not restricted: the gateway calls model providers
+and the PR check calls GitHub. A NetworkPolicy needs a CNI that enforces it; without one these change nothing.
+*/ -}}
+{{- if .Values.networkPolicies.enabled }}
+{{- $release := .Release.Name }}
+{{- if .Values.postgres.internal }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "gca.fullname" . }}-postgres
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: {{- include "gca.selector" (dict "root" . "component" "postgres") | nindent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    - ports: [{port: 5432, protocol: TCP}]
+      from:
+        {{- range list "ingest" "prcheck" "portal" "migrate" }}
+        - podSelector: {matchLabels: {app.kubernetes.io/instance: {{ $release }}, app.kubernetes.io/component: {{ . }}}}
+        {{- end }}
+        {{- if eq .Values.gateway.type "litellm" }}
+        # LiteLLM keeps its virtual keys in its own schema (Prisma)
+        - podSelector: {matchLabels: {app.kubernetes.io/instance: {{ $release }}, app.kubernetes.io/component: gateway}}
+        {{- end }}
+        {{- if .Values.grafana.enabled }}
+        # the read-only reporting role (views without per-developer columns, R15)
+        - podSelector: {matchLabels: {app.kubernetes.io/instance: {{ $release }}, app.kubernetes.io/name: grafana}}
+        {{- end }}
+---
+{{- end }}
+{{- if .Values.nats.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "gca.fullname" . }}-nats
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/instance: {{ $release }}, app.kubernetes.io/name: nats}
+  policyTypes: [Ingress]
+  ingress:
+    - ports: [{port: 4222, protocol: TCP}]
+      from:
+        - podSelector: {matchLabels: {app.kubernetes.io/instance: {{ $release }}, app.kubernetes.io/component: ingest}}
+        {{- if eq .Values.gateway.type "agentgateway" }}
+        - podSelector: {matchLabels: {app.kubernetes.io/instance: {{ $release }}, app.kubernetes.io/component: capture-extproc}}
+        {{- else }}
+        # LiteLLM's capture callback publishes from the gateway pod
+        - podSelector: {matchLabels: {app.kubernetes.io/instance: {{ $release }}, app.kubernetes.io/component: gateway}}
+        {{- end }}
+---
+{{- end }}
+{{- if eq .Values.gateway.type "agentgateway" }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "gca.fullname" . }}-capture-extproc
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: {{- include "gca.selector" (dict "root" . "component" "capture-extproc") | nindent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {matchLabels: {app.kubernetes.io/instance: {{ $release }}, app.kubernetes.io/component: gateway}}
+---
+{{- end }}
+{{- if .Values.demo.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "gca.fullname" . }}-demo-model
+  labels: {{- include "gca.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: {{- include "gca.selector" (dict "root" . "component" "demo-model") | nindent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {matchLabels: {app.kubernetes.io/instance: {{ $release }}, app.kubernetes.io/component: gateway}}
+{{- end }}
+{{- end }}

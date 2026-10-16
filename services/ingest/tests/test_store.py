@@ -9,7 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 
 from gca_core import messages
-from gca_core.db.base import i32_to_u32
+from gca_core.db.base import i32_to_u32, i64_to_bands
 from gca_core.watermark import current_watermark
 from gca_ingest.store import handle, mark_stale_instances
 from gcattr import CapturedToolOutput, FingerprintKey, extract
@@ -94,10 +94,10 @@ def test_event_lines_bands_and_idempotency(pg_engine: Engine) -> None:
         )
         assert i32_to_u32(rows[0].minhash) == fps[0].minhash
         assert bytes(rows[0].exact_fp) == fps[0].exact_fp and len(rows[0].path_suffix_fps) == 3
-        assert (
-            conn.execute(text("SELECT count(*) FROM lsh_band WHERE developer_id = :d"), {"d": dev}).scalar()
-            == 16
-        )
+        bands = conn.execute(
+            text("SELECT bands FROM captured_line WHERE developer_id = :d ORDER BY line_ordinal"), {"d": dev}
+        ).scalars()
+        assert [i64_to_bands(b) for b in bands] == [fp.lsh_bands for fp in fps]  # inline, 8 per line
         assert (
             conn.execute(
                 text("SELECT count(*) FROM capture_event WHERE instance_id = :i"), {"i": uuid.UUID(iid)}
@@ -225,9 +225,10 @@ def test_an_event_sent_in_parts_is_one_event(pg_engine: Engine) -> None:
         ).one()
         assert tuple(lines) == (40, 40)
         bands = conn.execute(
-            text("SELECT count(*) FROM lsh_band WHERE developer_id = :d"), {"d": dev}
+            text("SELECT count(*) FROM captured_line WHERE developer_id = :d AND array_length(bands, 1) = 8"),
+            {"d": dev},
         ).scalar()
-        assert bands == 40 * 8
+        assert bands == 40
 
 
 def test_unknown_credential_in_parts_is_counted_once(pg_engine: Engine) -> None:

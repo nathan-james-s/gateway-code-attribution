@@ -1,5 +1,5 @@
 # Every pinned external artifact (Constitution VI). Digests are resolved by scripts/pin-digests.sh.
-# Resolved 2026-10-14 with `docker buildx imagetools inspect`.
+# Resolved 2026-10-14 with `docker buildx imagetools inspect`; re-checked 2026-10-16 (scripts/pin-digests.sh, no drift).
 images:
   agentgateway:
     ref: cr.agentgateway.dev/agentgateway
@@ -15,6 +15,10 @@ images:
     ref: docker.io/library/nats
     tag: 2.15.1-alpine
     digest: sha256:2ae57dfba3063d5e25fecb75256118c0882a1a2d2cf7d0fba17a7c701df956f6
+  nats-reloader:
+    ref: docker.io/natsio/nats-server-config-reloader
+    tag: 0.24.0
+    digest: sha256:d758a82a9c20337e46c2f7356a413faa52cf4d6b02497c3ad81f72f1ba106464
   grafana:
     ref: docker.io/grafana/grafana
     tag: 13.2.4

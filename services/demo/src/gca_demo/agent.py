@@ -43,6 +43,33 @@ class DemoError(RuntimeError):
 
 
 # ---------------------------------------------------------------------------------------------- talking to the gateway
+def request_parts(
+    api_format: str, text: str, credential: str, extra_headers: dict[str, str] | None = None
+) -> tuple[str, dict[str, str], dict[str, Any]]:
+    """(path, headers, JSON body) of the streamed request a coding tool sends for ``text`` in ``api_format``."""
+    ua = {"User-Agent": f"gca-demo/0.1 ({api_format})", **(extra_headers or {})}
+    if api_format == "anthropic_messages":
+        headers = {**ua, "x-api-key": credential, "anthropic-version": "2023-06-01"}
+        body: dict[str, Any] = {
+            "model": MODELS[api_format],
+            "max_tokens": 4096,
+            "stream": True,
+            "messages": [{"role": "user", "content": text}],
+        }
+        return "/v1/messages", headers, body
+    if api_format == "openai_chat":
+        headers = {**ua, "Authorization": f"Bearer {credential}"}
+        body = {"model": MODELS[api_format], "stream": True, "messages": [{"role": "user", "content": text}]}
+        return "/v1/chat/completions", headers, body
+    if api_format == "openai_responses":
+        headers = {**ua, "Authorization": f"Bearer {credential}"}
+        return "/v1/responses", headers, {"model": MODELS[api_format], "stream": True, "input": text}
+    # Both gateways serve Gemini's native route (LiteLLM through its router, research R3).
+    headers = {**ua, "x-goog-api-key": credential}
+    body = {"contents": [{"role": "user", "parts": [{"text": text}]}]}
+    return f"/v1beta/models/{MODELS[api_format]}:streamGenerateContent?alt=sse", headers, body
+
+
 def gateway_sender(
     base_url: str, credential: str, gateway: str, extra_headers: dict[str, str] | None = None
 ) -> Sender:
@@ -50,33 +77,8 @@ def gateway_sender(
     client = httpx.Client(timeout=120)
 
     def send(api_format: str, text: str) -> bytes:
-        ua = {"User-Agent": f"gca-demo/0.1 ({api_format})", **(extra_headers or {})}
-        if api_format == "anthropic_messages":
-            url = f"{base}/v1/messages"
-            headers = {**ua, "x-api-key": credential, "anthropic-version": "2023-06-01"}
-            body: dict[str, Any] = {
-                "model": MODELS[api_format],
-                "max_tokens": 4096,
-                "stream": True,
-                "messages": [{"role": "user", "content": text}],
-            }
-        elif api_format == "openai_chat":
-            url = f"{base}/v1/chat/completions"
-            headers = {**ua, "Authorization": f"Bearer {credential}"}
-            body = {
-                "model": MODELS[api_format],
-                "stream": True,
-                "messages": [{"role": "user", "content": text}],
-            }
-        elif api_format == "openai_responses":
-            url = f"{base}/v1/responses"
-            headers = {**ua, "Authorization": f"Bearer {credential}"}
-            body = {"model": MODELS[api_format], "stream": True, "input": text}
-        else:
-            # Both gateways serve Gemini's native route (LiteLLM through its router, research R3).
-            url = f"{base}/v1beta/models/{MODELS[api_format]}:streamGenerateContent?alt=sse"
-            headers = {**ua, "x-goog-api-key": credential}
-            body = {"contents": [{"role": "user", "parts": [{"text": text}]}]}
+        path, headers, body = request_parts(api_format, text, credential, extra_headers)
+        url = base + path
         resp = client.post(url, json=body, headers=headers)
         if resp.status_code != 200:
             raise DemoError(f"{api_format}: the gateway answered HTTP {resp.status_code} for {url}")

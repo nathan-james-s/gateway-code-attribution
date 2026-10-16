@@ -51,3 +51,12 @@ def u32_to_i32(values: tuple[int, ...] | list[int]) -> list[int]:
 
 def i32_to_u32(values: list[int] | tuple[int, ...]) -> tuple[int, ...]:
     return tuple(v + _U32 if v < 0 else v for v in values)
+
+
+def bands_to_i64(bands: tuple[bytes, ...] | list[bytes]) -> list[int]:
+    """LSH band hashes are 8 bytes; store each as a signed int8 (big-endian two's complement, lossless)."""
+    return [int.from_bytes(b, "big", signed=True) for b in bands]
+
+
+def i64_to_bands(values: list[int] | tuple[int, ...]) -> tuple[bytes, ...]:
+    return tuple(v.to_bytes(8, "big", signed=True) for v in values)

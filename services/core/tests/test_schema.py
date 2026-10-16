@@ -99,13 +99,14 @@ def test_captured_line_partitions_and_checks(pg_engine: Engine) -> None:
                 "d": uuid.uuid4(),
                 "x": b"\x00" * 16,
                 "m": [0] * 128,
+                "b": [0] * 8,
             }
             conn.execute(
                 text(
                     "INSERT INTO captured_line (captured_at, capture_event_id, developer_id, "
                     "tool_call_ordinal,"
-                    " line_ordinal, path_suffix_fps, exact_fp, minhash, alg, key_gen) VALUES "
-                    "(:t, :e, :d, 0, 1, '{}', :x, :m, 1, 1)"
+                    " line_ordinal, path_suffix_fps, exact_fp, minhash, bands, alg, key_gen) VALUES "
+                    "(:t, :e, :d, 0, 1, '{}', :x, :m, :b, 1, 1)"
                 ),
                 row,
             )
@@ -113,12 +114,13 @@ def test_captured_line_partitions_and_checks(pg_engine: Engine) -> None:
             assert part.startswith("captured_line_2")
             insert = text(
                 "INSERT INTO captured_line (captured_at, capture_event_id, developer_id, "
-                "tool_call_ordinal, line_ordinal, path_suffix_fps, exact_fp, minhash, alg, key_gen)"
-                " VALUES (:t, :e, :d, 0, :l, '{}', :x, :m, 1, 1)"
+                "tool_call_ordinal, line_ordinal, path_suffix_fps, exact_fp, minhash, bands, alg, key_gen)"
+                " VALUES (:t, :e, :d, 0, :l, '{}', :x, :m, :b, 1, 1)"
             )
             for bad in (
                 {"l": 2, "x": b"\x00" * 3},  # exact_fp is 16 bytes
                 {"l": 3, "m": [0] * 32},  # a signature is 128 values
+                {"l": 4, "b": [0] * 7},  # 8 LSH band hashes
                 {"l": 1},  # one row per (event, tool call, line): a redelivered part adds nothing
             ):
                 nested = conn.begin_nested()

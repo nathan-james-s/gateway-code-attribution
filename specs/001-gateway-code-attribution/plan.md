@@ -86,7 +86,7 @@ library with a CLI, and a Helm chart.
 - **Images pinned** by digest.
 
 **Scale/Scope**: up to 500 active developers per default install. That's about 90M captured lines over 90 days,
-roughly 30–40 GB of Postgres (R14). In-scope tools: Claude Code, Codex CLI, Gemini CLI, OpenCode. Forge:
+roughly 130 GB of Postgres as measured (R14 estimated 30–40 GB; T115), on a 200 Gi default volume. In-scope tools: Claude Code, Codex CLI, Gemini CLI, OpenCode. Forge:
 GitHub.com and Enterprise Cloud.
 
 ## Constitution Check
@@ -381,6 +381,24 @@ docs/                             # install, per-tool routing, outcomes, privacy
 - **Release gate (T110)**: `release-gate.yml` runs on PRs to `main` and is called by `release.yml`, so nothing is
   published below the bar. It failed on the first measurements above; with the matching changes the scenario
   set meets the bar on both gateways. It isn't a required merge check yet.
+- **Storage measured (T115)**: R14's 230 bytes per captured line left out PostgreSQL's per-row and per-index
+  overhead; measured, a line took about 2,650 bytes, 75% of it the 8 `lsh_band` rows and their indexes, so 90
+  days for 500 developers needed about 241 GB against the 100 Gi default. Migration 0007 stores the bands as an
+  `int8[8]` column with one GIN index (btree_gin): 1,464 bytes per line, no change to fingerprints, matching or
+  the wire. The PR check fetches band hits with an overlap search and then applies `gcattr.select_candidates`,
+  so candidates are exactly what the library selects. Default volume 200 Gi (owner's decision).
+- **Hardening (T116)**: our pods already ran non-root with dropped capabilities and seccomp; the NATS subchart
+  (NATS, its config reloader, nats-box) and the subcharts' `helm test` pods violated Pod Security "restricted"
+  (server-side dry-run in a restricted namespace). NATS now runs as uid 1000 with a read-only root filesystem
+  (checked with JetStream), nats-box and the test pods are off, and `make demo` labels the namespace to enforce
+  "restricted". NetworkPolicies let only the services that use them reach Postgres, NATS, capture-extproc and
+  demo-model. Existing installs must recreate the NATS volume once (docs/upgrade.md): its data belongs to root.
+- **Digests (T119)**: NATS, its reloader and Grafana weren't pinned; now every third-party image is.
+  `pin-digests.sh` used to copy the upstream LiteLLM image's digest onto our own `gca-litellm` image, and the
+  release pushed `gca-litellm:<version>` while the chart referenced `gca-litellm:v1.105.1-gca0.1.0`. The release
+  now writes the digests (and that tag) of the images it built into the chart before packaging, and
+  `check-image-digests.sh --release` fails it if any image is unpinned. On PRs only our own images, which don't
+  exist until a release, are exempt.
 - **Role details (T083, T084)**: `portal.adminLogins` are always admins (break-glass, and the only admins on a
   personal account), so a revoke doesn't remove them; an admin can't revoke their own admin role. One override
   per (developer, role, team), latest wins; clearing it returns to the GitHub default. `visible_roles` may also

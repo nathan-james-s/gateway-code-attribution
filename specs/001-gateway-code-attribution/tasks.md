@@ -578,18 +578,18 @@ gateways. Degrading the thresholds makes the release gate fail and name the fail
 
 **Purpose**: Performance, sizing, hardening and documentation across all stories.
 
-- [ ] T114 [P] Create the Locust performance suite in `tests/perf/`. `tests/perf/locustfile.py` simulates 500 active developers (configurable) sending streamed tool-call responses through the gateway from `demo-model`, with realistic think times. `tests/perf/run.sh` (`make perf`) runs each gateway with capture on and off, reports p95 response completion time, and asserts overhead ≤ 5% (SC-010, research R2 at load). It also opens PRs of 1,000 added lines and asserts the check completes in 2 minutes or less after the watermark passes (SC-009), at the SC-013 load with 90 days of synthetic captured lines pre-loaded.
-- [ ] T115 Write `docs/sizing.md` from `make perf` results and research R14: measured Postgres size per million captured lines, the projected size at 500 developers over 90 days (validating the 30–40 GB estimate and the 100 Gi default), NATS sizing, replica guidance for `capture-extproc` and `ingest`, and guidance beyond 500 developers. Mark the CloudNativePG operator as the production path, without high-availability guarantees in v1 (SC-013).
-- [ ] T116 [P] Harden the chart in `charts/gateway-code-attribution/templates/`:
+- [X] T114 [P] Create the Locust performance suite in `tests/perf/`. `tests/perf/locustfile.py` simulates 500 active developers (configurable) sending streamed tool-call responses through the gateway from `demo-model`, with realistic think times. `tests/perf/run.sh` (`make perf`) runs each gateway with capture on and off, reports p95 response completion time, and asserts overhead ≤ 5% (SC-010, research R2 at load). It also opens PRs of 1,000 added lines and asserts the check completes in 2 minutes or less after the watermark passes (SC-009), at the SC-013 load with 90 days of synthetic captured lines pre-loaded.
+- [X] T115 Write `docs/sizing.md` from `make perf` results and research R14: measured Postgres size per million captured lines, the projected size at 500 developers over 90 days (validating the 30–40 GB estimate and the 100 Gi default), NATS sizing, replica guidance for `capture-extproc` and `ingest`, and guidance beyond 500 developers. Mark the CloudNativePG operator as the production path, without high-availability guarantees in v1 (SC-013).
+- [X] T116 [P] Harden the chart in `charts/gateway-code-attribution/templates/`:
   - NetworkPolicies, so only `capture-extproc`, `ingest`, `prcheck` and `portal` reach Postgres and NATS, and only the gateway reaches `capture-extproc`;
   - `securityContext` (non-root, read-only root filesystem, dropped capabilities);
   - resource requests and limits;
   - Pod Security "restricted" labels on the namespace.
-- [ ] T117 [P] Write `docs/github-app.md`, listing every permission and event with its reason (copied from [contracts/github-app.md](./contracts/github-app.md)), plus webhook versus polling mode and how to uninstall (FR-023).
-- [ ] T118 [P] Write `docs/upgrade.md` (key rotation, `alg` upgrades and what happens to older results, migrations) and `docs/configuration.md`, the full values reference generated from `values.schema.json`.
-- [ ] T119 Run `scripts/pin-digests.sh` and commit the resolved digests in `versions.yaml` and `values.yaml`. Add a CI check that fails if any image in the rendered chart lacks a digest (Constitution VI).
+- [X] T117 [P] Write `docs/github-app.md`, listing every permission and event with its reason (copied from [contracts/github-app.md](./contracts/github-app.md)), plus webhook versus polling mode and how to uninstall (FR-023).
+- [X] T118 [P] Write `docs/upgrade.md` (key rotation, `alg` upgrades and what happens to older results, migrations) and `docs/configuration.md`, the full values reference generated from `values.schema.json`.
+- [X] T119 Run `scripts/pin-digests.sh` and commit the resolved digests in `versions.yaml` and `values.yaml`. Add a CI check that fails if any image in the rendered chart lacks a digest (Constitution VI).
 - [ ] T120 Run every section of quickstart.md from start to finish on a clean machine for both gateways, and record the results in `docs/validation/quickstart-run.md`. This run is the **authoritative SC-001 measurement**, including `gca setup github-app`. Also confirm each in-scope tool needed no per-machine install (SC-011). Fix any step that doesn't match the guide.
-- [ ] T121 Update `README.md` with the project summary, the outcome definitions, links to the install, tools, privacy and library docs, the current `docs/tools/supported.md` list, the US jurisdiction statement and the latest quality report summary. Quote numbers only once T110 is green on `main` (Constitution V).
+- [X] T121 Update `README.md` with the project summary, the outcome definitions, links to the install, tools, privacy and library docs, the current `docs/tools/supported.md` list, the US jurisdiction statement and the latest quality report summary. Quote numbers only once T110 is green on `main` (Constitution V).
 
 ---
 

@@ -110,8 +110,11 @@ class CapturedLine(Base):
     __table_args__ = (
         CheckConstraint("octet_length(exact_fp) = 16", name="exact_fp_16_bytes"),
         CheckConstraint("array_length(minhash, 1) = 128", name="minhash_128"),
+        CheckConstraint("array_length(bands, 1) = 8", name="bands_8"),
         CheckConstraint("coalesce(array_length(path_suffix_fps, 1), 0) <= 3", name="at_most_3_path_fps"),
         Index("ix_captured_line_dev_exact", "developer_id", "exact_fp", "captured_at"),
+        # the broad tier's candidate lookup: this developer's lines sharing an LSH band (btree_gin, migration 0007)
+        Index("ix_captured_line_bands", "developer_id", "bands", postgresql_using="gin"),
         # one row per line of an event, so a redelivered part of an event sent in parts adds nothing
         Index(
             "uq_captured_line_event_line",
@@ -136,23 +139,11 @@ class CapturedLine(Base):
     minhash: Mapped[list[int]] = mapped_column(
         ARRAY(Integer), nullable=False
     )  # uint32 stored as int4 (base.py)
+    bands: Mapped[list[int]] = mapped_column(
+        ARRAY(BigInteger), nullable=False
+    )  # the 8 LSH band hashes (8 bytes each) as signed int8 (base.py)
     alg: Mapped[int] = mapped_column(Integer, nullable=False)
     key_gen: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-
-
-class LshBand(Base):
-    __tablename__ = "lsh_band"
-    __table_args__ = (
-        CheckConstraint("band BETWEEN 0 AND 7", name="band_0_7"),
-        CheckConstraint("octet_length(band_hash) = 8", name="band_hash_8_bytes"),
-        Index("ix_lsh_band_lookup", "developer_id", "band", "band_hash", "captured_at"),
-        {"postgresql_partition_by": "RANGE (captured_at)"},
-    )
-    captured_line_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    band: Mapped[int] = mapped_column(SmallInteger, primary_key=True)
-    captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
-    developer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    band_hash: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
 
 
 class CaptureLoss(Base):
@@ -187,5 +178,4 @@ __all__ = [
     "EventStatus",
     "InstanceStatus",
     "LossCause",
-    "LshBand",
 ]

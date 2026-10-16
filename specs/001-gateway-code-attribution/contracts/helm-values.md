@@ -45,7 +45,7 @@ fingerprintKey:
 
 postgres:
   internal: true                # official postgres:17 StatefulSet (no Bitnami)
-  storage: 100Gi                # sized for SC-013; see docs/sizing.md
+  storage: 200Gi                # sized for SC-013; see docs/sizing.md
   external: {host: "", port: 5432, database: "", existingSecret: ""}
 
 nats:                           # official nats-io chart dependency, JetStream single node

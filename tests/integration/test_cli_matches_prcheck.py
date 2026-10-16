@@ -73,8 +73,8 @@ def _export_captures(cluster: Cluster, head: dict[str, Any], path: Path) -> int:
             'tool_call_ordinal', cl.tool_call_ordinal, 'line_ordinal', cl.line_ordinal,
             'exact_fp', encode(cl.exact_fp, 'base64'), 'minhash', cl.minhash,
             'path_suffix_fps', (SELECT coalesce(json_agg(encode(p, 'base64')), '[]') FROM unnest(cl.path_suffix_fps) p),
-            'lsh_bands', (SELECT coalesce(json_agg(encode(b.band_hash, 'base64') ORDER BY b.band), '[]')
-                          FROM lsh_band b WHERE b.captured_line_id = cl.id AND b.captured_at = cl.captured_at)
+            'lsh_bands', (SELECT coalesce(json_agg(encode(int8send(b.v), 'base64') ORDER BY b.n), '[]')
+                          FROM unnest(cl.bands) WITH ORDINALITY AS b(v, n))
         )), '[]')
         FROM accounts a
         JOIN captured_line cl ON cl.developer_id = a.dev
