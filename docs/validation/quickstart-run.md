@@ -74,12 +74,73 @@ installed. The owner estimates the missed step at about 10 seconds, so the run w
    parity on its own. The end-to-end test (`tests/e2e/test_us1_demo.py`, CI's `clean-install-and-privacy` job)
    clears captures between the gateways and compares line by line. It passed on main at `09398a6`.
    **Documented** in quickstart step 7.
+6. **The guide's golden-corpus command ran no tests** (found in the section 6 run below). `uv run pytest
+   lib/tests/golden` collects nothing (exit code 5): that directory holds the corpus and its generator, while the
+   test is `lib/tests/test_golden.py`. **Fixed** in the quickstart.
 
 Not guide issues: the first LiteLLM `gca demo run` got HTTP 401 because the key was read into a misspelled variable.
 The two attempts were recorded as `unknown_credential` losses, which correctly don't affect coverage.
 
+## Automated checks (sections 6 and 7)
+
+Run on 2026-10-16, 16:35–17:15 UTC, by a Claude Code session at `7731f62`. Same Mac as section 1, on battery,
+with `caffeinate -i` running throughout. The privacy audit and the CLI comparison in section 6 ran against the
+section 1 cluster (kind-gca, namespace `gca`, Helm revision 4, gateway LiteLLM, rebuilt with finding 4's fixes).
+`gca eval`, conformance and `make perf` start their own local gateways and PostgreSQL, so they don't use the
+cluster. The fresh checkout needed `uv sync --all-packages -p 3.12` (docs/install.md) before anything ran.
+
+### Privacy audit (SC-006): `uv run pytest tests/privacy`
+
+✅ **6 passed, none skipped**, in 3 s. At the time the store held 104 captured lines, 186 line results (PRs #1 and
+#2) and 6 LiteLLM spend-log rows. So every scan had something to look at, including the LiteLLM spend-log check.
+No demo code line was found in PostgreSQL, the JetStream file store, any pod's logs, or Grafana's database. LiteLLM's
+spend logs had no request or response content.
+
+### Section 6: library reuse and determinism (SC-008)
+
+| Step | Result |
+|---|---|
+| `uv run gca version` | ✅ `library_version: 0.1.0`, `alg: 1`, `supported_algs: [1]`, `pinned_unicode_version: 15.0.0` (interpreter 15.0.0) |
+| Golden corpus on macOS | ✅ `uv run pytest lib/tests/test_golden.py lib/tests/test_determinism.py`: 7 passed. Linux and macOS: CI's `test-lib` matrix is green on main at `09398a6` |
+| `GCA_E2E=1 GCA_E2E_REPO=nathan-james-s/gca-sample uv run pytest tests/integration/test_cli_matches_prcheck.py` | ✅ 1 passed. PR #2 at `209fc2b`: `gca attribute` on a fresh clone matched the PR check on all 93 lines (47 / 1 / 2 / 8 / 35, as in section 1) |
+
+### Section 7: quality gate (SC-002–SC-007, SC-009, SC-010, SC-013)
+
+**`make eval`**: ✅ exit code 0 after 3 min 23 s, on scenario set `17-scenarios-ba2b6ff80f75`. `report.json`
+validates against `contracts/quality-report.schema.json`, and its `passed` is `true`.
+
+| Gateway | Lines | Accuracy | False AI modified (anchored / broad) | Formatter false human | Rewrite survival | Silent loss | Verdict |
+|---|---|---|---|---|---|---|---|
+| agentgateway 1.6.0 | 375 | 0.987 | 0.000 / 0.000 | 0.000 | 1.000 | 0 | Release bar met |
+| LiteLLM 1.105.1 | 375 | 0.987 | 0.000 / 0.000 | 0.000 | 1.000 | 0 | Release bar met |
+
+Cross-gateway agreement: 1.000.
+
+**`uv run pytest tests/conformance`** (FR-006): ✅ 60 passed in 2 min 43 s.
+
+**`make perf`**: ✅ exit code 0 after 28 min 6 s, with the default settings: 500 users, 300 s per run, 10–60 s
+think time, 2 s streams, and `PERF_SCALE=0.05`.
+
+| Check | Result |
+|---|---|
+| SC-010, agentgateway | ✅ `p95 2345 ms without capture, 2387 ms with it: overhead +1.8%; 4170 requests, 4176 captured, 0 lost, 0 failed -> PASS` |
+| SC-010, LiteLLM | ✅ `p95 2387 ms without capture, 2400 ms with it: overhead +0.5%; 4159 requests, 4162 captured, 0 lost, 0 failed -> PASS` |
+| SC-009 / SC-013, PR check for 1,000 added lines | ✅ matching took 12.7 s (candidate lookup 18.0 s, measured separately) against 4,671,000 captured lines, with a 120 s budget. `passed: true`. Outcomes: 600 AI unmodified, 96 AI modified, 304 human. The generator plants 600 exact copies, 200 copies with one identifier renamed, and 200 new lines. So 104 renamed lines came out human. That's expected, and the check doesn't assert outcomes. These short synthetic lines have no anchor, so only the broad tier (similarity ≥ 0.75) applies. Measured over 2,000 such renames, the median similarity is 0.75 and 50% reach it |
+| Storage per captured line (T115) | 1,476 bytes |
+| Ingest rate, one replica (T115) | 4,881 lines/s (1,000 events, 40,000 lines in 8.2 s) |
+
+The perf log also holds about 60 `ConnectionResetError` tracebacks. These come from the eval harness's stub upstream
+model (`gca_eval.gateways._Upstream`, Python's `http.server`). It was waiting on an idle keep-alive connection when
+the gateway under test shut down after its run, and they appear after Locust's final stats. No request failed. It's
+log noise, not a result.
+
 ## Not yet run
 
-Sections 2 (edge cases), 4 (coverage and fail-open), 6 (library reuse) and 7 (quality gate: `gca eval`,
-`make perf`), `pytest tests/privacy`, and the SC-011 check (Claude Code through the gateway with only environment
-variables). T120 stays open until these are recorded here.
+These are for the owner:
+
+- **Section 2 (edge cases)**: `gca demo scenarios` opens about 10 PRs on the sample repository.
+- **Section 4 (coverage and fail-open)**.
+- **The SC-011 check**: Claude Code through the gateway with only environment variables. It needs the owner's
+  gateway key.
+
+T120 stays open until these are recorded here.
