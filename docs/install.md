@@ -87,8 +87,9 @@ uv run gca demo init-repo --repo <ORG>/gca-sample
 ```
 
 This creates the repository if needed, and pushes the sample project to `main` from `services/demo/sample-repo/`.
-Then install the App on it (2.3). No branch protection is needed; the check is informational and never blocks
-merging (FR-025).
+It then prints the App's install link (read from `github-app.secret.yaml`; pass `--app-secret PATH` if it lives
+elsewhere). Install the App on the repository there (2.3). No branch protection is needed; the check is
+informational and never blocks merging (FR-025).
 
 ### 2.5 Your identity
 
@@ -208,6 +209,10 @@ Anthropic. Tools still talk to the gateway with their gateway key, never with th
    ```bash
    GCA_CREDENTIAL=<key> uv run gca demo run --repo <ORG>/gca-sample   # add --gateway litellm for LiteLLM
    ```
+
+   It first checks that the App is installed on the repository and, if it isn't, stops with the install link
+   instead of opening a PR no check would appear on. Without `github-app.secret.yaml` it warns and carries on.
+   The PR check's logs also warn while the App has no installations.
 
 3. Open the PR it prints. Within about 2 minutes the **AI code attribution** check shows per-line outcomes, and the
    change appears in the Grafana dashboards.

@@ -14,11 +14,14 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
 
-from gca_core.github import AppClient
+from gca_core.github import AppClient, install_url
 
 from . import checkrun, events
 
 log = logging.getLogger("gca.prcheck.polling")
+
+# Installations seen on the previous poll, so an App with none is reported once rather than on every poll.
+_installation_count: int | None = None
 
 _UPSERT_REPO = text("""
     INSERT INTO repository (id, github_id, full_name, installation_id, active, added_at)
@@ -97,9 +100,27 @@ def needs_announce(engine: Engine, head_id: uuid.UUID) -> bool:
         )
 
 
+async def note_installations(gh: AppClient, count: int) -> None:
+    """Log when the number of installations changes. With none, no repository is polled and no check appears."""
+    global _installation_count
+    if count == _installation_count:
+        return
+    _installation_count = count
+    if count:
+        log.info("GitHub App has %d installation%s", count, "" if count == 1 else "s")
+        return
+    try:
+        where = install_url(await gh.app_slug())
+    except Exception:
+        where = "open the App's settings on GitHub and choose Install App"
+    log.warning("GitHub App has no installations; install it on your repositories: %s", where)
+
+
 async def poll_once(engine: Engine, gh: AppClient) -> int:
     new_heads = 0
-    for inst in await gh.list_installations():
+    installations = await gh.list_installations()
+    await note_installations(gh, len(installations))
+    for inst in installations:
         inst_id = int(inst["id"])
         try:
             repos = await gh.installation_repositories(inst_id)
