@@ -131,6 +131,10 @@ alongside applies. These are not open questions.
   `x-opencode-session-id`). Matching never relies on it (FR-012 uses identity and time window).
 - **Validate**: record real traffic from each tool through each gateway for the evaluation corpus (FR-045). This
   also confirms Codex's freeform `apply_patch` and the full set of Claude Code edit tools.
+  - **Status for v1 (2026-10-16)**: Claude Code is recorded (eval/corpus/claude-code) and confirms its edit tools:
+    `Write` and `Edit`, including `replace_all`. Recording Codex CLI, Gemini CLI and OpenCode is deferred past v1,
+    so Codex's freeform `apply_patch` is confirmed only by scripted sessions and the probe in the assessment, not
+    by real traffic.
 
 ## R7. Extracting code from model output
 
