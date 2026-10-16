@@ -7,8 +7,9 @@ gateway:
   agentgateway:
     image: {repository: cr.agentgateway.dev/agentgateway, tag: v1.6.0, digest: "sha256:9d3e6044ddcdc0878b1787f77bd401252b95e22684203fb5e874c4c42d2ed90c"}
   litellm:
-    # Built by this project: LiteLLM v1.105.1 with the gcattr_litellm callback (T037).
-    image: {repository: ghcr.io/nathan-james-s/gca-litellm, tag: v1.105.1-gca0.1.0, digest: ""}
+    # Built by this project: LiteLLM v1.105.1 with the gcattr_litellm callback (T037). Tagged with the release
+    # version like the other gca-* images; release.yml pins its digest.
+    image: {repository: ghcr.io/nathan-james-s/gca-litellm, tag: "0.1.0", digest: ""}
 
 providers:                      # BYO hosted key mode (FR-039); empty in demo mode
   existingSecret: ""            # Secret with ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY (or your own key names)

@@ -21,7 +21,7 @@ The AI gateway developers' coding tools connect to (FR-001).
 | `gateway.litellm` | object |  | This project's LiteLLM image (LiteLLM plus the capture callback). |
 | `gateway.litellm.image` | object |  | LiteLLM image. |
 | `gateway.litellm.image.repository` | string | `ghcr.io/nathan-james-s/gca-litellm` | image repository |
-| `gateway.litellm.image.tag` | string | `v1.105.1-gca0.1.0` | image tag |
+| `gateway.litellm.image.tag` | string | `0.1.0` | image tag |
 | `gateway.litellm.image.digest` | string | *(empty)* | sha256 digest; pinned for every third-party image (Constitution VI, scripts/pin-digests.sh) |
 
 ## `capture`
