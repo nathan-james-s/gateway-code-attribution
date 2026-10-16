@@ -48,9 +48,11 @@ def minhash(tokens: list[Token], key: FingerprintKey, alg: int) -> tuple[int, ..
 
 
 def lsh_bands(signature: tuple[int, ...], key: FingerprintKey, alg: int) -> tuple[bytes, ...]:
+    """Keyed LSH bands over the first ``lsh_bands x lsh_rows`` signature values: candidate lookup only; the whole
+    signature decides similarity."""
     p = params_for(alg)
-    if len(signature) != p.lsh_bands * p.lsh_rows:
-        raise ValueError("signature length does not match lsh_bands x lsh_rows")
+    if len(signature) != p.minhash_size or p.lsh_bands * p.lsh_rows > p.minhash_size:
+        raise ValueError("signature length does not match minhash_size")
     out = []
     for b in range(p.lsh_bands):
         rows = signature[b * p.lsh_rows : (b + 1) * p.lsh_rows]

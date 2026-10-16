@@ -22,7 +22,7 @@ from .similarity import jaccard, lsh_bands, minhash
 from .trivial import is_trivial
 from .types import AddedLine, Candidate, Confidence, LineOutcome, Tier
 
-__all__ = ["attribute"]
+__all__ = ["LookupKeys", "attribute", "lookup_keys", "select_candidates"]
 
 NOT_OBSERVED = LineOutcome("not_observed", "none", None, None, None)
 INDETERMINATE = LineOutcome("indeterminate", "none", None, None, None)
@@ -345,3 +345,66 @@ def _best(
     if best is None:
         return None
     return best[2], -best[0]
+
+
+# ------------------------------------------------------------------------------------- candidate lookup
+class LookupKeys(NamedTuple):
+    """Everything ``attribute`` can look candidates up by, for one author: exact fingerprints and LSH band hashes
+    of each added line and of each window of consecutive lines the wrapped tier may join, per (alg, key_gen)."""
+
+    exact: frozenset[tuple[int, int, bytes]]  # (alg, key_gen, exact_fp)
+    bands: frozenset[tuple[int, int, int, bytes]]  # (alg, key_gen, band, band_hash)
+
+
+def lookup_keys(
+    lines: Sequence[AddedLine], keys: Mapping[int, FingerprintKey], alg: int = ALG
+) -> dict[int, LookupKeys]:
+    """Per credited author, the keys to fetch that author's candidates by, so a store need not load every capture
+    in the matching window. Passing ``attribute`` only the candidates that ``select_candidates`` would keep (in a
+    store: rows whose exact fingerprint or a band is in these keys, plus every line of the capture events among
+    the exact hits) gives exactly the outcomes it gives with all of them."""
+    params_for(alg)
+    files: dict[int, dict[str, list[AddedLine]]] = defaultdict(lambda: defaultdict(list))
+    for line in lines:
+        if line.credited_github_id is not None:
+            files[line.credited_github_id][line.file_path].append(line)
+    out: dict[int, LookupKeys] = {}
+    for author, by_path in files.items():
+        texts: list[str] = []
+        for path_lines in by_path.values():
+            ordered = sorted(path_lines, key=lambda ln: ln.line_no)
+            trivial = [is_trivial(tokenize(normalize_line(ln.text, alg)), alg) for ln in ordered]
+            for i, ln in enumerate(ordered):
+                if not trivial[i]:
+                    texts.append(ln.text)  # the line itself (exact, anchored and broad tiers)
+                # windows the wrapped tier may join: consecutive lines, starting and ending on non-trivial ones
+                for j in range(i + 1, min(i + WRAP_MAX_LINES, len(ordered))):
+                    if ordered[j].line_no != ordered[j - 1].line_no + 1:
+                        break
+                    if not trivial[i] and not trivial[j]:
+                        texts.append(" ".join(x.text for x in ordered[i : j + 1]))
+        exact: set[tuple[int, int, bytes]] = set()
+        bands: set[tuple[int, int, int, bytes]] = set()
+        for text in dict.fromkeys(texts):
+            tokens = tokenize(normalize_line(text, alg))
+            if not tokens:
+                continue
+            for gen, key in keys.items():
+                exact.add((alg, gen, exact_fp(tokens, key, alg)))
+                for b, h in enumerate(lsh_bands(minhash(tokens, key, alg), key, alg)):
+                    bands.add((alg, gen, b, h))
+        out[author] = LookupKeys(frozenset(exact), frozenset(bands))
+    return out
+
+
+def select_candidates(candidates: Sequence[Candidate], lk: LookupKeys) -> list[Candidate]:
+    """The candidates a store returns for ``lk``: exact or band hits, and every line of an event with an exact hit."""
+    exact = [c for c in candidates if (c.alg, c.key_gen, c.exact_fp) in lk.exact]
+    events = {c.capture_event_id for c in exact}
+    return [
+        c
+        for c in candidates
+        if c.capture_event_id in events
+        or (c.alg, c.key_gen, c.exact_fp) in lk.exact
+        or any((c.alg, c.key_gen, b, h) in lk.bands for b, h in enumerate(c.lsh_bands))
+    ]

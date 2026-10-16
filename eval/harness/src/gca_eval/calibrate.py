@@ -9,7 +9,10 @@ always runs on whole scenarios (multiset matching depends on every line); only t
 chosen maximizes accuracy subject to
 `false_ai_modified_anchored <= 0.02` and `false_ai_modified_broad <= 0.05` (the release bar); ties go to the
 more conservative pair (the higher broad threshold first), and the anchored threshold never exceeds the broad one.
-The held-out 30% reports how the choice generalizes.
+The anchored threshold must also be **key-stable**: a one-identifier rename of a short AI line (true similarity
+0.50) must come out AI modified under at least 99% of fingerprint keys, or an outcome would depend on the key
+rather than the code (lib/tests/test_match.py checks the same edit). The held-out 30% reports how the choice
+generalizes.
 
 `--write` puts the chosen pair into `gcattr.algorithm.PARAMS[ALG]`. That is only allowed before `alg` is first
 released: afterwards a threshold change alters outcomes, so it needs a new `ALG` (Constitution III).
@@ -34,6 +37,11 @@ from .scenario import Scenario
 __all__ = ["calibrate", "split"]
 
 SEED = 20261015
+RENAME = (
+    "    return min(discount, subtotal_cents)",
+    "    return min(amount, subtotal_cents)",
+)  # 4 of 8 pairs kept
+KEY_STABLE = 0.99
 ALGORITHM = Path(algo.__file__)
 
 
@@ -57,6 +65,23 @@ def split(scenarios: list[Scenario]) -> tuple[set[tuple[str, str, int]], set[tup
         cal.update(items[:k])
         held.update(items[k:])
     return cal, held
+
+
+def key_stability(anchored: float, n: int = 300) -> float:
+    """The share of fingerprint keys under which ``RENAME`` reaches the anchored threshold."""
+    import hashlib
+
+    from gcattr import FingerprintKey
+    from gcattr.lexer import tokenize
+    from gcattr.normalize import normalize_line
+    from gcattr.similarity import jaccard, minhash
+
+    a, b = (tokenize(normalize_line(t, ALG)) for t in RENAME)
+    hits = 0
+    for i in range(n):
+        key = FingerprintKey(1, hashlib.sha256(f"key {i}".encode()).digest())
+        hits += jaccard(minhash(a, key, ALG), minhash(b, key, ALG)) >= anchored
+    return hits / n
 
 
 def _subset(scenarios: list[Scenario], keep: set[tuple[str, str, int]]) -> list[Scenario]:
@@ -107,13 +132,16 @@ def calibrate(
     cal, held = _subset(scenarios, cal_keys), _subset(scenarios, held_keys)
     current = algo.PARAMS[ALG]
     grid = []
+    stable = {a: key_stability(a) for a in _steps(0.30, 0.90)}
     for a in _steps(0.30, 0.90):
         for b in _steps(0.50, 0.95):
             rerun = _rerun(base, a, b, result.keys)
             m = _measures(rerun, cal, bar)
             m.update(anchored_threshold=a, broad_threshold=b)
+            m["key_stability"] = stable[a]
             m["eligible"] = (
                 a <= b  # anchoring exists to allow a lower bar than broad, never a higher one
+                and stable[a] >= KEY_STABLE
                 and m["false_ai_modified_anchored"] <= bar["max_false_ai_modified_anchored"]
                 and m["false_ai_modified_broad"] <= bar["max_false_ai_modified_broad"]
             )

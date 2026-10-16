@@ -178,12 +178,22 @@ alongside applies. These are not open questions.
     unrelated look-alike lines stay mostly under 0.30.*
   - **Quote style**: single- and double-quoted string literals are the same token, so a formatter switching
     quotes changes no fingerprint (R8 normalization; T109).
-  - **Signature**: a **MinHash signature of 32 × 32-bit values**, built from 32 keyed hash seeds derived from
-    the key generation.
-  - **Lookup index for the broad tier**: **LSH bands**, 8 bands of 4 rows.
+  - **Signature**: a **MinHash signature of 128 × 32-bit values**, built from 128 keyed hash seeds derived from
+    the key generation. *Was 32 until T109: with 32, a line's estimated similarity varies by about ±0.18 (2
+    standard deviations) between keys, so a common edit near a threshold (one identifier renamed on a 7-token
+    line, true similarity 0.50) came out AI modified under some keys and human under others: the same edit
+    scored differently per installation and across a key rotation. 128 values narrow that to about ±0.09. It
+    costs about 17% more storage per captured line and 2.7 times the message size, reduced by sending the
+    signature as packed binary (contracts/capture-event.schema.json v2).*
+  - **Lookup index for the broad tier**: **LSH bands**, 8 bands of 4 rows, over the **first 32** signature
+    values. The bands only find candidates; the whole signature decides similarity. Banding all 128 values would
+    multiply the band rows (about 75% of the bytes per captured line) by four.
   - **Similarity**: the estimated Jaccard similarity of the two signatures.
   - **Starting thresholds**, before calibration: anchored ≥ 0.50, broad ≥ 0.75. They're calibrated against the
-    scenario set to meet SC-003 and frozen into the algorithm version.
+    scenario set to meet SC-003 and frozen into the algorithm version. *Now anchored ≥ 0.35 (T109): the
+    highest value at which a one-identifier rename of a short AI line (true similarity 0.50) is AI modified
+    under at least 99% of keys. An outcome must depend on the code, not on the key, so calibration only
+    considers key-stable anchored thresholds. Broad stays 0.75 until T113 calibrates with real traffic.*
 - **What it reveals** (the documented assessment Constitution II requires):
   - Without the key, signatures can't be computed or compared. They're keyed hashes, and they resist dictionary
     attacks.

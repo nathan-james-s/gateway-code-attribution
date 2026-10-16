@@ -1,5 +1,5 @@
 {"confidence":null,"matched_capture_event_id":"anthropic.sse","outcome":"ai_unmodified","similarity":null,"tier":"exact"}
-{"confidence":"high","matched_capture_event_id":"anthropic.sse","outcome":"ai_modified","similarity":0.875,"tier":"anchored"}
+{"confidence":"high","matched_capture_event_id":"anthropic.sse","outcome":"ai_modified","similarity":0.8828125,"tier":"anchored"}
 {"confidence":null,"matched_capture_event_id":"anthropic.sse","outcome":"ai_unmodified","similarity":null,"tier":"exact"}
 {"confidence":null,"matched_capture_event_id":"anthropic.sse","outcome":"ai_unmodified","similarity":null,"tier":"exact"}
 {"confidence":null,"matched_capture_event_id":"anthropic.sse","outcome":"ai_unmodified","similarity":null,"tier":"exact"}
@@ -8,7 +8,7 @@
 {"confidence":null,"matched_capture_event_id":null,"outcome":"human","similarity":null,"tier":"none"}
 {"confidence":null,"matched_capture_event_id":null,"outcome":"human","similarity":null,"tier":"none"}
 {"confidence":null,"matched_capture_event_id":null,"outcome":"indeterminate","similarity":null,"tier":"none"}
-{"confidence":"lower","matched_capture_event_id":"openai_chat.sse","outcome":"ai_modified","similarity":0.875,"tier":"broad"}
+{"confidence":"lower","matched_capture_event_id":"openai_chat.sse","outcome":"ai_modified","similarity":0.8828125,"tier":"broad"}
 {"confidence":null,"matched_capture_event_id":null,"outcome":"human","similarity":null,"tier":"none"}
 {"confidence":null,"matched_capture_event_id":null,"outcome":"not_observed","similarity":null,"tier":"none"}
 {"confidence":null,"matched_capture_event_id":null,"outcome":"human","similarity":null,"tier":"none"}

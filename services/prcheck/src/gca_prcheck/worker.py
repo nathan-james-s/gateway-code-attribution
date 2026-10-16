@@ -150,21 +150,79 @@ async def collect_lines(
 def load_candidates(
     conn: Connection, developer_id: uuid.UUID, since: datetime, until: datetime
 ) -> list[Candidate]:
+    """Every capture of the developer in the window (the evaluation harness keeps them for calibration)."""
     rows = conn.execute(_CANDIDATES, {"dev": developer_id, "since": since, "until": until}).fetchall()
-    return [
-        Candidate(
-            r.event,
-            bytes(r.exact_fp),
-            i32_to_u32(r.minhash),
-            tuple(bytes(p) for p in r.path_suffix_fps),
-            r.tool_call_ordinal,
-            r.line_ordinal,
-            r.alg,
-            r.key_gen,
-            tuple(bytes(b) for b in r.bands),
-        )
-        for r in rows
-    ]
+    return [_candidate(r) for r in rows]
+
+
+# Only the captures a PR's lines can match, through the indexes, instead of every capture in the window: exact
+# hits, band hits, and every line of a capture event with an exact hit (the anchored tier's pool). gcattr's
+# `select_candidates` is the same selection in memory; `lookup_keys` guarantees the outcomes are unchanged.
+_LOOKUP = text("""
+    WITH exact AS (
+        SELECT cl.id, cl.captured_at, cl.capture_event_id
+        FROM unnest(CAST(:x_alg AS int[]), CAST(:x_gen AS smallint[]), CAST(:x_fp AS bytea[])) AS k(alg, gen, fp)
+        JOIN captured_line cl ON cl.developer_id = :dev AND cl.exact_fp = k.fp
+             AND cl.captured_at >= :since AND cl.captured_at <= :until
+             AND cl.alg = k.alg AND cl.key_gen = k.gen
+    ), banded AS (
+        SELECT b.captured_line_id AS id, b.captured_at
+        FROM unnest(CAST(:b_alg AS int[]), CAST(:b_gen AS smallint[]), CAST(:b_band AS smallint[]),
+                    CAST(:b_hash AS bytea[])) AS k(alg, gen, band, hash)
+        JOIN lsh_band b ON b.developer_id = :dev AND b.band = k.band AND b.band_hash = k.hash
+             AND b.captured_at >= :since AND b.captured_at <= :until
+        JOIN captured_line cl ON cl.id = b.captured_line_id AND cl.captured_at = b.captured_at
+             AND cl.alg = k.alg AND cl.key_gen = k.gen
+    ), anchored AS (
+        SELECT cl.id, cl.captured_at
+        FROM captured_line cl
+        WHERE cl.capture_event_id IN (SELECT capture_event_id FROM exact)
+          AND cl.developer_id = :dev AND cl.captured_at >= :since AND cl.captured_at <= :until
+    ), wanted AS (
+        SELECT id, captured_at FROM exact UNION SELECT id, captured_at FROM banded
+        UNION SELECT id, captured_at FROM anchored
+    )
+    SELECT cl.capture_event_id::text AS event, cl.exact_fp, cl.minhash, cl.path_suffix_fps,
+           cl.tool_call_ordinal, cl.line_ordinal, cl.alg, cl.key_gen,
+           coalesce((SELECT array_agg(b.band_hash ORDER BY b.band) FROM lsh_band b
+                     WHERE b.captured_line_id = cl.id AND b.captured_at = cl.captured_at), '{}') AS bands
+    FROM wanted w JOIN captured_line cl ON cl.id = w.id AND cl.captured_at = w.captured_at
+""")
+
+
+def lookup_candidates(
+    conn: Connection, developer_id: uuid.UUID, since: datetime, until: datetime, keys: gcattr.LookupKeys
+) -> list[Candidate]:
+    """The developer's captures in the window that the lines behind ``keys`` can match (see ``_LOOKUP``)."""
+    x = sorted(keys.exact)
+    b = sorted(keys.bands)
+    params = {
+        "dev": developer_id,
+        "since": since,
+        "until": until,
+        "x_alg": [k[0] for k in x],
+        "x_gen": [k[1] for k in x],
+        "x_fp": [k[2] for k in x],
+        "b_alg": [k[0] for k in b],
+        "b_gen": [k[1] for k in b],
+        "b_band": [k[2] for k in b],
+        "b_hash": [k[3] for k in b],
+    }
+    return [_candidate(r) for r in conn.execute(_LOOKUP, params).fetchall()]
+
+
+def _candidate(r: Any) -> Candidate:
+    return Candidate(
+        r.event,
+        bytes(r.exact_fp),
+        i32_to_u32(r.minhash),
+        tuple(bytes(p) for p in r.path_suffix_fps),
+        r.tool_call_ordinal,
+        r.line_ordinal,
+        r.alg,
+        r.key_gen,
+        tuple(bytes(b) for b in r.bands),
+    )
 
 
 def match_lines(
@@ -180,8 +238,9 @@ def match_lines(
             if dev is not None:
                 developer_by_github[gid] = dev.id
         since = until - timedelta(days=int(window))
+        wanted = gcattr.lookup_keys(lines, keys, ALG)
         candidates = {
-            gid: load_candidates(s.connection(), dev_id, since, until)
+            gid: lookup_candidates(s.connection(), dev_id, since, until, wanted[gid])
             for gid, dev_id in developer_by_github.items()
         }
     outcomes = gcattr.attribute(lines, candidates, keys, ALG)

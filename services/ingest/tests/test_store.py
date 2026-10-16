@@ -19,7 +19,7 @@ KEY = FingerprintKey(1, b"\x42" * 32)
 
 def _env(iid: str, seq: int, sent: datetime | None = None) -> dict:
     return {
-        "schema": "gca.capture.v1",
+        "schema": "gca.capture.v2",
         "instance_id": iid,
         "seq": seq,
         "gateway_type": "agentgateway",
@@ -183,3 +183,63 @@ def test_watermark_and_stale_sweeper(pg_engine: Engine) -> None:
             == "closed"
         )
         assert current_watermark(conn) is None
+
+
+def _parts(iid: str, first_seq: int, cred: str | None, n_lines: int, max_bytes: int) -> list[dict]:
+    content = "".join(f"value_{i} = compute(item_{i}, factor={i})\n" for i in range(n_lines))
+    out = CapturedToolOutput(
+        "anthropic_messages", "Write", "json_args", {"file_path": "/r/src/big.py", "content": content}, True
+    )
+    body = messages.event_body(
+        api_format="anthropic_messages",
+        model="m",
+        received_at=datetime.now(UTC).isoformat(),
+        status="captured",
+        alg=1,
+        key_gen=1,
+        lines=extract(out, KEY, 1),
+        tool_call_count=1,
+        credential_id=cred,
+    )
+    return [
+        messages.validate({**_env(iid, first_seq + k), **part})
+        for k, part in enumerate(messages.event_parts(body, max_bytes))
+    ]
+
+
+def test_an_event_sent_in_parts_is_one_event(pg_engine: Engine) -> None:
+    iid = str(uuid.uuid4())
+    with pg_engine.begin() as conn:
+        dev, cred = _developer_with_credential(conn)
+        parts = _parts(iid, 0, str(cred), 40, 12_000)
+        assert len(parts) >= 3
+        for part in [*parts, parts[1]]:  # the second part is delivered twice
+            handle(conn, part)
+        events = conn.execute(
+            text("SELECT id, line_count FROM capture_event WHERE developer_id = :d"), {"d": dev}
+        ).fetchall()
+        assert [(str(e.id), e.line_count) for e in events] == [(parts[0]["event_id"], 40)]
+        lines = conn.execute(
+            text("SELECT count(*), count(DISTINCT line_ordinal) FROM captured_line WHERE developer_id = :d"),
+            {"d": dev},
+        ).one()
+        assert tuple(lines) == (40, 40)
+        bands = conn.execute(
+            text("SELECT count(*) FROM lsh_band WHERE developer_id = :d"), {"d": dev}
+        ).scalar()
+        assert bands == 40 * 8
+
+
+def test_unknown_credential_in_parts_is_counted_once(pg_engine: Engine) -> None:
+    iid = str(uuid.uuid4())
+    with pg_engine.begin() as conn:
+        for part in _parts(iid, 0, str(uuid.uuid4()), 40, 12_000):
+            handle(conn, part)
+        n = conn.execute(
+            text(
+                "SELECT coalesce(sum(count), 0) FROM capture_loss "
+                "WHERE instance_id = :i AND cause = 'unknown_credential'"
+            ),
+            {"i": uuid.UUID(iid)},
+        ).scalar()
+        assert n == 1

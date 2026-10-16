@@ -22,7 +22,7 @@ responsible for their own compliance (FR-040).
 | Data | Where | Holds |
 |---|---|---|
 | Exact fingerprint | `captured_line.exact_fp` | first 16 bytes of HMAC-SHA256(key, normalized tokens) |
-| Similarity signature | `captured_line.minhash` | 32 keyed MinHash values over the line's token 2-grams |
+| Similarity signature | `captured_line.minhash` | 128 keyed MinHash values over the line's token 2-grams |
 | LSH bands | `lsh_band` | 8 keyed hashes of groups of 4 MinHash values |
 | Path fingerprints | `captured_line.path_suffix_fps` | keyed hashes of the last 1 to 3 path components named by the tool call |
 | Capture metadata | `capture_event` | time, developer, model name, API format, tool hint, counts. No content |
@@ -39,7 +39,8 @@ Secret.
 - **Without the key**, stored values can't be computed, compared or reversed, and dictionary attacks don't work.
 - **With the key**, someone can test a *guess*: fingerprint a candidate line and look for it. That's the same
   exposure for the exact fingerprint and the similarity signature. They can also estimate how similar two stored
-  lines are.
+  lines are; 128 signature values make that estimate closer (about ±0.09 rather than ±0.18), not different in
+  kind.
 - **Short lines leak most**, because they're easiest to guess. Lines with fewer than 3 tokens, or with no
   identifier, number or string, or on the common-lines list, are *indeterminate*: they get no fingerprint and
   are never stored.

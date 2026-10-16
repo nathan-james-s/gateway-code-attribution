@@ -43,7 +43,10 @@ llm:
   per-stream buffer (default 8 MiB; overflow → `CaptureFailure(unexpected_format)`). The buffer is released when
   the stream ends.
 - **Publishing:** publish `event` and `failure` messages and 5-second `heartbeat`s
-  ([capture-event.schema.json](./capture-event.schema.json)).
+  ([capture-event.schema.json](./capture-event.schema.json)). An event larger than 900 KB of fingerprints is
+  sent as parts of one event, under NATS's 1 MiB `max_payload`. A message the server refuses anyway is dropped
+  at once and reported as `publish_failed`; it is never retried, since a retry would hold back every message
+  behind it.
 - **No identity:** if the processor gets no identity metadata, it publishes `failure(unknown_credential)` and
   never matches.
 

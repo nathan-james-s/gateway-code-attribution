@@ -38,8 +38,8 @@ def from_litellm(response_obj, call_type: str) -> Iterator[CapturedToolOutput | 
 
 class LineFingerprint(NamedTuple):
     exact_fp: bytes  # 16 bytes
-    minhash: tuple[int, ...]  # 32 × uint32
-    lsh_bands: tuple[bytes, ...]  # 8 × 8 bytes
+    minhash: tuple[int, ...]  # 128 × uint32
+    lsh_bands: tuple[bytes, ...]  # 8 × 8 bytes, over the first 32 minhash values
     path_suffix_fps: tuple[bytes, ...]  # 0..3 × 16 bytes
     tool_call_ordinal: int
     line_ordinal: int
@@ -86,6 +86,24 @@ def attribute(
     alg: int = ALG,
 ) -> list[LineOutcome]:
     """R11 tiered, author-scoped, multiset matching. Pure and deterministic."""
+
+
+class LookupKeys(NamedTuple):
+    exact: frozenset[tuple[int, int, bytes]]  # (alg, key_gen, exact_fp)
+    bands: frozenset[tuple[int, int, int, bytes]]  # (alg, key_gen, band, band_hash)
+
+
+def lookup_keys(
+    lines: Sequence[AddedLine], keys: Mapping[int, FingerprintKey], alg: int = ALG
+) -> dict[int, LookupKeys]:  # keyed by credited_github_id
+    """What `attribute` can look candidates up by: the exact fingerprint and LSH bands of each added line and of
+    each window of consecutive lines the wrapped tier may join. A store need not load every capture in the window:
+    `attribute` gives exactly the same outcomes when passed only the candidates `select_candidates` keeps."""
+
+
+def select_candidates(candidates: Sequence[Candidate], keys: LookupKeys) -> list[Candidate]:
+    """Exact or band hits, plus every line of a capture event with an exact hit (the anchored tier's pool). The PR
+    check runs the same selection as an indexed query."""
 
 
 def summarize(

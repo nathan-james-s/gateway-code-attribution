@@ -9,7 +9,7 @@ from gcattr import CapturedToolOutput, FingerprintKey, extract
 
 KEY = FingerprintKey(1, b"\x42" * 32)
 ENV = {
-    "schema": "gca.capture.v1",
+    "schema": "gca.capture.v2",
     "instance_id": "8f1c1b0e-6a4c-4b31-9d1f-3a0f8a2a1c11",
     "seq": 0,
     "gateway_type": "litellm",

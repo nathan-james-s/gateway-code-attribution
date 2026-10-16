@@ -24,7 +24,7 @@ class FlakySender:
 
 def _env(seq: int) -> dict:
     return {
-        "schema": "gca.capture.v1",
+        "schema": "gca.capture.v2",
         "instance_id": "8f1c1b0e-6a4c-4b31-9d1f-3a0f8a2a1c11",
         "seq": seq,
         "gateway_type": "litellm",
@@ -112,3 +112,98 @@ async def test_runtime_emitters_never_raise_and_heartbeat_reports_overflow() -> 
     kinds = [(m["kind"], m.get("cause")) for m in sender.sent]
     assert ("failure", "buffer_overflow") in kinds
     assert kinds[-1] == ("heartbeat", None) and sender.sent[-1]["shutting_down"] is True
+
+
+def _fps(n: int) -> list:
+    import os
+    import random
+
+    from gcattr import LineFingerprint
+
+    rng = random.Random(n)
+    return [
+        LineFingerprint(
+            os.urandom(16),
+            tuple(rng.getrandbits(32) for _ in range(128)),
+            tuple(os.urandom(8) for _ in range(8)),
+            (os.urandom(16),),
+            1,
+            i,
+            1,
+            1,
+        )
+        for i in range(1, n + 1)
+    ]
+
+
+class LimitedSender(FlakySender):
+    """Like NATS: refuses any payload over max_payload, whatever happens after."""
+
+    def __init__(self, max_payload: int) -> None:
+        super().__init__()
+        self.max_payload = max_payload
+
+    async def __call__(self, subject: str, payload: bytes) -> None:
+        if len(payload) > self.max_payload:
+            from nats.errors import MaxPayloadError
+
+            raise MaxPayloadError
+        await super().__call__(subject, payload)
+
+
+async def test_a_large_response_is_sent_in_parts_of_one_event() -> None:
+    sender = LimitedSender(1_048_576)
+    rt = CaptureRuntime("litellm", sender, heartbeat_seconds=3600)
+    rt.start()
+    lines = _fps(3000)  # about 2.7 MB of fingerprints
+    rt.emit_event(api_format="openai_chat", model="m", lines=lines, tool_call_count=1, alg=1, key_gen=1)
+    await rt.publisher.drain()
+    events = [m for m in sender.sent if m["kind"] == "event"]
+    assert len(events) >= 3 and len({e["event_id"] for e in events}) == 1
+    assert [e["part"] for e in events] == [
+        {"index": i, "count": len(events)} for i in range(1, len(events) + 1)
+    ]
+    assert sum(len(e["lines"]) for e in events) == 3000
+    assert [messages.line_from_wire(w)["minhash"] for e in events for w in e["lines"]] == [
+        f.minhash for f in lines
+    ]
+    assert rt.responses_seen == 1
+    await rt.publisher.stop()
+
+
+async def test_a_message_the_server_refuses_is_dropped_and_counted_without_blocking() -> None:
+    sender = LimitedSender(2_000)
+    pub = BufferedPublisher(sender, subject="gca.capture.litellm", envelope=_env)
+    big = messages.event_body(
+        api_format="openai_chat",
+        model="m",
+        received_at=messages.now_iso(),
+        status="captured",
+        alg=1,
+        key_gen=1,
+        lines=_fps(5),
+        tool_call_count=1,
+    )
+    pub.enqueue(big)
+    pub.enqueue(_ev(1))
+    pub.enqueue(_hb(1))
+    pub.start()
+    await pub.drain(timeout=2)
+    await pub.stop()
+    assert [m["kind"] for m in sender.sent] == ["event", "heartbeat"]  # what came after it still went out
+    assert pub.take_unsendable() == 1 and pub.take_overflow() == 0
+    assert [m["seq"] for m in sender.sent] == [
+        0,
+        1,
+    ]  # no sequence gap: it's reported as publish_failed instead
+
+
+async def test_a_refused_message_is_reported_as_publish_failed() -> None:
+    sender = LimitedSender(2_000)
+    rt = CaptureRuntime("litellm", sender, heartbeat_seconds=0.05, max_message_bytes=10_000_000)
+    rt.start()
+    rt.emit_event(api_format="openai_chat", model="m", lines=_fps(5), tool_call_count=1, alg=1, key_gen=1)
+    await asyncio.sleep(0.4)
+    await rt.publisher.stop()
+    failures = [m for m in sender.sent if m["kind"] == "failure"]
+    assert [(f["cause"], f["count"]) for f in failures] == [("publish_failed", 1)]

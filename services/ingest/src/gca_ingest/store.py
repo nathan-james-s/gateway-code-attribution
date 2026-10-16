@@ -1,4 +1,5 @@
-"""Write capture messages to PostgreSQL (T046). Fingerprints and metadata only; idempotent per (instance, seq)."""
+"""Write capture messages to PostgreSQL (T046). Fingerprints and metadata only; idempotent per (instance, seq)
+and, for the lines of an event sent in parts, per (event, tool call, line)."""
 
 from __future__ import annotations
 
@@ -7,6 +8,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import insert, text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import Connection
 
 from gca_core.db.base import u32_to_i32
@@ -65,23 +67,27 @@ def _touch_instance(conn: Connection, msg: dict[str, Any], *, heartbeat: bool) -
 
 
 def _event(conn: Connection, msg: dict[str, Any]) -> None:
+    """One event message, or one part of an event sent in parts (same ``event_id``). The event row is created by
+    whichever part arrives first; lines are keyed by (event, tool call, line), so a redelivered part adds nothing."""
     credential_id, developer_id = _credential(conn, msg.get("credential_id"))
     received = _ts(msg["received_at"])
     lines = msg.get("lines", [])
-    row = conn.execute(
+    event_id = uuid.UUID(msg["event_id"])
+    created = conn.execute(
         text(
             """
             INSERT INTO capture_event (id, instance_id, seq, developer_id, credential_id, gateway_type, api_format,
                                        tool_hint, session_id, model, received_at, status, failure_cause,
                                        tool_call_count, line_count, alg, key_gen)
-            VALUES (gen_random_uuid(), :iid, :seq, :dev, :cred, CAST(:gw AS gateway_type), CAST(:fmt AS api_format),
+            VALUES (:id, :iid, :seq, :dev, :cred, CAST(:gw AS gateway_type), CAST(:fmt AS api_format),
                     :hint, :sess, :model, :recv, CAST(:status AS event_status), CAST(:cause AS loss_cause),
-                    :tcc, :lc, :alg, :kg)
-            ON CONFLICT (instance_id, seq) DO NOTHING
+                    :tcc, 0, :alg, :kg)
+            ON CONFLICT DO NOTHING
             RETURNING id
             """
         ),
         {
+            "id": event_id,
             "iid": uuid.UUID(msg["instance_id"]),
             "seq": msg["seq"],
             "dev": developer_id,
@@ -95,81 +101,80 @@ def _event(conn: Connection, msg: dict[str, Any]) -> None:
             "status": msg["status"],
             "cause": msg.get("failure_cause"),
             "tcc": msg.get("tool_call_count", 0),
-            "lc": len(lines) if developer_id else 0,
             "alg": msg["alg"],
             "kg": msg["key_gen"],
         },
     ).first()
-    if row is None:
-        return  # duplicate delivery: already stored
+    if (
+        created is None
+        and conn.execute(text("SELECT 1 FROM capture_event WHERE id = :id"), {"id": event_id}).first() is None
+    ):
+        return  # a redelivery whose (instance, seq) is stored under another event: nothing of this one to add
     if developer_id is None:
-        # An unknown credential is counted, never matched (data-model.md CaptureEvent.developer_id).
-        conn.execute(
-            text(
-                "INSERT INTO capture_loss (id, instance_id, cause, period_start, period_end, count, gateway_type,"
-                " api_format, tool_hint) VALUES (gen_random_uuid(), :iid, 'unknown_credential', :t, :t, 1,"
-                " CAST(:gw AS gateway_type), CAST(:fmt AS api_format), :hint)"
-            ),
-            {
-                "iid": uuid.UUID(msg["instance_id"]),
-                "t": received,
-                "gw": msg["gateway_type"],
-                "fmt": msg["api_format"],
-                "hint": msg.get("tool_hint"),
-            },
-        )
+        if created is not None:  # counted once per event, not per part
+            # An unknown credential is counted, never matched (data-model.md CaptureEvent.developer_id).
+            conn.execute(
+                text(
+                    "INSERT INTO capture_loss (id, instance_id, cause, period_start, period_end, count, gateway_type,"
+                    " api_format, tool_hint) VALUES (gen_random_uuid(), :iid, 'unknown_credential', :t, :t, 1,"
+                    " CAST(:gw AS gateway_type), CAST(:fmt AS api_format), :hint)"
+                ),
+                {
+                    "iid": uuid.UUID(msg["instance_id"]),
+                    "t": received,
+                    "gw": msg["gateway_type"],
+                    "fmt": msg["api_format"],
+                    "hint": msg.get("tool_hint"),
+                },
+            )
         return
     if not lines:
         return
-    params = []
+    bands_by_line: dict[tuple[int, int], tuple[bytes, ...]] = {}
+    rows = []
     for wire in lines:
         ln = line_from_wire(wire)
-        params.append(
+        bands_by_line[(ln["tool_call_ordinal"], ln["line_ordinal"])] = ln["lsh_bands"]
+        rows.append(
             {
-                "t": received,
-                "ev": row.id,
-                "dev": developer_id,
-                "tco": ln["tool_call_ordinal"],
-                "lo": ln["line_ordinal"],
-                "p": list(ln["path_suffix_fps"]),
-                "x": ln["exact_fp"],
-                "m": u32_to_i32(ln["minhash"]),
+                "captured_at": received,
+                "capture_event_id": event_id,
+                "developer_id": developer_id,
+                "tool_call_ordinal": ln["tool_call_ordinal"],
+                "line_ordinal": ln["line_ordinal"],
+                "path_suffix_fps": list(ln["path_suffix_fps"]),
+                "exact_fp": ln["exact_fp"],
+                "minhash": u32_to_i32(ln["minhash"]),
                 "alg": msg["alg"],
-                "kg": msg["key_gen"],
-                "bands": ln["lsh_bands"],
+                "key_gen": msg["key_gen"],
             }
         )
     line_table = CapturedLine.__table__
-    ids = conn.execute(
-        insert(line_table).returning(line_table.c.id, sort_by_parameter_order=True),
-        [
-            {
-                "captured_at": p["t"],
-                "capture_event_id": p["ev"],
-                "developer_id": p["dev"],
-                "tool_call_ordinal": p["tco"],
-                "line_ordinal": p["lo"],
-                "path_suffix_fps": p["p"],
-                "exact_fp": p["x"],
-                "minhash": p["m"],
-                "alg": p["alg"],
-                "key_gen": p["kg"],
-            }
-            for p in params
-        ],
+    inserted = conn.execute(
+        pg_insert(line_table)
+        .on_conflict_do_nothing(
+            index_elements=["capture_event_id", "tool_call_ordinal", "line_ordinal", "captured_at"]
+        )
+        .returning(line_table.c.id, line_table.c.tool_call_ordinal, line_table.c.line_ordinal),
+        rows,
     ).fetchall()
-    band_rows = []
-    for (line_id,), p in zip(ids, params, strict=True):
-        for b, h in enumerate(p["bands"]):
-            band_rows.append(
-                {
-                    "captured_line_id": line_id,
-                    "band": b,
-                    "captured_at": received,
-                    "developer_id": developer_id,
-                    "band_hash": h,
-                }
-            )
+    if not inserted:
+        return  # a redelivered part
+    conn.execute(
+        text("UPDATE capture_event SET line_count = line_count + :n WHERE id = :id"),
+        {"n": len(inserted), "id": event_id},
+    )
+    band_rows = [
+        {
+            "captured_line_id": line_id,
+            "band": b,
+            "captured_at": received,
+            "developer_id": developer_id,
+            "band_hash": h,
+        }
+        for line_id, tco, lo in inserted
+        for b, h in enumerate(bands_by_line[(tco, lo)])
+    ]
     conn.execute(insert(LshBand.__table__), band_rows)
 
 

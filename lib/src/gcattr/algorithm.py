@@ -35,7 +35,7 @@ class AlgParams:
     anchored_threshold: float
     broad_threshold: float
     minhash_size: int
-    lsh_bands: int
+    lsh_bands: int  # LSH bands are built from the first lsh_bands x lsh_rows signature values
     lsh_rows: int
     common_lines_version: str
 
@@ -44,13 +44,19 @@ ALG = 1
 SUPPORTED_ALGS: tuple[int, ...] = (1,)
 
 PARAMS: dict[int, AlgParams] = {
-    # Thresholds are provisional until T109 calibrates them against the scenario set and T113 freezes them.
+    # Thresholds are provisional until T113 calibrates them on the scenario set plus the real-traffic corpus and
+    # freezes them. anchored 0.35 (was 0.50): the highest value that keeps a one-identifier rename of a short AI
+    # line AI modified under any key (T109 calibration, key-stable); broad stays 0.75, since the scenario set
+    # scores the same anywhere from 0.50 to 0.85.
     # "15.0.0" is unicodedata.unidata_version of CPython 3.12.
     1: AlgParams(
         unicode_version="15.0.0",
-        anchored_threshold=0.50,
+        anchored_threshold=0.35,
         broad_threshold=0.75,
-        minhash_size=32,
+        # 128 values keep a line's similarity estimate within about +-0.09 (2 standard deviations) of its true
+        # value whatever the key; 32 left one renamed identifier on a short line a coin flip (T109). Candidate
+        # lookup still uses 8 bands of 4 over the first 32 values, so storage and lookup stay as with 32.
+        minhash_size=128,
         lsh_bands=8,
         lsh_rows=4,
         common_lines_version="1",
