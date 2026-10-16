@@ -45,7 +45,8 @@ with its owner's consent, and passes conformance on both gateways ([docs/tools/s
 
 - **Claude Code** (recorded with 2.1.292)
 
-Codex CLI, Gemini CLI and OpenCode route through the gateway but aren't recorded yet.
+Codex CLI, Gemini CLI and OpenCode route through the gateway, but recording them is deferred past v1, so they
+aren't listed as supported.
 
 ## Documentation
 
