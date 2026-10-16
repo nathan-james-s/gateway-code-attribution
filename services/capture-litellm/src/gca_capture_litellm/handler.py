@@ -95,6 +95,15 @@ class GcaHandler(CustomLogger):  # type: ignore[misc]
         self._runtime: CaptureRuntime | None = None
         self._ring: KeyRing | None = None
         self._js: Any = None
+        # The proxy imports this module while loading its config, inside its event loop. Start capture then, so
+        # heartbeats begin at startup rather than at the first request: otherwise an idle proxy just after a
+        # restart looks to ingest like a capture outage. Outside a running loop, capture starts on first use.
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            pass
+        else:
+            self.runtime()
 
     # ------------------------------------------------------------------ lazy setup inside the proxy's event loop
     async def _send(self, subject: str, payload: bytes) -> None:

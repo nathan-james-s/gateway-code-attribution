@@ -125,6 +125,32 @@ def test_module_level_handler_exists() -> None:
     asyncio.get_event_loop_policy()
 
 
+async def test_capture_reports_from_proxy_startup(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The proxy imports the handler inside its event loop at startup. Capture must heartbeat from then on, not
+    from the first request: an idle, freshly restarted proxy is not a capture outage."""
+    sent: list[dict] = []
+
+    async def send(self: GcaHandler, subject: str, payload: bytes) -> None:
+        sent.append(json.loads(payload))
+
+    monkeypatch.setattr(GcaHandler, "_send", send)
+    h = GcaHandler()
+    try:
+        assert h._runtime is not None
+        for _ in range(50):
+            if sent:
+                break
+            await asyncio.sleep(0.01)
+        assert [m["kind"] for m in sent][:1] == ["heartbeat"]
+    finally:
+        if h._runtime is not None:
+            await h._runtime.shutdown()
+
+
+def test_handler_created_outside_an_event_loop_starts_capture_on_first_use() -> None:
+    assert GcaHandler()._runtime is None
+
+
 async def test_gemini_generate_content_is_captured(handler: GcaHandler) -> None:
     resp = {
         "candidates": [

@@ -9,6 +9,8 @@
 - **No capture running.** Instances that shut down cleanly report no loss, but if no instance of the configured
   gateway is active for longer than the stale threshold, nothing is capturing and the gateway fails open. That
   opens a `heartbeat_missed` loss with no instance, from the last heartbeat, until an instance is active again.
+- **Switching gateways.** After `gateway.type` changes, no instance of the old gateway will ever return, so its
+  open `heartbeat_missed` losses end when an instance of the configured gateway is active.
 - **Self-reported failures** become rows with their cause, count, developer, API format and tool. Each failure
   message is stored once (`source_seq`), however often it's delivered.
 """
@@ -176,6 +178,31 @@ def _close_superseded(conn: Connection) -> int:
     return len(rows)
 
 
+def _close_switched(conn: Connection, gateway: str) -> int:
+    """Losses of a gateway that is no longer configured end once the configured gateway's capture is active."""
+    rows = conn.execute(
+        text(
+            """
+            WITH up AS (
+                SELECT min(started_at) AS at FROM capture_instance
+                WHERE gateway_type = CAST(:gw AS gateway_type) AND status = 'active'
+            ), ended AS (
+                UPDATE capture_loss l SET period_end = greatest(up.at, l.period_start)
+                FROM up
+                WHERE up.at IS NOT NULL AND l.cause = 'heartbeat_missed' AND l.period_end IS NULL
+                  AND l.gateway_type <> CAST(:gw AS gateway_type)
+                RETURNING l.instance_id
+            )
+            UPDATE capture_instance SET status = 'closed'
+            WHERE status = 'stale' AND instance_id IN (SELECT instance_id FROM ended)
+            RETURNING instance_id
+            """
+        ),
+        {"gw": gateway},
+    ).fetchall()
+    return len(rows)
+
+
 def _outage(conn: Connection, gateway: str) -> int:
     """Open a capture outage when no instance of ``gateway`` has been active for STALE_AFTER_SECONDS."""
     row = conn.execute(
@@ -208,5 +235,6 @@ def sweep(conn: Connection, gateway: str) -> dict[str, int]:
     return {
         "stale": mark_stale_instances(conn),
         "superseded": _close_superseded(conn),
+        "switched": _close_switched(conn, gateway),
         "outages": _outage(conn, gateway),
     }
