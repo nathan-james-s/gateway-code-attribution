@@ -1,0 +1,42 @@
+event: message_start
+data: {"type":"message_start","message":{"id":"msg_011Cg55ew1Xg5xPTc8SCqU48","type":"message","role":"assistant","container":null,"content":[],"model":"anthropic/claude-haiku-5.5","stop_reason":null,"stop_details":null,"stop_sequence":null,"usage":{"input_tokens":2,"output_tokens":3,"output_tokens_details":null,"cache_creation_input_tokens":43467,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":43467,"ephemeral_1h_input_tokens":0},"inference_geo":"global","server_tool_use":null,"service_tier":"standard","speed":"standard"},"provider":"Claude Platform on AWS"}}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":"","signature":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"CAQSqQcKEAgSGAI4AUIIdGhpbmtpbmcSDG8xwBD+fVXhODm6yRoMDvM1UibfsscFnhhBIjBjupL1uVSx/28roYYQmoe8TqT10pN4/84CuGNcK+Pn8d6EiIrEklX5mEI3TJImQW4qxgZWFvBH5uedCOIe56orLbmYdJ7BRJQmeWoWKE9s52bacFeIMoMoMca81L68BrKGR1CZd3ZEwFa03rvhrWJfHZ1su7iu2qtdgXXLrWhEUtwCzkdU3c26qQxLaaHuiTDtZDsVR+x6hGid6c1Vcuezj0L3HWNQKqee9WRNlHZEitucnfatFlRXxS6VVeSYq4dglHgNrI635dUYcSUXxKXzX6H+ULT5RAaIEEL7qYo8MOi6eUcdMU5r3dxCpbOYgUZQRIfZRLxv9iERWhWGOcQwznl2336r1arhLYkiNoCJNkMbz1Q6fXysYR9+fYV1BjoIErgaJMI444wPiRrU6WRArn6U40n1n1ILPDd6hUzN0pTOWWOLQli9TVhgDRIJaOiuOu/LGnM1fs21n06u6swZwWLD33lwEDt10VQkNB5DVGJNAGzxGbQEWK+UDdjfqVOsQ4HT71Go13bDMw/eol7buBnR3IGmhTr8R1ydBA4nsPUqWq/rHp7MaxzCNyhrSVe3TFNfEp3sxNtOYIPq4cAMroM1Z0oCazIJ3Y4Jnwz82yZKIRmWVSubBCaYNn/YcuY+GjTBFiIWZNcOkwr36SVTD8eDkvAZiAXhK/ALZeQfX3DiSAdVs0aOzjjOiU46B/6myKbeq080i2Xs3B+bdgzGC6DUoXeAxqeN6JCDOaapbl6s7CW1xNASZV0JrVzGYjoRYIcbe8APljNoQ0GHG6Kqhtxq0YQnPM0npz411mVdIdrIAwSEz3xRPJEbyD8v69FLned3Qjf/2/BonNffb3NltxkG9glV6ibRBf8nc6FWK92IQ6LFZqfwVXpM2EZeIkUE0RwEEbOkbJ7Mw0mOmCXCYUnkS4tCY0sCamWju+bqqnWNitjStaGv/1WjjpZWWSV6xZPNOdzK30YRzycWkVaR+ObaEHhHNdGD4lAmLLpkvi1Z8XZKyAKnptzk5now1wHojSrb6KOJdpDA8s9GknCQMjdPKEjRcYV3rNa6b4RWD7/0qZDP+WyOKmsW5qaR6K+JfKDHzTqPZOxwhjvvCsOc6IcUlYbZmbmVHG4lExfR3tbQN3UH2XMmhUWUaqV5+RvAGWvGl78IEuMfDYs4IEKuAHxKOnLeWjvtGAE=.eyJlbmRwb2ludF9zbHVnIjoiYW50aHJvcGljL2NsYXVkZS1oYWlrdS01LjUtMjAyNjEwMDd8Y2xhdWRlLW9uLWF3cyJ9"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0}
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_01FTaTxdA44qbi67xZzk6Djg","caller":{"type":"direct"},"name":"Bash","input":{}}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\"command\": \"ls -la /Users/home"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"/gca-corpus"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\", \"description\": \"List files"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":" in the working directory"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\"}"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1}
+
+event: message_delta
+data: {"type":"message_delta","delta":{"container":null,"stop_details":null,"stop_reason":"tool_use","stop_sequence":null,"safeguard_results":[{"type":"dangerous_tool_use","status":{"type":"available","tool_uses":{"toolu_01FTaTxdA44qbi67xZzk6Djg":{"type":"evaluated","outcome":"not_flagged"}}}}]},"usage":{"input_tokens":2,"output_tokens":198,"output_tokens_details":{"thinking_tokens":108},"cache_creation_input_tokens":43467,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":43467,"ephemeral_1h_input_tokens":0},"server_tool_use":null,"service_tier":"standard","speed":"standard","cost":0.005532575,"is_byok":false,"cost_details":{"upstream_inference_cost":0.005532575,"upstream_inference_prompt_cost":0.005433575,"upstream_inference_completions_cost":0.000099}},"context_management":{"applied_edits":[]}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+event: data
+data: [DONE]
+

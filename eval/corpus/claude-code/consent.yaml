@@ -1,0 +1,7 @@
+tool: claude-code
+owner: 'Nathan Strandberg'
+consent: true
+date: 2026-10-15
+statement: >-
+  I ran the scripted synthetic tasks in eval/corpus/tasks.md with this tool, through the gateway, and
+  consent to the recorded model responses being published in this repository's test corpus.

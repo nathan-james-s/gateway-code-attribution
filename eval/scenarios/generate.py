@@ -4,7 +4,8 @@
     uv run python eval/scenarios/generate.py --formatters   # also formatters-* (needs uv and Docker)
 
 Every expected label comes from how the scenario is written (gca_eval.author): what the model wrote, what a
-person typed or changed. Synthetic code only.
+person typed or changed. Synthetic code only, except the corpus-* scenarios: real responses recorded from a coding
+tool doing the synthetic tasks in eval/corpus/tasks.md, with the owner's consent (T112).
 """
 
 from __future__ import annotations
@@ -12,7 +13,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from gca_eval.author import Builder, Doc, formatted_doc, patch_call, write_call
+from gca_eval.author import Builder, Doc, formatted_doc, patch_call, token_key, write_call
+from gca_eval.corpus import recorded, replay, written_lines
 
 ROOT = Path(__file__).resolve().parent
 
@@ -535,6 +537,83 @@ def codex_patch() -> Builder:
     return b
 
 
+# ---------------------------------------------------------------------------------------------- corpus (T112)
+def _recorded_doc(
+    path: str, text: str, edits: dict[str, str], humans_after: dict[str, list[str]], written: set[str]
+) -> Doc:
+    """A file the model wrote (``text``), with a person's changes: ``edits`` (model line -> as changed) and lines
+    typed after a given model line. Every other line is the model's. A changed or typed line must differ from
+    every line the model wrote in the session (``written``): one that doesn't is AI unmodified by definition."""
+    lines = text.splitlines()
+    for key in (*edits, *humans_after):
+        if lines.count(key) != 1:
+            raise ValueError(f"{path}: {key!r} must name exactly one line")
+    for typed in (*edits.values(), *(t for ts in humans_after.values() for t in ts)):
+        if token_key(typed) in written:
+            raise ValueError(f"{path}: {typed!r} equals a line the model wrote, so it isn't a person's line")
+    doc = Doc(path)
+    for ln in lines:
+        if ln in edits:
+            doc.edit(ln, edits[ln], tier="anchored")
+        else:
+            doc.ai(ln)
+        if ln in humans_after:
+            doc.human(*humans_after[ln])
+    return doc
+
+
+def corpus_claude_code() -> Builder:
+    """Real Claude Code traffic (eval/corpus/claude-code): the five corpus tasks, every edit accepted, then a few
+    changes by a person. The files are what replaying the recorded Write and Edit calls produces, which matched the
+    owner's folder byte for byte when it was recorded."""
+    b = Builder(
+        "corpus-claude-code",
+        "corpus",
+        "Recorded Claude Code session (Write, Edit with replace_all, Bash, thinking blocks, an OpenRouter [DONE]"
+        " trailer), then a few human edits.",
+    )
+    ada = b.author("ada")
+    responses = recorded("claude-code")
+    for r in responses:
+        b.recorded(ada, r.api_format, r.data)
+    files = replay(responses)
+    written = written_lines(responses)
+    raise_line = (
+        '        raise ValueError(f"not enough stock for {sku}: requested {quantity}, available {available}")'
+    )
+    restock_line = "    stock[sku] = stock.get(sku, 0) + quantity"
+    format_line = "  return usdFormatter.format(cents / 100);"
+    docs = [
+        _recorded_doc(
+            "inventory.py",
+            files["inventory.py"],
+            {raise_line: raise_line.replace("not enough stock", "insufficient stock")},
+            {restock_line: ['    audit_log.append(("restock", sku, quantity))']},
+            written,
+        ),
+        _recorded_doc(
+            "test_inventory.py",
+            files["test_inventory.py"],
+            {},
+            {'            restock(stock, "apple", -3)': ["        self.assertEqual(len(stock), 1)"]},
+            written,
+        ),
+        _recorded_doc(
+            "prices.ts",
+            files["prices.ts"],
+            {format_line: format_line.replace("cents / 100", "Math.round(cents) / 100")},
+            {},
+            written,
+        ),
+        _recorded_doc("prices.test.ts", files["prices.test.ts"], {}, {}, written),
+    ]
+    b.branch("feature")
+    b.commit(ada, {d.path: d.final_text() for d in docs})
+    for d in docs:
+        b.expect(d, tags=("corpus",))
+    return b
+
+
 SCENARIOS = [
     seed_line_accuracy,
     seed_rewrite_rebase,
@@ -549,6 +628,7 @@ SCENARIOS = [
     key_rotation,
     empty_deletion,
     empty_excluded,
+    corpus_claude_code,
 ]
 FORMATTER_SCENARIOS = [
     ("formatters-python-black", "fmt/config.py", PY_UNFORMATTED, "black", "anthropic_messages"),

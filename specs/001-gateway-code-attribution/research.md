@@ -193,7 +193,9 @@ alongside applies. These are not open questions.
     scenario set to meet SC-003 and frozen into the algorithm version. *Now anchored ≥ 0.35 (T109): the
     highest value at which a one-identifier rename of a short AI line (true similarity 0.50) is AI modified
     under at least 99% of keys. An outcome must depend on the code, not on the key, so calibration only
-    considers key-stable anchored thresholds. Broad stays 0.75 until T113 calibrates with real traffic.*
+    considers key-stable anchored thresholds.* **Frozen by T113 at anchored 0.35, broad 0.75**, calibrated on the
+    scenario set plus the Claude Code corpus and scored under 50 fingerprint keys (plan.md, "Threshold
+    margins").
 - **What it reveals** (the documented assessment Constitution II requires):
   - Without the key, signatures can't be computed or compared. They're keyed hashes, and they resist dictionary
     attacks.

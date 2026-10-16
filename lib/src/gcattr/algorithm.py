@@ -44,10 +44,11 @@ ALG = 1
 SUPPORTED_ALGS: tuple[int, ...] = (1,)
 
 PARAMS: dict[int, AlgParams] = {
-    # Thresholds are provisional until T113 calibrates them on the scenario set plus the real-traffic corpus and
-    # freezes them. anchored 0.35 (was 0.50): the highest value that keeps a one-identifier rename of a short AI
-    # line AI modified under any key (T109 calibration, key-stable); broad stays 0.75, since the scenario set
-    # scores the same anywhere from 0.50 to 0.85.
+    # Thresholds frozen by T113 (2026-10-15), calibrated on the scenario set plus the Claude Code corpus and scored
+    # under 50 fingerprint keys. anchored 0.35: the highest value that keeps a one-identifier rename of a short AI
+    # line AI modified under >= 99% of keys; one human line crossed it, under 1 key in 50. broad 0.75: 0.50 let
+    # human lines through under some keys and 0.85 lost true broad matches; 0.75 did neither. Changing them now
+    # changes outcomes, so it needs a new ALG once alg 1 is released (Constitution III).
     # "15.0.0" is unicodedata.unidata_version of CPython 3.12.
     1: AlgParams(
         unicode_version="15.0.0",

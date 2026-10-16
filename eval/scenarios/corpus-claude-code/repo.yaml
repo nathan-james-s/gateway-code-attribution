@@ -1,0 +1,115 @@
+description: Recorded Claude Code session (Write, Edit with replace_all, Bash, thinking blocks, an OpenRouter [DONE] trailer),
+  then a few human edits.
+category: corpus
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 02-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 03-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 04-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 05-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 06-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 07-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 08-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 09-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 10-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 11-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 12-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 13-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 14-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 15-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 16-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 17-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 18-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    inventory.py: "def _check_positive(quantity: int) -> None:\n    if quantity <= 0:\n        raise ValueError(f\"quantity\
+      \ must be positive, got {quantity}\")\n\n\ndef reserve_items(stock: dict[str, int], sku: str, quantity: int) -> None:\n\
+      \    \"\"\"Remove quantity units of sku from stock, in place.\n\n    Raises ValueError if quantity is not positive or\
+      \ if fewer than quantity\n    units are available. A SKU missing from stock counts as zero available.\n    On error,\
+      \ stock is left unchanged.\n    \"\"\"\n    _check_positive(quantity)\n    available = stock.get(sku, 0)\n    if available\
+      \ < quantity:\n        raise ValueError(f\"insufficient stock for {sku}: requested {quantity}, available {available}\"\
+      )\n    stock[sku] = available - quantity\n\n\ndef restock(stock: dict[str, int], sku: str, quantity: int) -> None:\n\
+      \    _check_positive(quantity)\n    stock[sku] = stock.get(sku, 0) + quantity\n    audit_log.append((\"restock\", sku,\
+      \ quantity))\n"
+    test_inventory.py: "import unittest\n\nfrom inventory import reserve_items, restock\n\n\nclass ReserveItemsTests(unittest.TestCase):\n\
+      \    def test_subtracts_quantity_from_stock(self) -> None:\n        stock = {\"apple\": 10}\n        reserve_items(stock,\
+      \ \"apple\", 4)\n        self.assertEqual(stock[\"apple\"], 6)\n\n    def test_reserving_exact_remaining_stock_leaves_zero(self)\
+      \ -> None:\n        stock = {\"apple\": 3}\n        reserve_items(stock, \"apple\", 3)\n        self.assertEqual(stock[\"\
+      apple\"], 0)\n\n    def test_raises_when_not_enough_stock(self) -> None:\n        stock = {\"apple\": 2}\n        with\
+      \ self.assertRaises(ValueError):\n            reserve_items(stock, \"apple\", 5)\n\n    def test_failed_reserve_leaves_stock_unchanged(self)\
+      \ -> None:\n        stock = {\"apple\": 2}\n        with self.assertRaises(ValueError):\n            reserve_items(stock,\
+      \ \"apple\", 5)\n        self.assertEqual(stock[\"apple\"], 2)\n\n    def test_unknown_sku_raises_value_error(self)\
+      \ -> None:\n        stock = {\"apple\": 2}\n        with self.assertRaises(ValueError):\n            reserve_items(stock,\
+      \ \"pear\", 1)\n        self.assertNotIn(\"pear\", stock)\n\n    def test_negative_quantity_raises_value_error(self)\
+      \ -> None:\n        stock = {\"apple\": 2}\n        with self.assertRaises(ValueError):\n            reserve_items(stock,\
+      \ \"apple\", -1)\n        self.assertEqual(stock[\"apple\"], 2)\n\n    def test_zero_quantity_raises_value_error(self)\
+      \ -> None:\n        stock = {\"apple\": 2}\n        with self.assertRaises(ValueError):\n            reserve_items(stock,\
+      \ \"apple\", 0)\n        self.assertEqual(stock[\"apple\"], 2)\n\n    def test_other_skus_are_untouched(self) -> None:\n\
+      \        stock = {\"apple\": 5, \"pear\": 7}\n        reserve_items(stock, \"apple\", 1)\n        self.assertEqual(stock[\"\
+      pear\"], 7)\n\n\nclass RestockTests(unittest.TestCase):\n    def test_adds_quantity_to_existing_stock(self) -> None:\n\
+      \        stock = {\"apple\": 3}\n        restock(stock, \"apple\", 4)\n        self.assertEqual(stock[\"apple\"], 7)\n\
+      \n    def test_unknown_sku_starts_from_zero(self) -> None:\n        stock: dict[str, int] = {}\n        restock(stock,\
+      \ \"pear\", 5)\n        self.assertEqual(stock[\"pear\"], 5)\n\n    def test_zero_quantity_raises_value_error(self)\
+      \ -> None:\n        stock = {\"apple\": 2}\n        with self.assertRaises(ValueError):\n            restock(stock,\
+      \ \"apple\", 0)\n        self.assertEqual(stock[\"apple\"], 2)\n\n    def test_negative_quantity_raises_value_error(self)\
+      \ -> None:\n        stock = {\"apple\": 2}\n        with self.assertRaises(ValueError):\n            restock(stock,\
+      \ \"apple\", -3)\n        self.assertEqual(len(stock), 1)\n        self.assertEqual(stock[\"apple\"], 2)\n\n\nif __name__\
+      \ == \"__main__\":\n    unittest.main()\n"
+    prices.ts: "const usdFormatter = new Intl.NumberFormat(\"en-US\", { style: \"currency\", currency: \"USD\" });\n\nexport\
+      \ function formatDollars(cents: number): string {\n  return usdFormatter.format(Math.round(cents) / 100);\n}\n"
+    prices.test.ts: "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { formatDollars\
+      \ } from \"./prices.ts\";\n\ntest(\"formats zero cents\", () => {\n  assert.equal(formatDollars(0), \"$0.00\");\n});\n\
+      \ntest(\"pads cents below ten\", () => {\n  assert.equal(formatDollars(5), \"$0.05\");\n});\n\ntest(\"formats whole\
+      \ dollars with cents\", () => {\n  assert.equal(formatDollars(1999), \"$19.99\");\n});\n\ntest(\"groups thousands with\
+      \ commas\", () => {\n  assert.equal(formatDollars(123456789), \"$1,234,567.89\");\n});\n\ntest(\"formats negative amounts\
+      \ with a leading minus\", () => {\n  assert.equal(formatDollars(-250), \"-$2.50\");\n});\n"
+pr:
+  base: main
+  head: feature

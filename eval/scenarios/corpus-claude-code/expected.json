@@ -1,0 +1,782 @@
+{
+ "lines": {
+  "inventory.py:1": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:10": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:11": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:12": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:13": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:14": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:15": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:16": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:17": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:18": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:19": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:2": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:20": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:21": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:22": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:23": {
+   "outcome": "human",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:3": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:4": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:5": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:6": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:7": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:8": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "inventory.py:9": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:1": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:10": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:11": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:12": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:13": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:14": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:15": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:16": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:17": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:18": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:19": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:2": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:20": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:21": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:22": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:23": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:3": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:4": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:5": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:6": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:7": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:8": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.test.ts:9": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.ts:1": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.ts:2": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.ts:3": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.ts:4": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "prices.ts:5": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:1": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:10": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:11": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:12": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:13": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:14": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:15": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:16": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:17": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:18": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:19": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:2": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:20": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:21": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:22": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:23": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:24": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:25": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:26": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:27": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:28": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:29": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:3": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:30": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:31": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:32": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:33": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:34": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:35": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:36": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:37": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:38": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:39": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:4": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:40": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:41": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:42": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:43": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:44": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:45": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:46": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:47": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:48": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:49": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:5": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:50": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:51": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:52": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:53": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:54": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:55": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:56": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:57": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:58": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:59": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:6": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:60": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:61": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:62": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:63": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:64": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:65": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:66": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:67": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:68": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:69": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:7": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:70": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:71": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:72": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:73": {
+   "outcome": "human",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:74": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:75": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:76": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:77": {
+   "outcome": "indeterminate",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:78": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:8": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  },
+  "test_inventory.py:9": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "corpus"
+   ]
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

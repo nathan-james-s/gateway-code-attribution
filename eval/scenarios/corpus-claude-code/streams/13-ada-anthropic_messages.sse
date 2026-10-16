@@ -1,0 +1,81 @@
+event: message_start
+data: {"type":"message_start","message":{"id":"msg_011Cg55jAXEbMkmigXAxaDAG","type":"message","role":"assistant","container":null,"content":[],"model":"anthropic/claude-haiku-5.5","stop_reason":null,"stop_details":null,"stop_sequence":null,"usage":{"input_tokens":2,"output_tokens":4,"output_tokens_details":null,"cache_creation_input_tokens":919,"cache_read_input_tokens":53443,"cache_creation":{"ephemeral_5m_input_tokens":919,"ephemeral_1h_input_tokens":0},"inference_geo":"global","server_tool_use":null,"service_tier":"standard","speed":"standard"},"provider":"Claude Platform on AWS"}}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":"","signature":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"CAQS+ggKEAgSGAI4AUIIdGhpbmtpbmcSDA7/NKrnxqjdkZkjeRoMvDKxadbxGBDNnkt0IjCP0NsxPcewJBUjya9cR0j+UIFCOvZ7sH6WFj84ATOwzthK620RvtG1OA/NCXG3a+0qlwgkoicVKvNoora8mI2NT/B/6m0u/Pv52a14MhWbqf6+b4W+7Qvb9S5KkUXkVU+fd0eqZak2ph7xbX8K9A9ZZYswUNSbP0AZn224ZjvV5wPjJ4fq9+zwx6bp4j7CXQID1q8OaOk3LKVe41QPez8ApG3PZqCggiRkRQpAFBYJHEfnUR6SJPIDO+tgBlB5RKV652FuJPEVcWgoGz6Zaux/Y8l46U9P/IcfaVWKTqU8XpW8sh11++m/rnkkfpKaXWj8vQDDNGdUL3ztWpaigZZFPBBvKiU9dJLVtpUF16HcC/M2trCZ+9NwPWg0WYAQ9lO5VQ4gtlfUa+xhYdIK4GMRhD+tVgDszALBdbUDLJd+3PlDCMRWniDskbmiKYEsMFx8UfIEXxdEGJRfuW6f67OzIRQNuDfgEdHMZ+kV5WpdOFN90tYsziYrLcPxk5K+fnj66TkKKcPhZUonghAlSU5Ojt710RmeJG8fGvs+IPZMJjlMpG8wZ8uM/LAg8f5SSBLtLEuBGpMz3UPiUjvE1hZ1R3uNMn59ScpBb3kMT8QQJwzWV9pWILpKU2pb4l5rqJmoj6LUOEzOh8eYF6mrlpKTUkIXZs1zYBC8O6ZO9xLwPEDIEnwQoKSb5zWRf8fyCcBNKwmRthwdhS3prE5KgLguWL+CenajLlVimgMncQk5boLyv9OKqi/RTAPXBnRAMhUNnkHFDskgg+8RNiv0lRK8l20G/byoD72dHzYVg7Ym2yMOmx56gK2Ix/MJsZ9pFYIWOk6KeGnv98YDskqaoS+i88XF5aGROD/kelq4exkBcqB6ra9obIt1mtVPBSRoaIOduaPXbQzahcZ9YV6kbuyKohSs2y6Y80aXEqkKnJSwWCO/M7upIij5WqXdNCvBAydVowyebNyZWOadMcsPWXuR5PE5fweDZuxLS3yDPyBqefWbWCeQj/Hvjrc7EpQWQgQ5MoxyvbRZHYeFvQMbC+XhW/pueUfMj0Tf1NXKbTTn85ZKMpuIEsUwoyY0DmN8PZX1Kw4zqIuGBGSNmGKwmOKkItVzYHcydz7IBZhBw0Rm/Aa2hCydaNoi6+HRuNYyP5KJrcDvZ81/bsgJyKDbAQM4co5avhXZLep0Du/XxotXC1+yk+2mNf7oesdTbpMBriR362MAjHiiambh2AlsnTmOoZwmb0Lj884ftNV7Rswz1bhCNvPbFjVMonD6s1C6xHxFGoKedNagHbKkaNiLytSBM9irmH4bhXOnVN/Oge/7eQBQTkq0I2LPlz96euq+5snEMvczqd+MA6HIvFCXCB4aMo+MsXXcd8Uouay7JKkdWienzvAsErNMxM1zRgTNB/xqqFrb6pTiULqzcQ7Y1+kgKD6vcY/xwZjCp1yy/43p738OlbBvqAiarWAYAQ==.eyJlbmRwb2ludF9zbHVnIjoiYW50aHJvcGljL2NsYXVkZS1oYWlrdS01LjUtMjAyNjEwMDd8Y2xhdWRlLW9uLWF3cyJ9"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0}
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_016GbznuwRSanfZ8Gr5PeGGb","caller":{"type":"direct"},"name":"Bash","input":{}}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\"command\": \"ls /usr/local/b"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"in /opt/homebr"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ew/bin 2>/"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"dev/null | grep -"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"iE \\\"^"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"(node|b"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"un|deno|tsc"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":")"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"$\\\"; which bun deno"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":" br"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ew 2>/dev/"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"null; echo done"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\", \"description\": \"Look"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":" for any"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":" J"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"avaScript runtime install"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ed"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\"}"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1}
+
+event: message_delta
+data: {"type":"message_delta","delta":{"container":null,"stop_details":null,"stop_reason":"tool_use","stop_sequence":null,"safeguard_results":[{"type":"dangerous_tool_use","status":{"type":"available","tool_uses":{"toolu_016GbznuwRSanfZ8Gr5PeGGb":{"type":"evaluated","outcome":"not_flagged"}}}}]},"usage":{"input_tokens":2,"output_tokens":276,"output_tokens_details":{"thinking_tokens":123},"cache_creation_input_tokens":919,"cache_read_input_tokens":53443,"cache_creation":{"ephemeral_5m_input_tokens":919,"ephemeral_1h_input_tokens":0},"server_tool_use":null,"service_tier":"standard","speed":"standard","cost":0.000787505,"is_byok":false,"cost_details":{"upstream_inference_cost":0.000787505,"upstream_inference_prompt_cost":0.000649505,"upstream_inference_completions_cost":0.000138}},"context_management":{"applied_edits":[]}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+event: data
+data: [DONE]
+

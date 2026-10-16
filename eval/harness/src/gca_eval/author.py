@@ -219,6 +219,13 @@ class Builder:
             entry["fault"] = fault
         self.streams.append(entry)
 
+    def recorded(self, author: str, api_format: str, data: bytes) -> None:
+        """A response recorded from a real tool (eval/corpus), sent byte for byte as recorded."""
+        self._n += 1
+        name = f"{self._n:02d}-{author}-{api_format}.sse"
+        self.stream_data[name] = data
+        self.streams.append({"file": name, "author": author, "api_format": api_format})
+
     def write_docs(self, author: str, api_format: str, docs: list[Doc], **kw: Any) -> None:
         """One response in which the model writes each document with one tool call."""
         self.stream(author, api_format, [write_call(d, api_format, i + 1) for i, d in enumerate(docs)], **kw)
