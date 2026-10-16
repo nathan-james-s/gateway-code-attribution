@@ -88,8 +88,9 @@ the gateway and opens one PR per case (pass `--only edited trivial` to run some)
 1. `GCA_CREDENTIAL=<key> uv run gca demo run --repo <ORG>/gca-sample --inject-faults truncated=3,unexpected_format=2 --faults-only`
    **Expect:** the Grafana **Coverage** dashboard shows exactly 3 truncated and 2 unexpected-format losses, none
    counted as human (SC-005).
-2. `kubectl -n gca scale deploy/gca-gca-capture-extproc --replicas=0` (with agentgateway; or stop NATS), run demo
-   traffic, then scale it back to 2.
+2. Stop capture's path to ingest, run demo traffic, then restore it. With agentgateway,
+   `kubectl -n gca scale deploy/gca-gca-capture-extproc --replicas=0`, then back to 2. With either gateway, stop NATS:
+   `kubectl -n gca scale statefulset/gca-nats --replicas=0`, then back to 1.
    **Expect:** every gateway request succeeds (FR-005a). Coverage shows a loss period with cause
    `heartbeat_missed` or `buffer_overflow`. PRs whose window overlaps it show **incomplete coverage**.
 

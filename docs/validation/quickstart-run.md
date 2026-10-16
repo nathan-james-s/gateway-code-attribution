@@ -78,6 +78,21 @@ installed. The owner estimates the missed step at about 10 seconds, so the run w
    lib/tests/golden` collects nothing (exit code 5): that directory holds the corpus and its generator, while the
    test is `lib/tests/test_golden.py`. **Fixed** in the quickstart.
 
+7. **`scn-pending` never showed "Waiting for capture to catch up"** (section 2 below). The scenario scales ingest
+   to zero, then opens its PR. But ingest runs as PID 1 and had no SIGTERM handler, so it ignored the signal and
+   kept consuming for the full 30-second grace period, until Kubernetes killed it. It stored a heartbeat sent
+   after the PR was recorded, the watermark passed the PR, and prcheck completed the check at once. The demo model
+   had the same missing handler. This also explains the 30 seconds every ingest restart took (finding 2).
+   **Fixed**: ingest stops consuming on SIGTERM and exits (measured on this cluster: gone 3 s after scaling to
+   zero, before 30 s), the demo model exits on SIGTERM, and `scn-pending` waits until the ingest pod has gone
+   before it opens the PR.
+
+8. **Fault injection crashed with LiteLLM** (section 4 below). `gca demo run --inject-faults` sends deliberately
+   broken responses. LiteLLM closes the connection when an upstream stream is malformed, while agentgateway
+   passes it on, so the demo client raised `httpx.RemoteProtocolError` on the first `unexpected_format` fault and
+   stopped. The fault had already gone through the gateway, and capture recorded it. **Fixed**: the client treats
+   a cut connection on a fault request as sent, and carries on.
+
 Not guide issues: the first LiteLLM `gca demo run` got HTTP 401 because the key was read into a misspelled variable.
 The two attempts were recorded as `unknown_credential` losses, which correctly don't affect coverage.
 
@@ -134,13 +149,56 @@ model (`gca_eval.gateways._Upstream`, Python's `http.server`). It was waiting on
 the gateway under test shut down after its run, and they appear after Locust's final stats. No request failed. It's
 log noise, not a result.
 
-## Not yet run
+## Section 2: real PRs and edge cases (User Story 2)
 
-These are for the owner:
+Run by the owner at 18:05 UTC with LiteLLM: `gca demo scenarios --repo nathan-james-s/gca-sample` (PRs
+[#3](https://github.com/nathan-james-s/gca-sample/pull/3)–[#11](https://github.com/nathan-james-s/gca-sample/pull/11)).
+Each PR's per-line results in the store were compared with its answer key, `.gca-expected.json`, at every head.
 
-- **Section 2 (edge cases)**: `gca demo scenarios` opens about 10 PRs on the sample repository.
-- **Section 4 (coverage and fail-open)**.
-- **The SC-011 check**: Claude Code through the gateway with only environment variables. It needs the owner's
-  gateway key.
+| Case | PR | Lines matching the answer key | Result |
+|---|---|---|---|
+| unmodified AI lines | #11 | 11/11 | ✅ |
+| edited AI lines | #4 | 17/17 | ✅ |
+| typed-only lines | #9 | 8/8 | ✅ |
+| braces, blanks, `else {` | #8 | 7/7 | ✅ |
+| rebase onto a moved base, then squash (SC-004) | #7 | 16/16 at the final head | ✅ The first head was force-pushed within seconds, before the 30 s poll saw it. That's expected with polling delivery |
+| cherry-pick (SC-004) | #3 | 10/10 | ✅ |
+| PR opened while ingest is paused | #6 | 12/12 | ❌ the check never showed "Waiting for capture to catch up" (finding 7) |
+| the same, rerun with finding 7's fix (`--only pending`, 22:27 UTC) | [#13](https://github.com/nathan-james-s/gca-sample/pull/13) | 12/12 | ✅ the check showed "Waiting for capture to catch up" while ingest was paused, then completed after it resumed |
+| commit by an account with no gateway credential | #10 | 13/13 | ✅ |
+| two mapped authors | — | — | skipped by the owner: needs a second GitHub account with a credential (`--second-login`, `GCA_CREDENTIAL_2`). No automated test covers it either, so crediting each line to its commit's author is unverified |
+| a new push to an open PR | #5 | 8/8 and 13/13 | ✅ both heads attributed, the first kept |
 
-T120 stays open until these are recorded here.
+Every check showed incomplete coverage, from the Mac's earlier sleeps (finding 3). The answer keys say
+`complete`, but no line outcome depends on coverage. The report labels the run `agentgateway` because
+`--gateway` wasn't passed. That flag only labels the report: traffic went through `--gateway-url`, here LiteLLM.
+
+## Section 4: coverage and fail-open (User Story 4)
+
+| Step | Result |
+|---|---|
+| 1. Injected faults: `--inject-faults truncated=3,unexpected_format=2 --faults-only` | ✅ exactly 3 `truncated` (Anthropic Messages) and 2 `unexpected_format` (OpenAI Responses) losses recorded, the source of the Coverage dashboard's per-cause panel. Fault-only traffic opens no PR and captures no lines, so none counted as human. The run stopped after the first `unexpected_format` fault (finding 8); after the fix, `unexpected_format=1` sent the second |
+| 2. NATS stopped (`kubectl -n gca scale statefulset/gca-nats --replicas=0`), demo run, NATS restored | ✅ every gateway request succeeded and [#12](https://github.com/nathan-james-s/gca-sample/pull/12) opened. A `heartbeat_missed` loss covers the outage (18:10:49–18:11:03 UTC), and #12 shows incomplete coverage |
+
+## SC-011: no install for coding tools
+
+✅ Claude Code 2.1.292, run by the owner with LiteLLM, on their usual profile (signed in to claude.ai), with only
+environment variables. `ANTHROPIC_BASE_URL=http://localhost:4000`, `ANTHROPIC_AUTH_TOKEN=<sk-gca- key from the
+portal>`, `ANTHROPIC_MODEL`/`ANTHROPIC_SMALL_FAST_MODEL`/`ANTHROPIC_DEFAULT_HAIKU_MODEL=demo-anthropic`, and
+`ANTHROPIC_API_KEY` unset. `claude -p "hello"` got the demo model's reply. Nothing was installed: no plug-in, hook
+or settings change. The key took precedence over the claude.ai sign-in (Claude Code says so in a warning), so no
+separate profile is needed. Claude Code also warns that `demo-anthropic` isn't in its model catalog, which only
+affects its context-window estimate.
+
+The first attempts got HTTP 401 because the token wasn't the current LiteLLM gateway key: an older key, then the
+OpenRouter provider key. The gateway only accepts the personal `sk-gca-` key from the portal, and issuing a new
+one replaces the previous key for that gateway.
+
+## Not run
+
+- **Section 2, two mapped authors**: skipped by the owner (see above).
+- **Section 3 (reporting and roles)**: needs an organization with teams; the owner's App is on a personal account.
+- **Section 5 (bring your own key)**: optional, and it spends provider credit.
+
+Every other section of the quickstart was run on this machine for both gateways and is recorded above, with
+each mismatch fixed. T120 is complete.
