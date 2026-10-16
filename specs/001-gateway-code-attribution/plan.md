@@ -359,6 +359,25 @@ docs/                             # install, per-tool routing, outcomes, privacy
   construction; a library test checks it on generated PRs and a database test against the full load.
 - **Migration 0006 deletes pre-release fingerprints**: rows written before these changes (3-gram, 32-value
   alg 1) can't be compared with new ones. Their capture events keep their metadata.
+- **Real traffic (T112, Claude Code 2.1.292 through OpenRouter, 18 responses)**: differs from the scripted
+  fixtures in ways the parser already tolerates: thinking blocks carrying only a signature, extra `message_delta`
+  fields, and OpenRouter's `event: data` / `data: [DONE]` after `message_stop` (not Anthropic's format). Claude
+  Code used `Write`, `Edit` (with `replace_all`), `Read` and `Bash`, and no `MultiEdit`. Both gateways capture
+  every line the library reads from each recording, with no loss. Replaying the recorded Write and Edit calls
+  reproduced the owner's task folder byte for byte, so scenario `corpus-claude-code` (129 lines) labels the
+  committed files as the model's, plus four scripted human changes; it scores 129/129. Authoring it found that a
+  "human" line I picked had been written by the model earlier in the session, which the spec defines as AI
+  unmodified: the generator now refuses a human or changed line equal to any line the model wrote.
+- **Threshold margins; frozen at 0.35 / 0.75 (T113, owner's decision 2026-10-15)**: on the whole set under the
+  eval's one key, calibration scores the same for broad 0.50-0.85 and its tie-break (higher broad) picks 0.85.
+  But only two labelled lines are true broad matches (0.859, 0.875), so at 0.85 one flips with the key; the
+  closest human line to an AI line scores 0.695; the lowest true anchored match is 0.375. Scoring every pair
+  under 50 keys (fingerprinting the scenario streams offline, which conformance shows equals gateway capture):
+  anchored 0.35 wrongly called one human line AI modified under 1 key in 50 (about 0.06% of anchored predictions
+  on average, though 3.1% for that key, since the set has about 32 anchored predictions); 0.40 called none but
+  missed real AI edits under 10-32% of keys; broad 0.50 let human lines through under some keys (up to 25% of
+  broad predictions) and 0.85 lost true broad matches. Frozen at anchored 0.35, broad 0.75. The release gate
+  scores one key, so it can't see key-dependent outcomes; scoring several keys in the eval is a follow-up.
 - **Release gate (T110)**: `release-gate.yml` runs on PRs to `main` and is called by `release.yml`, so nothing is
   published below the bar. It failed on the first measurements above; with the matching changes the scenario
   set meets the bar on both gateways. It isn't a required merge check yet.

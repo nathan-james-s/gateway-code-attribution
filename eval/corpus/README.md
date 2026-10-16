@@ -22,8 +22,8 @@ model output (Constitution II), and `scripts/check-no-recorder.sh --images` chec
    python3 eval/corpus/record.py --tool claude-code
    ```
 
-4. Point the tool at `http://localhost:4100` instead of `:4000`, with the same gateway key, and do each task in
-   [tasks.md](tasks.md) in a fresh, empty folder. Each model response lands in
+4. Point the tool at `http://localhost:4100` instead of `:4000`, with the same gateway key, and do the tasks in
+   [tasks.md](tasks.md), in order, in one fresh, empty folder. Each model response lands in
    `eval/corpus/<tool>/<api_format>/<n>.sse`. Requests and keys are never written.
 5. Stop it with Ctrl+C. Write `eval/corpus/<tool>/setup.md`: the tool's version, and what you changed to route it
    (the endpoint and the credential only; no install, SC-011).

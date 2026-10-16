@@ -33,6 +33,12 @@ jobs:
       - uses: actions/checkout@v4
       - run: scripts/check-no-recorder.sh
 
+  supported-tools:  # T113 (FR-045): a tool is listed as supported only with a consented, recorded corpus
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/check-supported-tools.sh
+
   release-bar:  # T110: the spec's SC-002/SC-003 and the schema's release_bar constants agree
     runs-on: ubuntu-latest
     steps:

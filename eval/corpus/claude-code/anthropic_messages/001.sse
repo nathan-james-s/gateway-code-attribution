@@ -1,0 +1,36 @@
+event: message_start
+data: {"type":"message_start","message":{"id":"msg_011Cg55evupx3qjSHTxZ2vhx","type":"message","role":"assistant","container":null,"content":[],"model":"anthropic/claude-haiku-5.5","stop_reason":null,"stop_details":null,"stop_sequence":null,"usage":{"input_tokens":1221,"output_tokens":5,"output_tokens_details":null,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0},"inference_geo":"global","server_tool_use":null,"service_tier":"standard","speed":"standard"},"provider":"Azure"}}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":"","signature":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"CAQSwAoKEAgSGAI4AUIIdGhpbmtpbmcSDFq6oUehMw7pgNzXFhoMwt5ltL8wuxLQWMBVIjArGR6g1JpoW1kyNtO8w6skug97Z7CeNiy6cbqXi2HKlGi5nAqtfDRT76QEfynDFZkq3QnvcO0XmnCfjpYJlYR4hBLzImM3+0KM4m1GKyg64HT5COHy20x5HDbawlQdzzLM7Rp9uqx8BTHCgnTdddkV/C18tkvDGbaGNsorGKbxVnJVOd0kTJv6Y/viQ5t10TXB2+JV3OoNAgEaN3+v26I1E81zXaccG+6dz1UmA+aglWni1jUUEWxbZidx1KAxmOQGfrW03v5OhuyLLlVN2gve1brOH+Lny2gr0ejZhUrzCHWoBe8cr6BTw1GxnQqv9bb5XodMoG+8mROPtgjAQs6XChlrimd3uCiDNv/+2oZCHbhY2xb4YaLR8PNffeWNi9r1iDcJI0/ZRpyGRuyxahfROabz496BLOIuFyuAZeNIrr21wGJQk3cTPEb60IyB0XAxR7SCXlQVsnok++ychj7y3BjAwXB4w9UxgdBXT62LiFc3C9ilUyftrivwf/R86e5gi9syLy2oLzVjxnx3pexV8VLO4qMhMNtiXFPWCgfGZhQOCCRMzToYjjU2mpXT7aHR20s4gfPYC1y208cIyMurmi+soRwYl9RTI6OhmA0Xh6yqGHgqXli3it+Qf8AeLqWUOcMSA49WwvxojWJiPxGz6v3gaSP+rW7ahcb8WfoAzI2/YbgGuzisj32hWoB9dK4oWo+5AC6xZFWlLxpYuU7ynyhQ8zE8rATHlnfweVNJR/qsyEQbu2tjhWdXbtEM/1T/Nbp9yRqOdjSalimIBOl8D/W2MLVSQYxIXEX7NBtYfhFlcibZJwlccRCykob3ksHOthZaYM6TxZ9cqnw97ZIsIi5wIrvFN5wYzYq9xuqAxmJnnfKZPd6SqBN2CQJSoKYLcOm7SnzC2m393mAIQly7ha11/GgwX4kBzyMqW5pkI59jMWH1uVrtKuFcZqsD0Zpk7H5uLvFOJY4dPZ/+tLa90puejxG16cOg4Wmsd5o8ToBX3meccc/SScwpFQikH4yq++Z1idVT7cdf8qs+VZR1BNhM8fAYps7owg8KpbdqzdvODqEgHKO3zDsDAmDL2PYPnGH0fw7M2TLIQ2enGIJ5ugjoUXg/QW5wh1bTRQaKj+YL0QqvJtxdEnceKiCxioxZHheN6fzXs7XTdr9VTC2fCU/VSLHJ8gT8VluFf6SrgmNyTFMpe2tCvllvOg6At0Z9I2CsUIZQMRXjsR4wvfI07csnkG1f8YZMY/Q+QTpuzNEGuIXqcKobm3cHnThTB5zeQonAuZAzyPcMCUg+IMA+YHfeSFM9wzayVkTNSN+fpcdbJkfNsMcKsxw5jawfZovGI8wKUdwbF4E26jY3bIzjWdqcQVTu4hjLFBn8kUHzIaZi3ZNa6kP1Vg+3TfIziL+zcNsBmB+cXDzKHGWP1GqoHCZobX+DWvLGbNCoGutbElVC214ZtH1qU7ea2zMlLG9uzEKqa8UuWIIb0q+QAaUfPdQ/QO70PhiYF/VpEDWxR8xWdNp6bTcSuTZs2sGcAZaTeo3yfJKyrurI7ZF6gLw3Nz+PGOQD+G+aT1cJ9VGDnGIDI4bRhW+fFR/SqnlFXzoBEVu1fyaFsUfZlb6Cz6Bte1J3IJDwUVWTTdwvWpDcaLafkKDCBx1d9Nrq2VCoMUPzvzdOGniktemRF/Gx5IRLUVaZ2Ws0FRaokyfGeOf89x5jCZ8lLhL0MXbQDvVlK/EYAQ==.eyJlbmRwb2ludF9zbHVnIjoiYW50aHJvcGljL2NsYXVkZS1oYWlrdS01LjUtMjAyNjEwMDd8YXp1cmUvZ2xvYmFsIn0"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0}
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"text","text":"","citations":[]}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"{\"title\": \"In"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"ventory.py reserve function"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"\"}"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1}
+
+event: message_delta
+data: {"type":"message_delta","delta":{"container":null,"stop_details":null,"stop_reason":"end_turn","stop_sequence":null},"usage":{"input_tokens":1221,"output_tokens":282,"output_tokens_details":{"thinking_tokens":263},"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0},"server_tool_use":null,"service_tier":"standard","speed":"standard","cost":0.0002631,"is_byok":false,"cost_details":{"upstream_inference_cost":0.0002631,"upstream_inference_prompt_cost":0.0001221,"upstream_inference_completions_cost":0.000141}},"context_management":null}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+event: data
+data: [DONE]
+

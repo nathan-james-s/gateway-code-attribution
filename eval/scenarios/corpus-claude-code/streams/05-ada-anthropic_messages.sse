@@ -1,0 +1,42 @@
+event: message_start
+data: {"type":"message_start","message":{"id":"msg_011Cg55fxScidB3g1krred35","type":"message","role":"assistant","container":null,"content":[],"model":"anthropic/claude-haiku-5.5","stop_reason":null,"stop_details":null,"stop_sequence":null,"usage":{"input_tokens":2,"output_tokens":5,"output_tokens_details":null,"cache_creation_input_tokens":359,"cache_read_input_tokens":45671,"cache_creation":{"ephemeral_5m_input_tokens":359,"ephemeral_1h_input_tokens":0},"inference_geo":"global","server_tool_use":null,"service_tier":"standard","speed":"standard"},"provider":"Claude Platform on AWS"}}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":"","signature":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"CAQS4QkKEAgSGAI4AUIIdGhpbmtpbmcSDEg3fKIIhZN2H+dgwRoMNY1wl/QWwR6O6ahcIjD+/V58+8inzgxsqZPUiCKP42tX5hy/DrB+g+EgplJD1fR5w/VQ2OlvpVWp4I2HBHUq/gj1zUDijLff744+hOd7bumiyI3LhmUBhHA6CtadR1qNrff1kJ7QyiVXg7xEtlHJ4UDfCnP2H/gc7VuRrEeumhvpzwTQCeVwyqZgT80H8JcKR2oDw5q88jYDaILMqhugmN9RsWLyNDHnJ8ahQUDjlunAgVTw4svlPmMgkyoJOayBT36L+UvtQxCzRfEIDt9VaxdfPwUopsWGxwevbnEFwgPycCEPVGexhC79q/+KfCdY1NE3V5ytEIUwJZVS7XgzOwnStH3V8kzcESxOXVZvQLVbuqaESDhZAyZwn9ZIUks7y4vH/umKGsTIhJXhHW+Jjf0wzYMZRmYZSx5F02DSa1vOHXtaI1L4kK6l0j/IJHwn0AH1xQnncnxI98qR0joXpI9IXfb4vHbjbVGZZikhoMBRnJI/npbJurSACJk5IcQLvs8acrgOIMpXrCVuIE8LrhKlHgd0ChFdG2CyqRx4dbqbKnm4QnSGkFbBZRapSD686orBmQnUy5u880DURyOszzK3WNfVf+Wbn+XgVK9HYQzteMlAKhrYWrsevH4FD8ziYfeFGkRb3cEFQiuob8Oet1h6YMGFrAnku6pvRYHL71K1rLpLDZ1H4YDCfhCXw/p3hTTjuRIHkOsWbTyW73vKD5zUSnvEmJJrJS4vTcMhiDnzgDV8pgn8Nnoj5Xv8M6oNzPfv5Lwq0hwWzdUQmL/3Zt1gyFDRKlJ11GKMpDvK2Zo4n5UP3n5yJ3SnevhXJG5zUgohQi7Ad+H52ErvcItxFCTNCvmLQ7yuxpX76y9mVPvoRETLX2BVa+TtTRlK3pCm6zo6AWzN1IuSpZ0zfi+c7wKY+N8M4uZxBrZoNsObdkf+P+7VFTa6LPIZ5cjwdh9QJyTNi9X5oNE6IFBoiHt1T4FQnZ35bxZ5SWE9DcdwV/uaGfqklRYwIswkn/ooEGuNxq4SowoTiEB/gDAvuQ9EyQ2pszuIsWU3X9P/ZJ3q+sDtCiI8IlLpIPgv88ABVAy4Guy94aq8qP/ctIwB/kNYhcogxaWMBSlM8vpuF8nXeEaOkQrVvT57GnBJ3mUFtHJHnSWy9AY1cFPrDPNATyftUkYDUoK/XTJS2oDTQNPpdIaSZkz+9KFksdQmfxpOIXz1l8uHYYVvEpKtHu4P8zH2cgiLzhm6MydBxmHJJ1wCS/VuTsjqUFA8L6DaSopXpxxqAGy7E8fnT5TT5aytShqqNKFFvFXrZqR09JBhelZUxeyAY1RCBpw2bGptijQtcK0HqseCKHxu3ZuBmJebDuLU+wWVvDRzPCQURXVPZNMWviLPX+iOgyX1g7rH9exbzLJh7o16XHPymuNcx5Am6tYQeddysRHvqOgyCYR3GxjUzqC8JIbNzd9vd4/lQnhzNz6krgQNYi6ye9FD6aettGaU5YWiZTisatI2smxY699z2wMKaek7klhM58+vmWj4YNBqq2O5cYC666IwvuML86eB2lwR5ZsM3mVYYlEqgzyyFC2YiXhYyKAoDjIXb3cK2+f482WJ+1LKW37YDm8WV+oWGAE=.eyJlbmRwb2ludF9zbHVnIjoiYW50aHJvcGljL2NsYXVkZS1oYWlrdS01LjUtMjAyNjEwMDd8Y2xhdWRlLW9uLWF3cyJ9"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0}
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_01MxBtaFrdRRdgFchzU7B4GS","caller":{"type":"direct"},"name":"Read","input":{}}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\"file_path\": \"/"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"Users/home/gca-"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"corpus/inventory."}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"py"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\"}"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1}
+
+event: message_delta
+data: {"type":"message_delta","delta":{"container":null,"stop_details":null,"stop_reason":"tool_use","stop_sequence":null,"safeguard_results":[{"type":"dangerous_tool_use","status":{"type":"available","tool_uses":{}}}]},"usage":{"input_tokens":2,"output_tokens":243,"output_tokens_details":{"thinking_tokens":177},"cache_creation_input_tokens":359,"cache_read_input_tokens":45671,"cache_creation":{"ephemeral_5m_input_tokens":359,"ephemeral_1h_input_tokens":0},"server_tool_use":null,"service_tier":"standard","speed":"standard","cost":0.000623285,"is_byok":false,"cost_details":{"upstream_inference_cost":0.000623285,"upstream_inference_prompt_cost":0.000501785,"upstream_inference_completions_cost":0.0001215}},"context_management":{"applied_edits":[]}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+event: data
+data: [DONE]
+

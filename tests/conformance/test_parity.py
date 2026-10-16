@@ -1,5 +1,6 @@
-"""Cross-gateway conformance (T063; FR-006; R4): every probe fixture and every demo-session step, replayed
-through agentgateway + ext_proc and through LiteLLM + its callback, yields identical multisets of
+"""Cross-gateway conformance (T063, T112; FR-006, FR-045; R4): every probe fixture, every demo-session step and
+every recorded real-traffic response, replayed through agentgateway + ext_proc and through LiteLLM + its callback,
+yields identical multisets of
 (t, l, x, m, b, p) per capture event and the same loss records. Malformed and truncated streams must be reported
 as loss, never dropped silently, on both gateways."""
 
@@ -24,6 +25,7 @@ CASES: list[tuple[str, str, str]] = [  # (id, api format, request text)
         for s in sessions().values()
         for i, step in enumerate(s.steps)
     ),
+    *h.corpus_cases(),
 ]
 
 
@@ -52,6 +54,23 @@ def test_same_capture_on_both_gateways(results: dict[str, dict[str, Any]], case_
     assert [e["lines"] for e in ag["events"]] == [e["lines"] for e in ll["events"]], case_id
     assert [e["status"] for e in ag["events"]] == [e["status"] for e in ll["events"]], case_id
     assert ag["failures"] == ll["failures"], case_id
+
+
+@pytest.mark.parametrize("case_id", [c[0] for c in h.corpus_cases()])
+def test_recorded_traffic_is_captured_as_the_library_reads_it(
+    results: dict[str, dict[str, Any]], case_id: str
+) -> None:
+    """Real traffic (FR-045): each gateway captures every line the library reads from the recording, and reports
+    no loss for a complete response."""
+    ref = next(text for cid, _, text in h.corpus_cases() if cid == case_id).split("=", 1)[1]
+    want = h.corpus_lines(ref)
+    for gw, r in results[case_id].items():
+        got = sorted(line for e in r["events"] for line in e["lines"])
+        assert got == want, (gw, case_id, len(got), len(want))
+        assert r["failures"] == [] and all(e["status"] == "captured" for e in r["events"]), (
+            gw,
+            r["failures"],
+        )
 
 
 def test_truncated_stream_is_reported_as_loss(results: dict[str, dict[str, Any]]) -> None:

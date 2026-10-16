@@ -1,0 +1,399 @@
+event: message_start
+data: {"type":"message_start","message":{"id":"msg_011Cg55f8CUxeX2MWrkDbhbS","type":"message","role":"assistant","container":null,"content":[],"model":"anthropic/claude-haiku-5.5","stop_reason":null,"stop_details":null,"stop_sequence":null,"usage":{"input_tokens":2,"output_tokens":8,"output_tokens_details":null,"cache_creation_input_tokens":295,"cache_read_input_tokens":43467,"cache_creation":{"ephemeral_5m_input_tokens":295,"ephemeral_1h_input_tokens":0},"inference_geo":"global","server_tool_use":null,"service_tier":"standard","speed":"standard"},"provider":"Claude Platform on AWS"}}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":"","signature":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"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.eyJlbmRwb2ludF9zbHVnIjoiYW50aHJvcGljL2NsYXVkZS1oYWlrdS01LjUtMjAyNjEwMDd8Y2xhdWRlLW9uLWF3cyJ9"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0}
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_01NzUvjVjt5xPY7A1UZNSthv","caller":{"type":"direct"},"name":"Write","input":{}}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\"file_path\": \"/"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"Users/home/gca-cor"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"pus/inventory.py"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\", \"content\": \"def reserve"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"(stock, sku, qu"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"antity):\\n    if"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":" quantity < 0:"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\\n        raise ValueError("}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"f\\\"quantity must be non"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"-negative, got {quant"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ity}\\\")\\n    available = st"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ock.get(sku, "}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"0)\\n    if available"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":" < quantity:\\n        ra"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ise ValueError(f\\\""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"not enough stock for {s"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ku}: requ"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ested {quantity}, available"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":" {available}\\\")\\n    stock"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"[sku] = available - qu"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"antity\\n"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\"}"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1}
+
+event: content_block_start
+data: {"type":"content_block_start","index":2,"content_block":{"type":"tool_use","id":"toolu_01NXrLZrjHf1JKXqN7npaxb9","caller":{"type":"direct"},"name":"Write","input":{}}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"{\"file_path\": \"/"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"Users/home/gca-"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"corpus/test_invent"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ory.py"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\", \"content\": \"import"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" unittest\\n\\nfrom inventory"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" import reserve\\n\\n\\nclass Re"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"serveTests"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"(unittest.TestC"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ase):\\n    def test_sub"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"tracts_quantity_"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"from_stock(self):"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\n        stock = {\\\"ap"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ple\\\": 10}\\n        re"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"serve(stock, \\\"ap"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ple\\\", 4"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":")\\n        self.assertE"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"qual(stock[\\\""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"apple\\\"], 6)"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\n\\n    def test_reserving_"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"exact_rem"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"aining_stock_le"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"aves_zero(self):"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\n        stock = {\\\"ap"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ple\\\": 3"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"}\\n        reserve(st"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ock, \\\"apple\\\", 3"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":")\\n        self.assertE"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"qual(stock[\\\"apple"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\\"], 0)\\n\\n    def"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" test_raises_when_not"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"_enough_stock(self"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"):\\n        stock = {\\\""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"apple\\\": 2"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"}\\n        with self.assert"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"Raises(ValueError"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"):\\n            reserve(st"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ock, \\\"apple\\\", 5"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":")\\n\\n    def test_failed"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"_reser"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ve_leaves_stock"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"_unchanged(self):"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\n        stock = {\\\"ap"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ple\\\": 2}\\n        with"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" self.assertRaises("}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ValueError):\\n            re"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"serve(stock, \\\"ap"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ple\\\", 5)\\n        self"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":".assertEqual(st"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ock[\\\"apple\\\"], 2"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":")\\n\\n    def test_un"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"known_sku_raises"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"_value_error(self):"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\n        stock = {\\\"apple"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\\": 2}\\n        with self"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":".assertRaises("}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ValueError):\\n            reser"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ve(stock, \\\"pear"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\\", 1)\\n        self."}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"assertNotIn(\\\"p"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ear\\\", stock)\\n\\n    def"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" test_neg"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ative_quantity_raises"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"_"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"value_error(self):\\n        "}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"stock = {\\\"apple\\\":"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" 2}\\n        with self."}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"assertRaises(Val"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ueError):\\n            reserve"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"(stock, \\\"apple\\\","}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":" -1)\\n        self.ass"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ertEqual(stock[\\\""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"apple\\\"], 2)"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\n\\n    def test_other_sk"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"us_are_untouched("}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"self):\\n        stock = {"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\\"apple\\\": 5"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":", \\\"pear\\\": 7"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"}\\n        reserve(st"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"ock, \\\"apple\\\", 1"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":")\\n        self.assertE"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"qual(stock[\\\"pear"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\\"], 7)\\n\\n\\nif __"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"name__ == \\\"__main__"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\\\":\\n    unittest.main"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"()\\n"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":2,"delta":{"type":"input_json_delta","partial_json":"\"}"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":2}
+
+event: content_block_start
+data: {"type":"content_block_start","index":3,"content_block":{"type":"tool_use","id":"toolu_01W9QwXJTMYPEG9FUZVaSvoK","caller":{"type":"direct"},"name":"Bash","input":{}}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"input_json_delta","partial_json":"{\"command\": \"cd /"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"input_json_delta","partial_json":"Users/home/gca-"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"input_json_delta","partial_json":"corpus && python3"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"input_json_delta","partial_json":" -m"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"input_json_delta","partial_json":" unittest -"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"input_json_delta","partial_json":"v test_inventory "}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"input_json_delta","partial_json":"2>&1"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"input_json_delta","partial_json":"\", \"description\": \"Run the in"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"input_json_delta","partial_json":"ventory tests with"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"input_json_delta","partial_json":" unittest"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":3,"delta":{"type":"input_json_delta","partial_json":"\"}"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":3}
+
+event: message_delta
+data: {"type":"message_delta","delta":{"container":null,"stop_details":null,"stop_reason":"tool_use","stop_sequence":null,"safeguard_results":[{"type":"dangerous_tool_use","status":{"type":"available","tool_uses":{"toolu_01NzUvjVjt5xPY7A1UZNSthv":{"type":"skipped"},"toolu_01NXrLZrjHf1JKXqN7npaxb9":{"type":"skipped"},"toolu_01W9QwXJTMYPEG9FUZVaSvoK":{"type":"evaluated","outcome":"not_flagged"}}}}]},"usage":{"input_tokens":2,"output_tokens":1459,"output_tokens_details":{"thinking_tokens":454},"cache_creation_input_tokens":295,"cache_read_input_tokens":43467,"cache_creation":{"ephemeral_5m_input_tokens":295,"ephemeral_1h_input_tokens":0},"server_tool_use":null,"service_tier":"standard","speed":"standard","cost":0.001201245,"is_byok":false,"cost_details":{"upstream_inference_cost":0.001201245,"upstream_inference_prompt_cost":0.000471745,"upstream_inference_completions_cost":0.0007295}},"context_management":{"applied_edits":[]}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+event: data
+data: [DONE]
+

@@ -20,6 +20,7 @@ gateways (agentgateway and LiteLLM) serve the same paths, so these settings don'
 
 **Validation status**: routing works with the settings below. A tool is listed as *supported* only after real
 traffic from it has been recorded into the evaluation corpus (constitution, "Real-traffic validation"; task
-T112). Until then, attribution for that tool is covered by the scripted demo sessions and fixtures.
+T112): see [supported.md](supported.md). So far that's Claude Code. For the others, attribution is covered by the
+scripted demo sessions and fixtures.
 
 Interactions the gateway can't see are listed in [not-observed.md](not-observed.md).

@@ -1,7 +1,8 @@
 # Scripted coding tasks for the corpus
 
 Small, synthetic tasks: cheap to run (about 5-10 model turns each) and between them they exercise every way a
-tool writes code. Run each in a fresh, empty folder, in this order, and accept the tool's edits.
+tool writes code. Run all five in order in one fresh, empty folder (tasks 2, 3 and 5 change the files task 1
+creates), and accept the tool's edits. Clear the conversation between tasks so each starts small.
 
 1. **New file.** "Create `inventory.py` with a function `reserve(stock, sku, quantity)` that subtracts from a
    dict of stock levels and raises `ValueError` when there isn't enough. Add a test file for it."
