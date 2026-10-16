@@ -11,6 +11,10 @@ This guide proves the feature works from end to end. Each section maps to a user
 - A GitHub organization you administer, for the full roles and teams demo. A personal account works too, but team
   and team-lead features need an organization.
 - No model or API key is needed for the demo. Bring-your-own keys are optional (section 5).
+- Keep the machine awake from step 3 on (on macOS, leave `caffeinate -i` running in another terminal). While it
+  sleeps, capture stops sending heartbeats, so ingest records a capture gap. Every PR whose matching window
+  (14 days by default) overlaps that gap then shows **incomplete** coverage, which is correct but fails the
+  `complete` expectation in section 1.
 
 ## 1. Install and see a sample change (User Story 1, SC-001)
 
@@ -46,7 +50,10 @@ nor does the `creating kind cluster` part of step 3.
    `GCA_CREDENTIAL=<litellm key> uv run gca demo run --repo <ORG>/gca-sample --gateway litellm`.
    Time it from the upgrade to the completed check.
    **Expect:** the second PR's check shows the same counts as the first, and its per-line view in the portal
-   gives the same outcome for every line (User Story 1 scenario 5; the end-to-end test checks this line by line).
+   gives the same outcome for every line (User Story 1 scenario 5), with coverage `complete`. The demo writes the
+   same code both times, so some of the second PR's lines may match the first run's agentgateway captures. That
+   attribution is correct, but it means this manual step doesn't prove LiteLLM parity on its own. The end-to-end
+   test does: it clears captures between the gateways and compares the two PRs line by line.
 
 ## 2. Real PRs and edge cases (User Story 2)
 

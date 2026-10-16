@@ -199,3 +199,45 @@ def test_a_short_gap_between_instances_is_not_an_outage(conn: Connection) -> Non
     cap.heartbeat(1, shutting_down=True)  # a rolling update: the old pod stops, the new one is starting
     assert sweep(conn, GW)["outages"] == 0
     assert _outages(conn) == []
+
+
+def _open_agentgateway_capture(conn: Connection) -> None:
+    """Other suites' agentgateway instances may be active; close them here (rolled back with the test)."""
+    conn.execute(text("UPDATE capture_instance SET status = 'closed' WHERE gateway_type = 'agentgateway'"))
+
+
+def test_switching_gateways_ends_the_old_gateways_outage(conn: Connection) -> None:
+    _open_agentgateway_capture(conn)
+    old = Capture(conn, "agentgateway")
+    last = datetime.now(UTC) - timedelta(minutes=5)
+    old.heartbeat(0, last)
+    old.heartbeat(1, last, shutting_down=True)  # the upgrade removed agentgateway's capture
+    assert sweep(conn, "agentgateway")["outages"] == 1  # the old ingest saw nothing capturing
+
+    def outage() -> Any:
+        return conn.execute(
+            text(
+                "SELECT period_end FROM capture_loss WHERE instance_id IS NULL AND cause = 'heartbeat_missed' "
+                "AND gateway_type = 'agentgateway' AND period_start = :ps"
+            ),
+            {"ps": last},
+        ).one()
+
+    sweep(conn, GW)  # ingest now runs for LiteLLM, whose capture hasn't started: still nothing capturing
+    assert outage().period_end is None
+    started = datetime.now(UTC)
+    Capture(conn).heartbeat(0, started)  # LiteLLM's capture is up
+    sweep(conn, GW)
+    assert outage().period_end == started
+
+
+def test_switching_gateways_ends_a_dead_old_instances_loss(conn: Connection) -> None:
+    _open_agentgateway_capture(conn)
+    dead = Capture(conn, "agentgateway")
+    dead.heartbeat(0, datetime.now(UTC) - timedelta(minutes=3))
+    sweep(conn, "agentgateway")
+    assert dead.losses("heartbeat_missed")[0].period_end is None
+    Capture(conn).heartbeat(0)  # the gateway was switched; no agentgateway instance will replace it
+    sweep(conn, GW)
+    (loss,) = dead.losses("heartbeat_missed")
+    assert loss.period_end is not None and dead.status() == "closed"

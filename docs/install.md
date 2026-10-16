@@ -137,6 +137,15 @@ if your files are elsewhere. It maps **http://localhost:8080** (portal), **http:
 **http://localhost:3000** (Grafana) to your machine. Re-run it, or `make demo-upgrade`, after changing code or
 values.
 
+If `make demo-upgrade` ends with `error: timed out waiting for the condition` and
+`kubectl -n gca get deploy gca-gca-ingest` shows `0/1` with no ingest pod, the cluster's controller missed
+creating the new pod. This can happen on kind after the machine sleeps (its log shows `service account token has
+expired`). Restart ingest and carry on:
+
+```bash
+kubectl -n gca rollout restart deploy/gca-gca-ingest
+```
+
 `make demo` labels the namespace to enforce Pod Security **restricted**: every pod in the release runs as a
 non-root user, with no added capabilities and a seccomp profile. On your own cluster, label the namespace the same
 way before installing:
