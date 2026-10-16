@@ -136,6 +136,18 @@ if your files are elsewhere. It maps **http://localhost:8080** (portal), **http:
 **http://localhost:3000** (Grafana) to your machine. Re-run it, or `make demo-upgrade`, after changing code or
 values.
 
+`make demo` labels the namespace to enforce Pod Security **restricted**: every pod in the release runs as a
+non-root user, with no added capabilities and a seccomp profile. On your own cluster, label the namespace the same
+way before installing:
+
+```bash
+kubectl label namespace gca pod-security.kubernetes.io/enforce=restricted pod-security.kubernetes.io/warn=restricted
+```
+
+The chart also installs NetworkPolicies (`networkPolicies.enabled`) so that only the services that use them reach
+PostgreSQL, NATS and the capture processor; they take effect where the cluster's network plugin enforces
+NetworkPolicy.
+
 With OrbStack's own Kubernetes (`orb config set k8s.enable true`), run `make demo CLUSTER=orbstack` instead. Images
 built with OrbStack's Docker are visible to its Kubernetes without loading; reach the services with
 `kubectl port-forward`.

@@ -23,7 +23,7 @@ responsible for their own compliance (FR-040).
 |---|---|---|
 | Exact fingerprint | `captured_line.exact_fp` | first 16 bytes of HMAC-SHA256(key, normalized tokens) |
 | Similarity signature | `captured_line.minhash` | 128 keyed MinHash values over the line's token 2-grams |
-| LSH bands | `lsh_band` | 8 keyed hashes of groups of 4 MinHash values |
+| LSH bands | `captured_line.bands` | 8 keyed hashes of groups of 4 MinHash values |
 | Path fingerprints | `captured_line.path_suffix_fps` | keyed hashes of the last 1 to 3 path components named by the tool call |
 | Capture metadata | `capture_event` | time, developer, model name, API format, tool hint, counts. No content |
 | Results | `line_result`, `change_head` | file path, line number, outcome, tier, similarity, credited developer |

@@ -166,21 +166,15 @@ One non-trivial normalized line of model output. Partitioned by day on `captured
 | `path_suffix_fps` | bytea[] | keyed fingerprints of the last 1, 2 and 3 path components of the tool call's file path; empty if there was no path (R7) |
 | `exact_fp` | bytea(16) | HMAC-SHA256 of the normalized token string, truncated (R8) |
 | `minhash` | int4[128] | keyed MinHash signature (R9) |
+| `bands` | int8[8] | the 8 keyed LSH band hashes over the first 32 signature values, as signed int8 (R9) |
 | `alg`, `key_gen` | int, smallint | |
 
-**Indexes**: `(developer_id, exact_fp, captured_at)`; unique `(capture_event_id, tool_call_ordinal, line_ordinal,
+**Indexes**: `(developer_id, exact_fp, captured_at)`; GIN `(developer_id, bands)` (btree_gin) for the broad
+tier's band lookup; unique `(capture_event_id, tool_call_ordinal, line_ordinal,
 captured_at)`, so a redelivered part of an event sent in parts adds nothing (migration 0006).
 
-### LshBand
-| Field | Type | Rules |
-|---|---|---|
-| `captured_line_id` | bigint | |
-| `developer_id` | uuid | |
-| `band` | smallint | 0–7 |
-| `band_hash` | bytea(8) | keyed |
-| `captured_at` | timestamptz | partition key, the same as CapturedLine |
-
-**Index**: `(developer_id, band, band_hash, captured_at)`.
+*LSH bands were a separate `lsh_band` table (8 rows per line, about 75% of a line's storage) until migration
+0007 moved them into `captured_line.bands` (T115).*
 
 ### CaptureLoss
 | Field | Type | Rules |
@@ -283,7 +277,7 @@ Each view exposes `*_with_broad` and `*_without_broad` columns so the toggle (FR
 
 ## Retention
 
-- `captured_line` and `lsh_band` partitions older than `retention_days` (default 90) are dropped every day.
+- `captured_line` partitions older than `retention_days` (default 90) are dropped every day.
 - `capture_event` metadata is kept for the same period.
 - `change_head` and `line_result` are kept indefinitely by default. They hold no content and are the reporting
   record. Adopters can configure this.

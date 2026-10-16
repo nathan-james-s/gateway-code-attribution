@@ -118,7 +118,7 @@ jobs:
         with: {name: "digest-${{ matrix.image }}", path: "digest-${{ matrix.image }}.txt"}
 
   chart:
-    needs: [versions, release-gate]
+    needs: [versions, release-gate, images]   # the chart pins the digests of the images just built
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -126,7 +126,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-helm@v4
+      - uses: actions/download-artifact@v4
+        with: {pattern: "digest-*", path: digests, merge-multiple: true}
+      - name: Pin this release's images by digest (T119)
+        run: |
+          values=charts/gateway-code-attribution/values.yaml
+          for f in digests/digest-*.txt; do
+            image=$(basename "$f" .txt); image=${image#digest-}; digest=$(cut -d@ -f2 < "$f")
+            if [ "$image" = gca-litellm ]; then
+              yq -i ".gateway.litellm.image.tag = \"${{ needs.versions.outputs.version }}\" | .gateway.litellm.image.digest = \"$digest\"" "$values"
+            else
+              yq -i ".images.digests.\"${image#gca-}\" = \"$digest\"" "$values"
+            fi
+          done
       - run: scripts/helm-repos.sh && helm dependency build charts/gateway-code-attribution
+      - run: scripts/check-image-digests.sh --release
       - run: helm lint charts/gateway-code-attribution --set github.existingSecret=gca-github-app
       - run: |
           mkdir -p chart && helm package charts/gateway-code-attribution -d chart

@@ -21,9 +21,10 @@ app.kubernetes.io/component: {{ .component }}
 {{- if $img.digest -}}{{ printf "%s:%s@%s" $img.repository $img.tag $img.digest }}{{- else -}}{{ printf "%s:%s" $img.repository $img.tag }}{{- end -}}
 {{- end -}}
 
-{{/* project image: <registry>/gca-<name>:<tag> */}}
+{{/* project image: <registry>/gca-<name>:<tag>, plus @<digest> once a release has pinned it (images.digests) */}}
 {{- define "gca.projectImage" -}}
-{{- printf "%s/gca-%s:%s" .root.Values.images.registry .name .root.Values.images.tag -}}
+{{- $digest := get (.root.Values.images.digests | default dict) .name -}}
+{{- printf "%s/gca-%s:%s" .root.Values.images.registry .name .root.Values.images.tag -}}{{ if $digest }}@{{ $digest }}{{ end }}
 {{- end -}}
 
 {{- define "gca.postgresHost" -}}

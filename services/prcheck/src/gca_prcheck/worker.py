@@ -21,7 +21,7 @@ from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.orm import Session
 
 import gcattr
-from gca_core.db.base import i32_to_u32
+from gca_core.db.base import bands_to_i64, i32_to_u32, i64_to_bands
 from gca_core.github import AppClient, ChangedFile
 from gca_core.identity import resolve_developer
 from gca_core.keys import KeyRing
@@ -57,9 +57,7 @@ _HEAD = text("""
 """)
 _CANDIDATES = text("""
     SELECT cl.capture_event_id::text AS event, cl.exact_fp, cl.minhash, cl.path_suffix_fps,
-           cl.tool_call_ordinal, cl.line_ordinal, cl.alg, cl.key_gen,
-           coalesce((SELECT array_agg(b.band_hash ORDER BY b.band) FROM lsh_band b
-                     WHERE b.captured_line_id = cl.id AND b.captured_at = cl.captured_at), '{}') AS bands
+           cl.tool_call_ordinal, cl.line_ordinal, cl.alg, cl.key_gen, cl.bands
     FROM captured_line cl
     WHERE cl.developer_id = :dev AND cl.captured_at >= :since AND cl.captured_at <= :until
 """)
@@ -156,23 +154,21 @@ def load_candidates(
 
 
 # Only the captures a PR's lines can match, through the indexes, instead of every capture in the window: exact
-# hits, band hits, and every line of a capture event with an exact hit (the anchored tier's pool). gcattr's
-# `select_candidates` is the same selection in memory; `lookup_keys` guarantees the outcomes are unchanged.
+# hits (ix_captured_line_dev_exact), lines sharing a band hash (the GIN index on (developer_id, bands)), and every
+# line of a capture event with an exact hit (the anchored tier's pool). The query fetches a superset: it ignores
+# a hash's band position and key generation. lookup_candidates then applies gcattr.select_candidates, so what
+# attribute() gets is exactly what it would select from every capture in the window, and outcomes are unchanged.
 _LOOKUP = text("""
     WITH exact AS (
         SELECT cl.id, cl.captured_at, cl.capture_event_id
-        FROM unnest(CAST(:x_alg AS int[]), CAST(:x_gen AS smallint[]), CAST(:x_fp AS bytea[])) AS k(alg, gen, fp)
-        JOIN captured_line cl ON cl.developer_id = :dev AND cl.exact_fp = k.fp
-             AND cl.captured_at >= :since AND cl.captured_at <= :until
-             AND cl.alg = k.alg AND cl.key_gen = k.gen
+        FROM captured_line cl
+        WHERE cl.developer_id = :dev AND cl.exact_fp = ANY(CAST(:fps AS bytea[]))
+          AND cl.captured_at >= :since AND cl.captured_at <= :until
     ), banded AS (
-        SELECT b.captured_line_id AS id, b.captured_at
-        FROM unnest(CAST(:b_alg AS int[]), CAST(:b_gen AS smallint[]), CAST(:b_band AS smallint[]),
-                    CAST(:b_hash AS bytea[])) AS k(alg, gen, band, hash)
-        JOIN lsh_band b ON b.developer_id = :dev AND b.band = k.band AND b.band_hash = k.hash
-             AND b.captured_at >= :since AND b.captured_at <= :until
-        JOIN captured_line cl ON cl.id = b.captured_line_id AND cl.captured_at = b.captured_at
-             AND cl.alg = k.alg AND cl.key_gen = k.gen
+        SELECT cl.id, cl.captured_at
+        FROM captured_line cl
+        WHERE cl.developer_id = :dev AND cl.bands && CAST(:bands AS bigint[])
+          AND cl.captured_at >= :since AND cl.captured_at <= :until
     ), anchored AS (
         SELECT cl.id, cl.captured_at
         FROM captured_line cl
@@ -183,9 +179,7 @@ _LOOKUP = text("""
         UNION SELECT id, captured_at FROM anchored
     )
     SELECT cl.capture_event_id::text AS event, cl.exact_fp, cl.minhash, cl.path_suffix_fps,
-           cl.tool_call_ordinal, cl.line_ordinal, cl.alg, cl.key_gen,
-           coalesce((SELECT array_agg(b.band_hash ORDER BY b.band) FROM lsh_band b
-                     WHERE b.captured_line_id = cl.id AND b.captured_at = cl.captured_at), '{}') AS bands
+           cl.tool_call_ordinal, cl.line_ordinal, cl.alg, cl.key_gen, cl.bands
     FROM wanted w JOIN captured_line cl ON cl.id = w.id AND cl.captured_at = w.captured_at
 """)
 
@@ -194,21 +188,15 @@ def lookup_candidates(
     conn: Connection, developer_id: uuid.UUID, since: datetime, until: datetime, keys: gcattr.LookupKeys
 ) -> list[Candidate]:
     """The developer's captures in the window that the lines behind ``keys`` can match (see ``_LOOKUP``)."""
-    x = sorted(keys.exact)
-    b = sorted(keys.bands)
     params = {
         "dev": developer_id,
         "since": since,
         "until": until,
-        "x_alg": [k[0] for k in x],
-        "x_gen": [k[1] for k in x],
-        "x_fp": [k[2] for k in x],
-        "b_alg": [k[0] for k in b],
-        "b_gen": [k[1] for k in b],
-        "b_band": [k[2] for k in b],
-        "b_hash": [k[3] for k in b],
+        "fps": sorted({fp for _, _, fp in keys.exact}),
+        "bands": sorted(set(bands_to_i64([h for _, _, _, h in keys.bands]))),
     }
-    return [_candidate(r) for r in conn.execute(_LOOKUP, params).fetchall()]
+    fetched = [_candidate(r) for r in conn.execute(_LOOKUP, params).fetchall()]
+    return gcattr.select_candidates(fetched, keys)
 
 
 def _candidate(r: Any) -> Candidate:
@@ -221,7 +209,7 @@ def _candidate(r: Any) -> Candidate:
         r.line_ordinal,
         r.alg,
         r.key_gen,
-        tuple(bytes(b) for b in r.bands),
+        i64_to_bands(r.bands),
     )
 
 

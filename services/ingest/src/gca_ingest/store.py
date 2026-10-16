@@ -7,12 +7,12 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import insert, text
+from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import Connection
 
-from gca_core.db.base import u32_to_i32
-from gca_core.db.models_capture import CapturedLine, LshBand
+from gca_core.db.base import bands_to_i64, u32_to_i32
+from gca_core.db.models_capture import CapturedLine
 from gca_core.messages import line_from_wire
 
 from .loss import STALE_AFTER_SECONDS, close_heartbeat_loss, mark_stale_instances, record_failure, track_seq
@@ -130,11 +130,9 @@ def _event(conn: Connection, msg: dict[str, Any]) -> None:
         return
     if not lines:
         return
-    bands_by_line: dict[tuple[int, int], tuple[bytes, ...]] = {}
     rows = []
     for wire in lines:
         ln = line_from_wire(wire)
-        bands_by_line[(ln["tool_call_ordinal"], ln["line_ordinal"])] = ln["lsh_bands"]
         rows.append(
             {
                 "captured_at": received,
@@ -145,6 +143,7 @@ def _event(conn: Connection, msg: dict[str, Any]) -> None:
                 "path_suffix_fps": list(ln["path_suffix_fps"]),
                 "exact_fp": ln["exact_fp"],
                 "minhash": u32_to_i32(ln["minhash"]),
+                "bands": bands_to_i64(ln["lsh_bands"]),
                 "alg": msg["alg"],
                 "key_gen": msg["key_gen"],
             }
@@ -155,7 +154,7 @@ def _event(conn: Connection, msg: dict[str, Any]) -> None:
         .on_conflict_do_nothing(
             index_elements=["capture_event_id", "tool_call_ordinal", "line_ordinal", "captured_at"]
         )
-        .returning(line_table.c.id, line_table.c.tool_call_ordinal, line_table.c.line_ordinal),
+        .returning(line_table.c.id),
         rows,
     ).fetchall()
     if not inserted:
@@ -164,18 +163,6 @@ def _event(conn: Connection, msg: dict[str, Any]) -> None:
         text("UPDATE capture_event SET line_count = line_count + :n WHERE id = :id"),
         {"n": len(inserted), "id": event_id},
     )
-    band_rows = [
-        {
-            "captured_line_id": line_id,
-            "band": b,
-            "captured_at": received,
-            "developer_id": developer_id,
-            "band_hash": h,
-        }
-        for line_id, tco, lo in inserted
-        for b, h in enumerate(bands_by_line[(tco, lo)])
-    ]
-    conn.execute(insert(LshBand.__table__), band_rows)
 
 
 def _failure(conn: Connection, msg: dict[str, Any]) -> None:

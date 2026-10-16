@@ -27,3 +27,4 @@ values-byo.yaml
 # Helm dependency archives (Chart.lock is committed)
 charts/*/charts/*.tgz
 scenarios-report.json
+tests/perf/results/

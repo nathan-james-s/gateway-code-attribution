@@ -140,7 +140,7 @@ def demo_run(
     if clear_captures:
         # Each gateway's PR may only match its own gateway's captures; otherwise identical demo code would
         # match the previous run's fingerprints and the parity check would prove nothing.
-        cluster.psql("TRUNCATE captured_line, lsh_band, capture_event")
+        cluster.psql("TRUNCATE captured_line, capture_event")
     user = json.loads(run(["gh", "api", "user"]))
     key = (
         cluster.kubectl(

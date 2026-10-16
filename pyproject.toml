@@ -30,6 +30,9 @@ dev = [
     "testcontainers[postgres]>=4.8",
     "pytest-asyncio>=0.24",
 ]
+perf = [
+    "locust==2.32.4",
+]
 
 # ---------------------------------------------------------------- lint / type-check (T005)
 [tool.ruff]

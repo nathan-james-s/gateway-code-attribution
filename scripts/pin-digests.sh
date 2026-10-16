@@ -14,10 +14,16 @@ for name in $(yq '.images | keys | .[]' versions.yaml); do
   yq -i ".images.\"$name\".digest = \"$digest\"" versions.yaml
   echo "$name $ref:$tag -> $digest"
 done
+# Third-party images in the chart. This project's own images (gca-*, including gca-litellm) are pinned by
+# release.yml from the digests of the images it builds; versions.yaml's litellm entry is the upstream image we
+# don't run, so it is never mirrored.
 values=charts/gateway-code-attribution/values.yaml
 if [ -f "$values" ]; then
-  yq -i ".gateway.agentgateway.image.digest = \"$(yq '.images.agentgateway.digest' versions.yaml)\"" "$values"
-  yq -i ".gateway.litellm.image.digest = \"$(yq '.images.litellm.digest' versions.yaml)\"" "$values"
-  yq -i ".postgres.image.digest = \"$(yq '.images.postgres.digest' versions.yaml)\"" "$values"
+  d() { yq ".images.\"$1\".digest" versions.yaml; }
+  yq -i ".gateway.agentgateway.image.digest = \"$(d agentgateway)\"" "$values"
+  yq -i ".postgres.image.digest = \"$(d postgres)\"" "$values"
+  yq -i ".nats.container.image.digest = \"$(d nats)\"" "$values"
+  yq -i ".nats.reloader.image.digest = \"$(d nats-reloader)\"" "$values"
+  yq -i ".grafana.image.sha = \"$(d grafana | sed 's/^sha256://')\"" "$values"
   echo "updated $values"
 fi

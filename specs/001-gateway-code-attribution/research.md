@@ -304,14 +304,19 @@ alongside applies. These are not open questions.
   - The `captured_line` table is partitioned by day, with retention of 90 days by default, enforced by dropping
     whole partitions.
   - Indexes:
-    - `(gateway_identity_id, exact_fp, captured_at)` for the exact tier;
-    - `(capture_event_id)` for the anchored tier;
-    - `lsh_band (gateway_identity_id, band_hash, captured_at)` for the broad tier.
+    - `(developer_id, exact_fp, captured_at)` for the exact tier;
+    - `(capture_event_id, tool_call_ordinal, line_ordinal, captured_at)` (unique) for the anchored tier;
+    - a GIN index on `(developer_id, bands)` for the broad tier: the 8 band hashes are a column of the line
+      (migration 0007). They were a separate `lsh_band` table with a row per band until T115 measured it.
   - Migrations use Alembic.
 - **Sizing estimate (assumption, to validate)**: 500 developers × 2,000 captured non-trivial lines per day × 90
   days ≈ 90M lines. At about 230 bytes per line (16-byte exact fingerprint, 128-byte signature, 8 band hashes,
   metadata) plus indexes, that's about 30–40 GB. The chart defaults to a 100 Gi volume and documents sizing
   (SC-013).
+  *Measured (T115, PostgreSQL 17, real tables and indexes): about 2,650 bytes per line with 128-value signatures
+  and band rows, about 241 GB at 90M lines. The 230-byte estimate left out PostgreSQL's per-row and per-index
+  overhead, which the 8 band rows multiplied. With the bands inline (migration 0007) it's 1,464 bytes per line,
+  about 123 GiB of fingerprints at 90M lines, so the default volume is now 200 Gi; see docs/sizing.md.*
 - **Rationale**: one relational store serves exact lookups, the anchored joins, LSH candidate lookups and the
   dashboards. The official image avoids Bitnami (Constitution VI).
 - **Alternatives considered**:

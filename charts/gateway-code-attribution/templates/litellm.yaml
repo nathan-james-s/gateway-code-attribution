@@ -81,9 +81,7 @@ spec:
             httpGet: {path: /health/liveliness, port: 4000}
             periodSeconds: 5
             failureThreshold: 30
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities: {drop: [ALL]}
+          securityContext: {{- include "gca.containerSecurity" . | nindent 12 }}
           resources:
             requests: {cpu: 250m, memory: 512Mi}
             limits: {memory: 2Gi}

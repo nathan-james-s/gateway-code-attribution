@@ -47,17 +47,17 @@ spec:
           readinessProbe:
             exec: {command: ["pg_isready", "-U", "gca", "-d", "gca"]}
             periodSeconds: 5
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities: {drop: [ALL]}
+          securityContext: {{- include "gca.containerSecurity" . | nindent 12 }}
           resources:
             requests: {cpu: 250m, memory: 512Mi}
             limits: {memory: 2Gi}
           volumeMounts:
             - {name: data, mountPath: /var/lib/postgresql/data}
             - {name: run, mountPath: /var/run/postgresql}
+            - {name: tmp, mountPath: /tmp}   # the root filesystem is read-only
       volumes:
         - {name: run, emptyDir: {}}
+        - {name: tmp, emptyDir: {sizeLimit: 256Mi}}
   volumeClaimTemplates:
     - metadata:
         name: data
