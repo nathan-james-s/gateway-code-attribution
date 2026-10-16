@@ -8,6 +8,9 @@ a PR. All code involved is synthetic demo content.
 from __future__ import annotations
 
 import argparse
+import asyncio
+import base64
+import contextlib
 import json
 import os
 import shutil
@@ -20,12 +23,14 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import yaml
 
+from gca_core.github import AppClient, install_url
 from gcattr import CapturedToolOutput, CaptureFailure, parse_stream
 
 from .sessions import FAULTS, Session, demo_sessions, fault_marker, marker
 
-__all__ = ["apply_human_edit", "apply_output", "play", "register"]
+__all__ = ["apply_human_edit", "apply_output", "check_installation", "load_app", "play", "register"]
 
 Sender = Callable[[str, str], bytes]  # (api_format, marker text) -> response body
 
@@ -36,6 +41,11 @@ MODELS = {
     "gemini_native": "demo-gemini",
 }
 WORKSPACE = "/workspace/"
+APP_SECRET = "github-app.secret.yaml"  # noqa: S105 - the file `gca setup github-app` writes, not a secret
+APP_SECRET_HELP = (
+    "the GitHub App's Secret manifest, used to check the App is installed on the repository "
+    f"(default: $GCA_GITHUB_APP_SECRET, else ./{APP_SECRET})"
+)
 
 
 class DemoError(RuntimeError):
@@ -248,6 +258,68 @@ def _commit(repo: Path, message: str, login: str, email: str) -> None:
     )
 
 
+# ---------------------------------------------------------------------------------------------- the GitHub App
+def load_app(path: str | None) -> AppClient | None:
+    """The App from the Secret manifest `gca setup github-app` wrote, or None if it can't be found or read."""
+    secret = Path(path or os.environ.get("GCA_GITHUB_APP_SECRET") or APP_SECRET).expanduser()
+    try:
+        doc = yaml.safe_load(secret.read_text()) or {}
+        fields = dict(doc.get("stringData") or {})
+        for k, v in (doc.get("data") or {}).items():  # a Secret exported with kubectl holds base64 `data`
+            fields.setdefault(k, base64.b64decode(v).decode())
+    except (OSError, yaml.YAMLError, AttributeError, TypeError, ValueError):
+        return None
+    app_id, key = fields.get("appId"), fields.get("privateKey")
+    if not (app_id and key and str(app_id).isdigit()):
+        return None
+    return AppClient(int(app_id), str(key))
+
+
+async def _repo_status(gh: AppClient, repo: str) -> tuple[str, bool]:
+    owner, name = repo.split("/", 1)
+    return await gh.app_slug(), await gh.repo_installation(owner, name) is not None
+
+
+def _install_steps(slug: str, repo: str) -> str:
+    return f"{install_url(slug)} and select {repo} (Only select repositories, or All repositories)"
+
+
+def check_installation(gh: AppClient | None, repo: str) -> None:
+    """Fail before opening a PR the App can't see: with no installation on ``repo`` no check would appear."""
+    if gh is None:
+        print(
+            f"  warning: no GitHub App credentials ({APP_SECRET} or $GCA_GITHUB_APP_SECRET), so it can't "
+            f"be checked that the App is installed on {repo}; without that, no check appears on the PR"
+        )
+        return
+    try:
+        slug, installed = asyncio.run(_repo_status(gh, repo))
+    except Exception as exc:
+        print(f"  warning: could not check the GitHub App's installation on {repo}: {exc}")
+        return
+    if not installed:
+        raise DemoError(
+            f"the GitHub App {slug} is not installed on {repo}, so no attribution check would appear on "
+            f"the PR. Install it: {_install_steps(slug, repo)}. Then run this again."
+        )
+
+
+def _install_hint(gh: AppClient | None, repo: str) -> str:
+    status: tuple[str, bool] | None = None
+    if gh is not None:
+        with contextlib.suppress(Exception):  # fall back to the generic directions below
+            status = asyncio.run(_repo_status(gh, repo))
+    if status is None:
+        return (
+            "Install the GitHub App on it next: on the App's settings page on GitHub, choose Install App "
+            f"and select {repo}."
+        )
+    slug, installed = status
+    if installed:
+        return f"The GitHub App {slug} is already installed on it."
+    return f"Install the GitHub App on it next: {_install_steps(slug, repo)}."
+
+
 def _cmd_run(args: argparse.Namespace) -> int:
     credential = args.credential or os.environ.get("GCA_CREDENTIAL")
     if not credential:
@@ -258,6 +330,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
         inject_faults(faults, send)
     if args.faults_only:
         return 0
+    check_installation(load_app(args.app_secret), args.repo)
     all_sessions = demo_sessions()
     chosen = [all_sessions[n] for n in (args.sessions or sorted(all_sessions))]
     login, email = _gh_identity()
@@ -324,10 +397,12 @@ def _cmd_init_repo(args: argparse.Namespace) -> int:
         shutil.copytree(sample_repo_dir(), repo, dirs_exist_ok=True, ignore=ignore)
         if not _run(["git", "status", "--porcelain"], repo):
             print(f"{args.repo} already has the sample project")
+            print(_install_hint(load_app(args.app_secret), args.repo))
             return 0
         _commit(repo, "Add the gca sample project", login, email)
         _run(["git", "push", "-q", "-u", "origin", "HEAD:main"], repo)
-    print(f"Pushed the sample project to {args.repo} (main). Install the GitHub App on it next.")
+    print(f"Pushed the sample project to {args.repo} (main).")
+    print(_install_hint(load_app(args.app_secret), args.repo))
     return 0
 
 
@@ -346,12 +421,14 @@ def register(sub: Any) -> None:
         help="first send N truncated and M schema-deviant responses through the gateway (coverage testing)",
     )
     p.add_argument("--faults-only", action="store_true", help="only inject the faults; open no PR")
+    p.add_argument("--app-secret", default=None, help=APP_SECRET_HELP)
     p.set_defaults(func=lambda a: _guard(_cmd_run, a))
     from .scenarios import register as register_scenarios
 
     register_scenarios(demo_sub)
     i = demo_sub.add_parser("init-repo", help="create the sample repository and push the sample project")
     i.add_argument("--repo", required=True, help="OWNER/NAME")
+    i.add_argument("--app-secret", default=None, help=APP_SECRET_HELP)
     i.set_defaults(func=lambda a: _guard(_cmd_init_repo, a))
 
 

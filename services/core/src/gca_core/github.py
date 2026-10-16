@@ -12,6 +12,7 @@ from urllib.parse import urlencode
 
 import httpx
 from githubkit import AppAuthStrategy, GitHub, TokenAuthStrategy
+from githubkit.exception import RequestFailed
 
 __all__ = [
     "AppClient",
@@ -23,6 +24,7 @@ __all__ = [
     "UserClient",
     "authorize_url",
     "exchange_code",
+    "install_url",
 ]
 
 BLAME_QUERY = """
@@ -70,6 +72,11 @@ class BlameRange:
     commit_sha: str
 
 
+def install_url(slug: str) -> str:
+    """Where a person installs the App on their account or organization and picks its repositories."""
+    return f"https://github.com/apps/{slug}/installations/new"
+
+
 @dataclass
 class AppClient:
     app_id: int
@@ -91,6 +98,20 @@ class AppClient:
                 app.auth.as_installation(installation_id)  # type: ignore[union-attr]
             )
         return self._installations[installation_id]
+
+    async def app_slug(self) -> str:
+        resp = await self._app().rest.apps.async_get_authenticated()
+        return str(resp.parsed_data.slug)
+
+    async def repo_installation(self, owner: str, repo: str) -> dict[str, Any] | None:
+        """The App's installation that covers ``owner/repo``, or None if the App isn't installed on it."""
+        try:
+            resp = await self._app().rest.apps.async_get_repo_installation(owner, repo)
+        except RequestFailed as exc:
+            if exc.response.status_code == 404:
+                return None
+            raise
+        return resp.parsed_data.model_dump()
 
     async def list_installations(self) -> list[dict[str, Any]]:
         resp = await self._app().rest.apps.async_list_installations(per_page=100)
