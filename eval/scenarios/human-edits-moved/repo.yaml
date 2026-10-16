@@ -1,0 +1,26 @@
+description: Edited lines in other files; path-only matches.
+category: human-edits
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-openai_chat.sse
+  author: ada
+  api_format: openai_chat
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    lib/batching.py: "    return [items[i:i + size] for i in range(0, len(items), size or 1)]\n    return [x for x in items\
+      \ if not (x in seen or seen.add(x))][:limit]\ndef first(items):\n    return items[0] if items else None\n"
+    lib/util.py: "def chunked(items, size=100):\ndef dedupe(items, key=None):\n    keyed = items if key is None else map(key,\
+      \ items)\n    return list(dict.fromkeys(keyed))\n"
+pr:
+  base: main
+  head: feature

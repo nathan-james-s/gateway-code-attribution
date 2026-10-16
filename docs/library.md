@@ -17,12 +17,12 @@ gca version
    LiteLLM's callback objects. Both yield `CapturedToolOutput` values, and `CaptureFailure` values instead of
    raising, so a caller can count what it couldn't read.
 2. **Fingerprints code lines.** `extract(output, key, alg)` normalizes each line, drops trivial ones and returns
-   `LineFingerprint`s: a 16-byte keyed exact fingerprint, a 32-value MinHash signature with 8 LSH bands, and keyed
+   `LineFingerprint`s: a 16-byte keyed exact fingerprint, a 128-value MinHash signature with 8 LSH bands (over its first 32 values), and keyed
    fingerprints of the last one to three path components. Nothing in a fingerprint can be turned back into code
    without the key. `gcattr.io.fingerprint_outputs` does this for a whole response, numbering its tool calls.
 3. **Attributes added lines.** `attribute(lines, candidates_by_author, keys, alg)` matches each `AddedLine` against
-   the captures of the developer it's credited to, in tiers (exact; anchored similarity; broad similarity), each
-   capture used at most once. `summarize(outcomes)` counts the results with and without broad matches.
+   the captures of the developer it's credited to, in tiers (exact; anchored similarity; broad similarity; then
+   lines a formatter wrapped or split, joined back together), each capture used at most once. `summarize(outcomes)` counts the results with and without broad matches.
 
 See [outcomes.md](outcomes.md) for what each outcome means, and
 [contracts/library-api.md](../specs/001-gateway-code-attribution/contracts/library-api.md) for the full API.

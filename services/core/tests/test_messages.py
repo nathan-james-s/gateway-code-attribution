@@ -9,7 +9,7 @@ from gcattr import CapturedToolOutput, FingerprintKey, extract
 
 KEY = FingerprintKey(1, b"\x42" * 32)
 ENV = {
-    "schema": "gca.capture.v1",
+    "schema": "gca.capture.v2",
     "instance_id": "8f1c1b0e-6a4c-4b31-9d1f-3a0f8a2a1c11",
     "seq": 0,
     "gateway_type": "litellm",
@@ -68,3 +68,38 @@ def test_schema_types_enforced() -> None:
     )
     with pytest.raises(messages.MessageError):
         messages.encode({**ENV, **body})
+
+
+def _encoded_event() -> bytes:
+    body = messages.event_body(
+        api_format="openai_chat",
+        model="m",
+        received_at=messages.now_iso(),
+        status="captured",
+        alg=1,
+        key_gen=1,
+        lines=_lines(),
+        tool_call_count=1,
+    )
+    return messages.encode({**ENV, **body})
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("m", "!" * 684),  # schema-valid length, not base64: the lenient decoder would give 0 values
+        ("m", "A" * 680 + "AA=="),  # base64, but 511 bytes
+        ("x", "!!!!"),
+        ("x", "AAAA"),  # 3 bytes, not 16
+        ("b", ["AAAA"] * 8),  # 3-byte bands
+        ("p", ["!"]),
+        ("p", ["AAAAAAAAAAAAAAAAAAAA"]),  # 15 bytes, not 16
+    ],
+)
+def test_binary_fields_must_decode_strictly_to_their_size(field: str, value: object) -> None:
+    import json
+
+    msg = json.loads(_encoded_event())
+    msg["lines"][0][field] = value
+    with pytest.raises(messages.MessageError):
+        messages.decode(json.dumps(msg).encode())

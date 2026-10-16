@@ -1,0 +1,4 @@
+edits:
+- file: fmt/plugins.ts
+  formatter: prettier
+  model_text_lines: 8

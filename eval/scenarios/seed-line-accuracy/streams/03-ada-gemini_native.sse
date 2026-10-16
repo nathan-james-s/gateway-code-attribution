@@ -1,0 +1,4 @@
+data: {"candidates": [{"content": {"role": "model", "parts": [{"text": "Working on it."}]}, "index": 0}], "modelVersion": "demo"}
+
+data: {"candidates": [{"content": {"role": "model", "parts": [{"functionCall": {"name": "write_file", "args": {"file_path": "/workspace/src/receipts.ts", "content": "export interface ReceiptLine {\n  sku: string;\n  quantity: number;\n  totalCents: number;\n}\n\nexport function receiptTotal(lines: ReceiptLine[]): number {\n  return lines.reduce((sum, line) => sum + line.totalCents, 0);\n}\n\n"}}}]}, "finishReason": "STOP", "index": 0}], "usageMetadata": {"promptTokenCount": 10, "candidatesTokenCount": 50, "totalTokenCount": 60}, "modelVersion": "demo"}
+

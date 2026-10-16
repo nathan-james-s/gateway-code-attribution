@@ -127,8 +127,33 @@ class GcaHandler(CustomLogger):  # type: ignore[misc]
     async def async_log_failure_event(
         self, kwargs: dict[str, Any], response_obj: Any, start_time: Any, end_time: Any
     ) -> None:
-        # A failed provider call produced no model output, so there is nothing to attribute and no capture loss.
-        return None
+        try:
+            self.failed(kwargs)
+        except Exception:  # never raise into LiteLLM
+            log.exception("capture failure handling failed")
+
+    def failed(self, kwargs: dict[str, Any]) -> None:
+        """A generative call LiteLLM failed. If the provider refused it (a 4xx: rate limit, bad request, auth), no
+        model output was produced and there's no loss. Otherwise (a 5xx, a dropped connection, or a stream LiteLLM
+        couldn't read, which it ends mid-response) the developer may already have received output that capture
+        never saw: that's counted as loss, never left silent (FR-005; found by the eval, T106)."""
+        call_type = str(kwargs.get("call_type") or "")
+        if call_type in _NO_CODE:
+            return
+        exc = kwargs.get("exception")
+        status = getattr(exc, "status_code", None)
+        if isinstance(status, int) and 400 <= status < 500:
+            return
+        md = _metadata(kwargs)
+        credential = md.get("user_api_key_alias")
+        hint = tool_hint(_request_headers(kwargs, md))
+        cause = "unexpected_format" if credential else "unknown_credential"
+        self.runtime().emit_failure(
+            cause,
+            credential_id=str(credential) if credential else None,
+            api_format=_CALL_FORMATS.get(call_type),
+            tool_hint=hint,
+        )
 
     async def capture(self, kwargs: dict[str, Any], response_obj: Any) -> None:
         rt = self.runtime()

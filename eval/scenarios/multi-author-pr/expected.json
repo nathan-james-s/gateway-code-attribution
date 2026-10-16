@@ -1,0 +1,42 @@
+{
+ "lines": {
+  "api/handlers.py:1": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "api/handlers.py:2": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "api/handlers.py:3": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "api/health.py:1": {
+   "outcome": "human",
+   "tags": []
+  },
+  "api/health.py:2": {
+   "outcome": "human",
+   "tags": []
+  },
+  "api/legacy.py:1": {
+   "outcome": "not_observed",
+   "tags": []
+  },
+  "api/legacy.py:2": {
+   "outcome": "not_observed",
+   "tags": []
+  },
+  "api/serializers.py:1": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "api/serializers.py:2": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

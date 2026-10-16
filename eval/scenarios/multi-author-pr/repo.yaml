@@ -1,0 +1,52 @@
+description: 'Several authors in one PR: lines are credited by blame.'
+category: multi-author
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+  bea: bea@example.test
+  carl: carl@example.test
+  ghost: ghost@example.test
+unmapped:
+- ghost
+streams:
+- file: 01-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 02-bea-openai_chat.sse
+  author: bea
+  api_format: openai_chat
+- file: 03-ada-openai_chat.sse
+  author: ada
+  api_format: openai_chat
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: bea
+  message: 'bea: change'
+  files:
+    api/serializers.py: "def serialize_user(user):\n    return {'id': user['id'], 'email': user['email']}\n"
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    api/handlers.py: "def get_user(db, user_id):\n    row = db.fetch_one('select * from users where id = ?', user_id)\n  \
+      \  return dict(row) if row else None\n"
+- op: commit
+  branch: feature
+  author: carl
+  message: 'carl: change'
+  files:
+    api/health.py: "def health(db):\n    return {'db': db.ping(), 'version': VERSION}\n"
+- op: commit
+  branch: feature
+  author: ghost
+  message: 'ghost: change'
+  files:
+    api/legacy.py: "def legacy_lookup(db, email):\n    return db.fetch_one('select id from users where email = ?', email)\n"
+pr:
+  base: main
+  head: feature

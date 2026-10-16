@@ -2,6 +2,7 @@
 #   - the gcattr wheel and sdist, with SHA256SUMS, to PyPI (trusted publishing, attestations) and the GitHub Release;
 #   - the service images to ghcr.io, multi-arch, with build provenance; digests go in the release notes;
 #   - the Helm chart, packaged with a checksum and pushed to ghcr.io as an OCI artifact.
+# Nothing is built or published until the release gate (release-gate.yml) passes on the tagged commit.
 #
 # One-time setup by the maintainer (docs/maintainers.md): a PyPI trusted publisher for this repository, workflow
 # `release.yml`, environment `pypi`; and a GitHub environment named `pypi`.
@@ -40,8 +41,12 @@ jobs:
           PY
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-  library:
+  release-gate:  # no release without meeting the release bar (T110, FR-044)
     needs: versions
+    uses: ./.github/workflows/release-gate.yml
+
+  library:
+    needs: [versions, release-gate]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,7 +71,7 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
 
   images:
-    needs: versions
+    needs: [versions, release-gate]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -113,7 +118,7 @@ jobs:
         with: {name: "digest-${{ matrix.image }}", path: "digest-${{ matrix.image }}.txt"}
 
   chart:
-    needs: versions
+    needs: [versions, release-gate]
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -113,7 +113,7 @@ def capture(conn: Any, gid: int) -> None:
     )
     iid = str(uuid.uuid4())
     env = {
-        "schema": "gca.capture.v1",
+        "schema": "gca.capture.v2",
         "instance_id": iid,
         "seq": 0,
         "gateway_type": "agentgateway",
@@ -136,7 +136,7 @@ def capture(conn: Any, gid: int) -> None:
 def heartbeat(conn: Any) -> None:
     conn.execute(text("UPDATE capture_instance SET status = 'stale' WHERE status = 'active'"))
     env = {
-        "schema": "gca.capture.v1",
+        "schema": "gca.capture.v2",
         "instance_id": str(uuid.uuid4()),
         "seq": 0,
         "gateway_type": "agentgateway",

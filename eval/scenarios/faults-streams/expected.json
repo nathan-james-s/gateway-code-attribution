@@ -1,0 +1,18 @@
+{
+ "lines": {
+  "jobs/cleanup.py:1": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "jobs/cleanup.py:2": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  }
+ },
+ "loss": {
+  "truncated": 1,
+  "unexpected_format": 1,
+  "seq_gap": 1
+ },
+ "attributable": true
+}

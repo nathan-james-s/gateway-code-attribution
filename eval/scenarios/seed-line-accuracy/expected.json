@@ -1,0 +1,245 @@
+{
+ "lines": {
+  "src/inventory.py:1": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/inventory.py:10": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/inventory.py:11": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/inventory.py:12": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/inventory.py:13": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/inventory.py:14": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "src/inventory.py:15": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/inventory.py:16": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/inventory.py:17": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/inventory.py:18": {
+   "outcome": "human",
+   "tags": []
+  },
+  "src/inventory.py:19": {
+   "outcome": "human",
+   "tags": []
+  },
+  "src/inventory.py:2": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/inventory.py:3": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/inventory.py:4": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/inventory.py:5": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/inventory.py:6": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/inventory.py:7": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/inventory.py:8": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/inventory.py:9": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:1": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:10": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/pricing.py:11": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:12": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:13": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/pricing.py:14": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/pricing.py:15": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:16": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:17": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "src/pricing.py:18": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:19": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/pricing.py:2": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/pricing.py:20": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/pricing.py:21": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "src/pricing.py:22": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:23": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/pricing.py:24": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/pricing.py:25": {
+   "outcome": "human",
+   "tags": []
+  },
+  "src/pricing.py:26": {
+   "outcome": "human",
+   "tags": []
+  },
+  "src/pricing.py:3": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/pricing.py:4": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:5": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:6": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:7": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:8": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/pricing.py:9": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/receipts.ts:1": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/receipts.ts:10": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/receipts.ts:11": {
+   "outcome": "human",
+   "tags": []
+  },
+  "src/receipts.ts:12": {
+   "outcome": "human",
+   "tags": []
+  },
+  "src/receipts.ts:13": {
+   "outcome": "human",
+   "tags": []
+  },
+  "src/receipts.ts:14": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/receipts.ts:2": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/receipts.ts:3": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/receipts.ts:4": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/receipts.ts:5": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/receipts.ts:6": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "src/receipts.ts:7": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/receipts.ts:8": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "src/receipts.ts:9": {
+   "outcome": "indeterminate",
+   "tags": []
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

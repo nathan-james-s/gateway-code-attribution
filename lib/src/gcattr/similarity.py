@@ -12,13 +12,15 @@ __all__ = ["jaccard", "lsh_bands", "minhash", "shingles"]
 
 _MASK64 = (1 << 64) - 1
 _MIX = 0x9E3779B97F4A7C15
-_SHINGLE = 3
+_SHINGLE = 2
 
 
 def shingles(tokens: list[Token]) -> list[str]:
-    """Token 3-grams; the whole token list as one shingle for lines of 3-4 tokens."""
+    """Token 2-grams; the whole token list as one shingle for lines of up to 3 tokens. Bigrams, not trigrams: one
+    changed token on a short line removes two shingles instead of three, so an edited 6-10 token line stays
+    recognizably similar (measured on the scenario set, T109)."""
     texts = [t.text for t in tokens]
-    if len(texts) <= 4:
+    if len(texts) <= _SHINGLE + 1:
         return ["\x1f".join(texts)] if texts else []
     return ["\x1f".join(texts[i : i + _SHINGLE]) for i in range(len(texts) - _SHINGLE + 1)]
 
@@ -46,9 +48,11 @@ def minhash(tokens: list[Token], key: FingerprintKey, alg: int) -> tuple[int, ..
 
 
 def lsh_bands(signature: tuple[int, ...], key: FingerprintKey, alg: int) -> tuple[bytes, ...]:
+    """Keyed LSH bands over the first ``lsh_bands x lsh_rows`` signature values: candidate lookup only; the whole
+    signature decides similarity."""
     p = params_for(alg)
-    if len(signature) != p.lsh_bands * p.lsh_rows:
-        raise ValueError("signature length does not match lsh_bands x lsh_rows")
+    if len(signature) != p.minhash_size or p.lsh_bands * p.lsh_rows > p.minhash_size:
+        raise ValueError("signature length does not match minhash_size")
     out = []
     for b in range(p.lsh_bands):
         rows = signature[b * p.lsh_rows : (b + 1) * p.lsh_rows]

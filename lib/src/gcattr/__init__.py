@@ -12,7 +12,7 @@ from .algorithm import ALG, PARAMS, SUPPORTED_ALGS, AlgParams, UnicodeVersionMis
 from .classify import summarize
 from .extract import extract
 from .fingerprint import FingerprintKey
-from .match import attribute
+from .match import LookupKeys, attribute, lookup_keys, select_candidates
 from .streams import parse_stream
 from .types import (
     AddedLine,
@@ -42,12 +42,15 @@ __all__ = [
     "FingerprintKey",
     "LineFingerprint",
     "LineOutcome",
+    "LookupKeys",
     "UnicodeVersionMismatch",
     "UnsupportedAlg",
     "__version__",
     "attribute",
     "extract",
     "from_litellm",
+    "lookup_keys",
     "parse_stream",
+    "select_candidates",
     "summarize",
 ]

@@ -1,0 +1,28 @@
+description: AI output passed through black before committing (SC-003).
+category: formatters
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    fmt/config.py: "import json\n\n\ndef load_config(path, defaults=None):\n    defaults = defaults or {}\n    with open(path,\
+      \ encoding=\"utf-8\") as fh:\n        data = json.load(fh)\n    merged = {**defaults, **data}\n    missing = [key for\
+      \ key in (\"name\", \"version\", \"entrypoint\") if key not in merged]\n    if missing:\n        raise KeyError(\"missing\
+      \ config keys: \" + \", \".join(missing))\n    return merged\n\n\ndef summarize(config):\n    return {\n        \"name\"\
+      : config[\"name\"],\n        \"version\": config[\"version\"],\n        \"plugins\": len(config.get(\"plugins\", [])),\n\
+      \        \"debug\": bool(config.get(\"debug\")),\n    }\n"
+pr:
+  base: main
+  head: feature

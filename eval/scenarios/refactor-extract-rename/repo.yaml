@@ -1,0 +1,26 @@
+description: Renames and extractions across files.
+category: refactor
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-gemini_native.sse
+  author: ada
+  api_format: gemini_native
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    reports/sales.py: "from reports.periods import totals_by_month\n\n\ndef busiest_month(orders):\n    totals = totals_by_month(orders)\n\
+      \    return max(totals, key=totals.get)\n"
+    reports/periods.py: "def totals_by_month(orders):\n    totals = {}\n    for order in orders:\n        month = order['created'][:7]\n\
+      \        totals[month] = totals.get(month, 0) + order['total']\n    return dict(sorted(totals.items()))\n"
+pr:
+  base: main
+  head: feature

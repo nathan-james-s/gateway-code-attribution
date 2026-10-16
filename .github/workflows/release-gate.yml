@@ -1,0 +1,23 @@
+# The release gate (T110; Constitution V; FR-044). Runs the published scenario set through both gateways and fails
+# when the quality report misses the release bar (exit 10) or detects silent capture loss (exit 11).
+# release.yml calls this workflow, so no release is published without it.
+name: release-gate
+on:
+  pull_request:
+    branches: [main]
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --all-packages -p 3.12
+      - name: Quality report (both gateways)
+        run: uv run gca eval --scenarios eval/scenarios --gateway both --out report.json
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: {name: quality-report, path: report.json, if-no-files-found: warn}

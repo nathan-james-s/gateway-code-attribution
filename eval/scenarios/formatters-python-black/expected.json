@@ -1,0 +1,108 @@
+{
+ "lines": {
+  "fmt/config.py:1": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.py:10": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/config.py:11": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/config.py:12": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.py:13": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.py:14": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.py:15": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/config.py:16": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.py:17": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/config.py:18": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/config.py:19": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/config.py:2": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.py:20": {
+   "outcome": "ai_modified",
+   "tier": "any",
+   "tags": [
+    "formatter"
+   ]
+  },
+  "fmt/config.py:21": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.py:3": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "fmt/config.py:4": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/config.py:5": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/config.py:6": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/config.py:7": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/config.py:8": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "fmt/config.py:9": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

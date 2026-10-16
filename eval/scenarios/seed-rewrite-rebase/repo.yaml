@@ -1,0 +1,58 @@
+description: Agent commits rebased onto a moved base (SC-004).
+category: seed
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-openai_responses.sse
+  author: ada
+  api_format: openai_responses
+operations:
+- op: commit
+  branch: main
+  author: base
+  message: base
+  files:
+    README.md: '# shop
+
+      '
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    src/rebase_orders.py: "def order_total(order):\n    lines = order.get('lines', [])\n    gross = sum(line['price'] * line['qty']\
+      \ for line in lines)\n    discount = order.get('discount_cents', 0)\n    return max(gross - discount, 0)\n\n\ndef is_paid(order):\n\
+      \    return order.get('status') in ('paid', 'refunded')\n"
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    src/rebase_shipping.py: "RATES = {'standard': 499, 'express': 1299, 'overnight': 2499}\n\n\ndef shipping_cents(method,\
+      \ weight_kg):\n    base = RATES[method]\n    surcharge = max(0, round((weight_kg - 2) * 150))\n    return base + surcharge\n"
+- op: commit
+  branch: main
+  author: base
+  message: 'base: change'
+  files:
+    README.md: '# shop
+
+
+      Now with orders.
+
+      '
+    CHANGELOG.md: '- base moved
+
+      '
+- op: rebase
+  branch: feature
+  onto: main
+  author: ada
+pr:
+  base: main
+  head: feature

@@ -1,0 +1,28 @@
+description: Captures from before and after a fingerprint key rotation.
+category: key-rotation
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+- file: 02-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+  key_gen: 2
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    billing/invoice.py: "def invoice_number(year, sequence):\n    return f'INV-{year}-{sequence:06d}'\n"
+    billing/credit.py: "def credit_note_number(year, sequence):\n    return f'CN-{year}-{sequence:06d}'\n"
+pr:
+  base: main
+  head: feature

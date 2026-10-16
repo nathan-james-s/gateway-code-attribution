@@ -109,10 +109,18 @@ class CapturedLine(Base):
     __tablename__ = "captured_line"
     __table_args__ = (
         CheckConstraint("octet_length(exact_fp) = 16", name="exact_fp_16_bytes"),
-        CheckConstraint("array_length(minhash, 1) = 32", name="minhash_32"),
+        CheckConstraint("array_length(minhash, 1) = 128", name="minhash_128"),
         CheckConstraint("coalesce(array_length(path_suffix_fps, 1), 0) <= 3", name="at_most_3_path_fps"),
         Index("ix_captured_line_dev_exact", "developer_id", "exact_fp", "captured_at"),
-        Index("ix_captured_line_event", "capture_event_id", "tool_call_ordinal", "line_ordinal"),
+        # one row per line of an event, so a redelivered part of an event sent in parts adds nothing
+        Index(
+            "uq_captured_line_event_line",
+            "capture_event_id",
+            "tool_call_ordinal",
+            "line_ordinal",
+            "captured_at",
+            unique=True,
+        ),
         {"postgresql_partition_by": "RANGE (captured_at)"},
     )
     id: Mapped[int] = mapped_column(

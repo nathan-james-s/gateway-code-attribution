@@ -28,7 +28,7 @@ human_edits:
   - file: src/scenarios/coupons.py
     replace: {old: "    return min(discount, subtotal_cents)", new: "    return min(amount, subtotal_cents)"}
 expect:
-  # One renamed token in a 15-token line: similarity about 0.9, anchored by the file's exact matches.
-  ai_modified: ["amount = subtotal_cents * coupon.percent_off // 100"]
-  # One renamed token in a 7-token line changes most of its shingles: similarity about 0.25, so human.
-  human: ["return min(amount, subtotal_cents)"]
+  # Both lines are AI-written with one identifier renamed, so both are AI modified, anchored by the file's exact
+  # matches: the 15-token line at about 0.9 similarity, and the 7-token one at about 0.5 (4 of its 8 token pairs
+  # survive the rename). The answer key must hold under any fingerprint key (tests/test_scenarios.py).
+  ai_modified: ["amount = subtotal_cents * coupon.percent_off // 100", "return min(amount, subtotal_cents)"]

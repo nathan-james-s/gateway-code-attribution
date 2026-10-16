@@ -1,0 +1,26 @@
+description: 'A PR that only deletes lines: nothing attributable, not 0%.'
+category: empty
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams: []
+operations:
+- op: commit
+  branch: main
+  author: base
+  message: base
+  files:
+    src/old.py: "def old():\n    return 'old'\n\n\ndef older():\n    return 'older'\n"
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    src/old.py: "def old():\n    return 'old'\n"
+pr:
+  base: main
+  head: feature

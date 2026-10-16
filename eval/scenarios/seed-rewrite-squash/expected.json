@@ -1,0 +1,102 @@
+{
+ "lines": {
+  "src/squash_orders.py:1": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_orders.py:2": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_orders.py:3": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_orders.py:4": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_orders.py:5": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_orders.py:6": {
+   "outcome": "indeterminate",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_orders.py:7": {
+   "outcome": "indeterminate",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_orders.py:8": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_orders.py:9": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_shipping.py:1": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_shipping.py:2": {
+   "outcome": "indeterminate",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_shipping.py:3": {
+   "outcome": "indeterminate",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_shipping.py:4": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_shipping.py:5": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_shipping.py:6": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  },
+  "src/squash_shipping.py:7": {
+   "outcome": "ai_unmodified",
+   "tags": [
+    "rewrite"
+   ]
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

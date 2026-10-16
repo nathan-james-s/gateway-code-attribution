@@ -1,0 +1,57 @@
+{
+ "lines": {
+  "reports/periods.py:1": {
+   "outcome": "ai_modified",
+   "tier": "broad",
+   "tags": []
+  },
+  "reports/periods.py:2": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "reports/periods.py:3": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "reports/periods.py:4": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "reports/periods.py:5": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "reports/periods.py:6": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  },
+  "reports/sales.py:1": {
+   "outcome": "human",
+   "tags": []
+  },
+  "reports/sales.py:2": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "reports/sales.py:3": {
+   "outcome": "indeterminate",
+   "tags": []
+  },
+  "reports/sales.py:4": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "reports/sales.py:5": {
+   "outcome": "ai_modified",
+   "tier": "anchored",
+   "tags": []
+  },
+  "reports/sales.py:6": {
+   "outcome": "ai_unmodified",
+   "tags": []
+  }
+ },
+ "loss": {},
+ "attributable": true
+}

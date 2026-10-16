@@ -1,0 +1,4 @@
+edits:
+- file: fmt/config.go
+  formatter: gofmt
+  model_text_lines: 15

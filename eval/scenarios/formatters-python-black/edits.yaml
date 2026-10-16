@@ -1,0 +1,4 @@
+edits:
+- file: fmt/config.py
+  formatter: black
+  model_text_lines: 11

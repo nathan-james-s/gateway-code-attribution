@@ -99,7 +99,7 @@ settings the adopter changed in Helm and keeps what admins set in the portal.
 | `library_version` | text | the `gcattr` semver that introduced it |
 | `unicode_version` | text | pinned; the library refuses to fingerprint under any other version (R8) |
 | `anchored_threshold`, `broad_threshold` | numeric | frozen after calibration (R9) |
-| `minhash_size`, `lsh_bands`, `lsh_rows` | int | 32, 8 and 4 at first |
+| `minhash_size`, `lsh_bands`, `lsh_rows` | int | 128, 8 and 4 (bands over the first 32 values; 32 values before T109) |
 | `common_lines_version` | text | R10 |
 | `released_at` | timestamptz | |
 
@@ -165,10 +165,11 @@ One non-trivial normalized line of model output. Partitioned by day on `captured
 | `tool_call_ordinal`, `line_ordinal` | int | order within the event; used for anchoring |
 | `path_suffix_fps` | bytea[] | keyed fingerprints of the last 1, 2 and 3 path components of the tool call's file path; empty if there was no path (R7) |
 | `exact_fp` | bytea(16) | HMAC-SHA256 of the normalized token string, truncated (R8) |
-| `minhash` | int4[32] | keyed MinHash signature (R9) |
+| `minhash` | int4[128] | keyed MinHash signature (R9) |
 | `alg`, `key_gen` | int, smallint | |
 
-**Indexes**: `(developer_id, exact_fp, captured_at)`, `(capture_event_id, tool_call_ordinal, line_ordinal)`.
+**Indexes**: `(developer_id, exact_fp, captured_at)`; unique `(capture_event_id, tool_call_ordinal, line_ordinal,
+captured_at)`, so a redelivered part of an event sent in parts adds nothing (migration 0006).
 
 ### LshBand
 | Field | Type | Rules |
@@ -291,3 +292,6 @@ Each view exposes `*_with_broad` and `*_without_broad` columns so the toggle (FR
 ## Message: capture → ingest
 
 Fingerprints and metadata only. Schema: [contracts/capture-event.schema.json](./contracts/capture-event.schema.json).
+Version `gca.capture.v2`: the signature travels as packed binary (128 big-endian uint32, base64), and every event
+has an `event_id`. An event whose fingerprints would exceed the message limit (NATS `max_payload`, 1 MiB by
+default) is sent as `part` messages sharing that `event_id`; ingest stores them as one CaptureEvent.

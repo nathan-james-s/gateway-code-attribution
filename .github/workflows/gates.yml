@@ -33,6 +33,12 @@ jobs:
       - uses: actions/checkout@v4
       - run: scripts/check-no-recorder.sh
 
+  release-bar:  # T110: the spec's SC-002/SC-003 and the schema's release_bar constants agree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/check-release-bar.sh
+
   conformance:
     needs: changes
     if: needs.changes.outputs.capture == 'true'

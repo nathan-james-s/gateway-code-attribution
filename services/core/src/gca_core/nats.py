@@ -1,7 +1,9 @@
 """JetStream access and the bounded, never-blocking capture publisher (research R12, R13; FR-005a).
 
 Sequence numbers are assigned when a message is *sent*, not when it is queued. A message dropped from a full
-buffer therefore never creates a sequence gap; it is counted once, as ``buffer_overflow``.
+buffer therefore never creates a sequence gap; it is counted once, as ``buffer_overflow``. A message the server
+can never accept (over its ``max_payload``) is dropped at once and counted as ``publish_failed``: retrying it
+would hold back every message behind it.
 """
 
 from __future__ import annotations
@@ -21,6 +23,15 @@ log = logging.getLogger(__name__)
 
 STREAM = "GCA_CAPTURE"
 SUBJECT_PREFIX = "gca.capture"
+
+
+def _unsendable(exc: Exception) -> bool:
+    """True for errors that retrying can't fix (as opposed to a lost connection)."""
+    try:
+        from nats.errors import MaxPayloadError
+    except ImportError:  # pragma: no cover - nats-py is a dependency
+        return False
+    return isinstance(exc, MaxPayloadError)
 
 
 class Sender(Protocol):
@@ -73,6 +84,7 @@ class BufferedPublisher:
         self._q: deque[dict[str, Any]] = deque()
         self._wake = asyncio.Event()
         self._overflow = 0
+        self._unsendable = 0
         self._seq = 0
         self._task: asyncio.Task[None] | None = None
         self.connected = False
@@ -87,6 +99,10 @@ class BufferedPublisher:
 
     def take_overflow(self) -> int:
         n, self._overflow = self._overflow, 0
+        return n
+
+    def take_unsendable(self) -> int:
+        n, self._unsendable = self._unsendable, 0
         return n
 
     def enqueue(self, body: dict[str, Any]) -> None:
@@ -134,7 +150,12 @@ class BufferedPublisher:
                 self._q.popleft()
                 self._overflow += 1
                 continue
-            except Exception:
+            except Exception as exc:
+                if _unsendable(exc):
+                    log.error("dropping a capture message the server refuses: %s", type(exc).__name__)
+                    self._q.popleft()
+                    self._unsendable += 1
+                    continue
                 self.connected = False
                 await asyncio.sleep(self._retry)
                 continue

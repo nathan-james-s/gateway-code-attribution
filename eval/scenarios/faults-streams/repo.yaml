@@ -1,0 +1,35 @@
+description: Truncated and schema-deviant streams, and a dropped capture message.
+category: faults
+authors:
+  base: owner@example.test
+  ada: ada@example.test
+unmapped: []
+streams:
+- file: 01-ada-openai_chat.sse
+  author: ada
+  api_format: openai_chat
+  fault: dropped
+- file: 02-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+  fault: truncated
+- file: 03-ada-openai_responses.sse
+  author: ada
+  api_format: openai_responses
+  fault: unexpected_format
+- file: 04-ada-anthropic_messages.sse
+  author: ada
+  api_format: anthropic_messages
+operations:
+- op: branch
+  name: feature
+  from: main
+- op: commit
+  branch: feature
+  author: ada
+  message: 'ada: change'
+  files:
+    jobs/cleanup.py: "def expired(sessions, now):\n    return [s for s in sessions if s['expires_at'] < now]\n"
+pr:
+  base: main
+  head: feature
