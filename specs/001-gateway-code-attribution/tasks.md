@@ -10,6 +10,9 @@ description: "Task list for the Gateway Code Attribution Reference Stack"
 [contracts/](./contracts/), [quickstart.md](./quickstart.md). Governing: `.specify/memory/constitution.md`
 v1.0.1.
 
+**Status**: Complete (2026-10-16). Every task is done. Recording Codex CLI, Gemini CLI and OpenCode (T112) and the
+first public release are deferred past this spec.
+
 **Tests**: The spec doesn't request test-first development. These test suites are still **required deliverables**
 under the constitution (Principles III–V; Development Workflow & Quality Gates) and the spec (FR-006, FR-042 to
 FR-045, SC-001 to SC-010), so they're included as tasks:

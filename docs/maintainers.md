@@ -47,6 +47,9 @@ GCA_E2E=1 GCA_E2E_REPO=OWNER/NAME uv run pytest tests/integration/test_cli_match
 
 ## Releasing
 
+**Not released yet.** The owner deferred the first public release (v0.1.0) on 2026-10-16. The repository is
+private, and nothing has been tagged or published. When it's time, do the one-time setup below, then push the tag.
+
 A `v*` tag runs `.github/workflows/release.yml`. The tag must equal the version in `lib/pyproject.toml`,
 `Chart.yaml` (`version` and `appVersion`) and `values.yaml` (`images.tag` and `gateway.litellm.image.tag`); the
 first job fails otherwise. It then:
