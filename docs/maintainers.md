@@ -16,9 +16,9 @@ Protect `main` and require these checks (constitution "Development Workflow & Qu
 Jobs skipped by their path filter report success, so they can stay required.
 
 `release-gate` (`release-gate.yml`) runs the scenario set through both gateways on every PR to `main` and uploads
-the quality report. `release.yml` requires it, so no release is published below the bar (Principle V). Make it a
-required merge check once it passes: today attribution accuracy is just under the 95% bar (plan.md
-"Implementation findings").
+the quality report. `release.yml` requires it, so no release is published below the bar (Principle V). It passes
+(accuracy 0.987 on both gateways, 2026-10-16), so make it a required merge check too. Branch protection on a
+private repository needs GitHub Pro or higher; on a public one it's free.
 
 ## Repository secrets
 
@@ -48,7 +48,8 @@ GCA_E2E=1 GCA_E2E_REPO=OWNER/NAME uv run pytest tests/integration/test_cli_match
 ## Releasing
 
 A `v*` tag runs `.github/workflows/release.yml`. The tag must equal the version in `lib/pyproject.toml`,
-`Chart.yaml` (`version` and `appVersion`) and `values.yaml` (`images.tag`); the first job fails otherwise. It then:
+`Chart.yaml` (`version` and `appVersion`) and `values.yaml` (`images.tag` and `gateway.litellm.image.tag`); the
+first job fails otherwise. It then:
 
 1. runs the library tests (with the golden corpus), builds the `gcattr` wheel and sdist and writes `SHA256SUMS`;
 2. publishes them to PyPI through trusted publishing, with attestations;
@@ -56,11 +57,25 @@ A `v*` tag runs `.github/workflows/release.yml`. The tag must equal the version 
 4. packages the chart with a checksum and pushes it to `oci://ghcr.io/<owner>/charts`;
 5. creates the GitHub Release with the library files, the chart, and every image digest in the notes.
 
-One-time setup:
+One-time setup, before the first tag:
 
-- On PyPI, add a trusted publisher for project `gcattr`: this repository, workflow `release.yml`, environment
-  `pypi`. In the repository settings, create the `pypi` environment (optionally with required reviewers).
-- After the first image push, make the `ghcr.io` packages public if adopters should pull without credentials.
+- **Repository visibility.** Make the repository public before the first release, or the release fails partway.
+  The images job uses `actions/attest-build-provenance`, and GitHub stores artifact attestations only for public
+  repositories (or private ones on GitHub Enterprise Cloud). The `pypi` job doesn't wait for the images, so on a
+  private repository `gcattr` reaches PyPI and the images job then fails. A private repository also keeps the
+  GitHub Release, its assets and (until changed) the `ghcr.io` packages private, so evaluators can't use them.
+- **PyPI.** `gcattr` doesn't exist on PyPI yet, so add a *pending* trusted publisher (Account settings →
+  Publishing): project `gcattr`, owner and repository of this repository, workflow `release.yml`, environment
+  `pypi`. The first publish creates the project.
+- **GitHub environment.** In the repository settings, create the `pypi` environment (optionally with required
+  reviewers, which also gives you a last stop before PyPI).
+- **ghcr.io packages.** The first release creates seven packages under the owner: the six `gca-*` images and
+  `charts/gateway-code-attribution`. After the first release, check each one's visibility (a new package can
+  start out private) and make it public (package settings → Change visibility) so adopters pull without
+  credentials. Check with `docker logout ghcr.io` and a `docker pull`.
+
+PyPI files can't be replaced. If a job fails after `pypi` has published, fix the cause and re-run only the failed
+jobs (`gh run rerun <run-id> --failed`); re-pushing the same tag would try to publish the same version again.
 
 Version bumps: a change that alters any fingerprint or outcome raises `ALG` and is at least a minor release
 (docs/library.md).

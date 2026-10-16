@@ -4,8 +4,9 @@
 #   - the Helm chart, packaged with a checksum and pushed to ghcr.io as an OCI artifact.
 # Nothing is built or published until the release gate (release-gate.yml) passes on the tagged commit.
 #
-# One-time setup by the maintainer (docs/maintainers.md): a PyPI trusted publisher for this repository, workflow
-# `release.yml`, environment `pypi`; and a GitHub environment named `pypi`.
+# One-time setup by the maintainer (docs/maintainers.md): a public repository (artifact attestations need one, or
+# GitHub Enterprise Cloud); a PyPI trusted publisher for this repository, workflow `release.yml`, environment `pypi`;
+# and a GitHub environment named `pypi`.
 name: release
 on:
   push:
@@ -17,7 +18,7 @@ env:
   REGISTRY: ghcr.io/${{ github.repository_owner }}
 
 jobs:
-  versions:  # the tag, the library, the chart and the image tag must all agree
+  versions:  # the tag, the library, the chart and the image tags must all agree
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.v.outputs.version }}
@@ -34,6 +35,7 @@ jobs:
               "Chart.yaml version": re.search(r"^version:\s*(\S+)", open("charts/gateway-code-attribution/Chart.yaml").read(), re.M).group(1),
               "Chart.yaml appVersion": re.search(r'^appVersion:\s*"?([^"\s]+)', open("charts/gateway-code-attribution/Chart.yaml").read(), re.M).group(1),
               "values.yaml images.tag": re.search(r'^images:\n(?:  .*\n)*?  tag:\s*"?([^"\s]+)', open("charts/gateway-code-attribution/values.yaml").read(), re.M).group(1),
+              "values.yaml gateway.litellm.image.tag": re.search(r'^  litellm:\n(?:    .*\n)*?    image: \{[^}]*tag:\s*"?([^",\s]+)', open("charts/gateway-code-attribution/values.yaml").read(), re.M).group(1),
           }
           bad = {k: v for k, v in found.items() if v != want}
           if bad:
