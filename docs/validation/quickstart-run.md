@@ -173,6 +173,20 @@ Every check showed incomplete coverage, from the Mac's earlier sleeps (finding 3
 | 1. Injected faults | not yet run |
 | 2. NATS stopped (`kubectl -n gca scale statefulset/gca-nats --replicas=0`), demo run, NATS restored | ✅ every gateway request succeeded and [#12](https://github.com/nathan-james-s/gca-sample/pull/12) opened. A `heartbeat_missed` loss covers the outage (18:10:49–18:11:03 UTC), and #12 shows incomplete coverage |
 
+## SC-011: no install for coding tools
+
+✅ Claude Code 2.1.292, run by the owner with LiteLLM, on their usual profile (signed in to claude.ai), with only
+environment variables. `ANTHROPIC_BASE_URL=http://localhost:4000`, `ANTHROPIC_AUTH_TOKEN=<sk-gca- key from the
+portal>`, `ANTHROPIC_MODEL`/`ANTHROPIC_SMALL_FAST_MODEL`/`ANTHROPIC_DEFAULT_HAIKU_MODEL=demo-anthropic`, and
+`ANTHROPIC_API_KEY` unset. `claude -p "hello"` got the demo model's reply. Nothing was installed: no plug-in, hook
+or settings change. The key took precedence over the claude.ai sign-in (Claude Code says so in a warning), so no
+separate profile is needed. Claude Code also warns that `demo-anthropic` isn't in its model catalog, which only
+affects its context-window estimate.
+
+The first attempts got HTTP 401 because the token wasn't the current LiteLLM gateway key: an older key, then the
+OpenRouter provider key. The gateway only accepts the personal `sk-gca-` key from the portal, and issuing a new
+one replaces the previous key for that gateway.
+
 ## Not yet run
 
 These are for the owner:
@@ -180,7 +194,5 @@ These are for the owner:
 - **Section 2, `scn-pending` again** with finding 7's fix: `gca demo scenarios --only pending`.
 - **Section 2, two mapped authors**: needs a second account with a gateway credential.
 - **Section 4, step 1**: injected faults.
-- **The SC-011 check**: Claude Code through the gateway with only environment variables. It needs the owner's
-  gateway key.
 
 T120 stays open until these are recorded here.
