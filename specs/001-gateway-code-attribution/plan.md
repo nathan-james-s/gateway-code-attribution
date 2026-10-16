@@ -307,9 +307,61 @@ docs/                             # install, per-tool routing, outcomes, privacy
   matches. Calibration splits by line, stratified by outcome and tier (a split by scenario put every broad example
   in the held-out part). Thresholds are not written yet: T113 calibrates on the scenario set plus the real-traffic
   corpus and freezes them, and `check-alg-bump.sh` now freezes a golden corpus only once a release contains it.
+- **Matching changes from the eval (T109; alg 1, not yet released, so no new `ALG`)**: the full two-gateway run
+  also showed formatter output mostly coming out human (85% of formatter-changed AI lines). Four changes, each
+  checked against the scenario set: (1) shingles are token 2-grams, so one changed token on a short line costs
+  two shingles instead of three; (2) a string literal's quote style is canonical (`'x'` and `"x"` are one token
+  when the body has no `"`), so black's requoting is not a modification; (3) a *wrapped* tier joins runs of
+  consecutive unmatched lines and matches them as one line, for one AI line a formatter spread over several;
+  (4) a *split* tier joins an unmatched fragment to the neighbouring lines that matched a candidate by similarity
+  when that raises their similarity to it, for a fragment split off a line whose main part matched (`if missing:`
+  from its `raise`, one link of a method chain). The two new tiers need no new fingerprint and report anchored or
+  broad as before; they're research R11 steps 7-8. Result at the provisional thresholds: accuracy 87.4% → 96.7%,
+  formatter false human 85% → 0%, still no line wrongly called AI modified, rewrite survival 100%, silent loss
+  0. The remaining misses are heavier human edits of AI lines (8 lines). Calibration on this set now picks the
+  lowest pair on the grid (0.35 / 0.50; 98.4%): the synthetic set has too few close human lookalikes to push the
+  thresholds back up, so they stay provisional until T113 adds the real-traffic corpus. Calibration also
+  requires anchored ≤ broad and breaks ties toward the higher broad threshold.
+- **Outcomes must not depend on the key (T109)**: with 2-grams, the demo's `scn-edited` line (one identifier
+  renamed on a 7-token AI line, true similarity 0.50) came out AI modified under 57% of random keys at the 0.50
+  anchored threshold: 32 MinHash values estimate it anywhere from 0.22 to 0.84. Its answer key had said "human",
+  which described the 3-gram algorithm, not the edit; the line is AI modified, and the demo now says so. Fix: 128
+  signature values (estimates 0.34-0.67 for that line) and an anchored threshold of 0.35, the highest that keeps
+  it AI modified under ≥ 99% of keys (99.95%). More values alone don't help an edit whose true similarity equals
+  the threshold. Calibration now requires this key stability, and lib/tests/test_match.py checks it. On the
+  scenario set calibration is flat from anchored 0.30 to 0.40 and broad 0.50 to 0.85 (no line wrongly called AI
+  modified anywhere), so broad stays at 0.75 until T113. LSH bands still use 8 × 4 over the first 32 values.
+  Quality report afterwards, both gateways: accuracy 98.0%, no line wrongly called AI modified, formatter false
+  human 0%, rewrite survival 100%, silent loss 0, agreement 100%.
+- **Sizing at 128 values** (Postgres 17, real tables and indexes, 200k lines): 2,678 bytes per captured line
+  (2,290 with 32; the 8 band rows are about 75% of it; banding all 128 values would be 7,923). For 1,300
+  developers capturing 10,000 lines a day each with 180-day retention: about 6.3 TB at steady state (5.4 TB with
+  32), 4.5 TB counting weekdays only.
+- **One large response blocked capture (found while sizing)**: each response was one NATS message, and NATS
+  refuses payloads over 1 MiB (`max_payload`). A response of about 1,700 lines (640 at 128 values) raised
+  `MaxPayloadError`, which the publisher treated as a lost connection and retried forever: every later event and
+  heartbeat on that replica waited behind it until the 10,000-message buffer overflowed and dropped it as
+  `buffer_overflow`. Reproduced against NATS 2.15.1. Now: the signature is packed binary (about 950 bytes per
+  line on the wire instead of 1,640 as JSON numbers; capture message schema `gca.capture.v2`), an event over
+  900 KB is sent as `part`s of one `event_id` that ingest stores as one event (lines unique per event, tool call
+  and line, so a redelivered part adds nothing; migration 0006), and a message the server refuses anyway is
+  dropped at once and reported as `publish_failed`.
+- **Binary fields are decoded strictly**: JSON Schema can't check what a base64 string holds, and Python's default
+  decoder skips characters outside the alphabet, so a malformed `x`, `m`, `b` or `p` decoded to the wrong length
+  and failed the database's checks at insert; ingest naks such a message and its consumer has no delivery limit,
+  so it would have been retried forever (true of `x`, `b` and `p` since v1). Validation now decodes every binary
+  field strictly to its exact size, so a malformed message is rejected and counted as loss.
+- **The PR check no longer loads the whole matching window (T109)**: it loaded every captured line of each
+  credited developer in the window into memory (1.8M lines, about 10 GB at 128 values, for 10,000 lines a day
+  over 180 days). `gcattr.lookup_keys` lists the exact fingerprints and band hashes `attribute` can look up
+  (including the wrapped tier's joined windows), and the PR check fetches only exact hits, band hits and the
+  lines of capture events with an exact hit, through the existing indexes. Outcomes are identical by
+  construction; a library test checks it on generated PRs and a database test against the full load.
+- **Migration 0006 deletes pre-release fingerprints**: rows written before these changes (3-gram, 32-value
+  alg 1) can't be compared with new ones. Their capture events keep their metadata.
 - **Release gate (T110)**: `release-gate.yml` runs on PRs to `main` and is called by `release.yml`, so nothing is
-  published below the bar. It isn't a required merge check yet: it will fail until the accuracy finding above is
-  resolved (T113 or an algorithm change under a new `ALG`).
+  published below the bar. It failed on the first measurements above; with the matching changes the scenario
+  set meets the bar on both gateways. It isn't a required merge check yet.
 - **Role details (T083, T084)**: `portal.adminLogins` are always admins (break-glass, and the only admins on a
   personal account), so a revoke doesn't remove them; an admin can't revoke their own admin role. One override
   per (developer, role, team), latest wins; clearing it returns to the GitHub default. `visible_roles` may also

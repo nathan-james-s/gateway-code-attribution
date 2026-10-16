@@ -11,16 +11,18 @@ from .conftest import TEST_KEY
 
 
 def test_shingles_whole_list_for_short_lines() -> None:
-    assert len(shingles(tokenize("a = b"))) == 1
-    assert len(shingles(tokenize("a = b + c"))) == 3
+    assert len(shingles(tokenize("a = b"))) == 1  # up to 3 tokens: one shingle
+    assert len(shingles(tokenize("a = b + c"))) == 4  # token bigrams
 
 
 def test_minhash_and_bands_shape_and_determinism() -> None:
     sig = minhash(tokenize("response = client.post(url, json=payload)"), TEST_KEY, 1)
-    assert len(sig) == 32 and all(0 <= v < 2**32 for v in sig)
+    assert len(sig) == 128 and all(0 <= v < 2**32 for v in sig)
     assert sig == minhash(tokenize("response=client.post( url,json=payload )"), TEST_KEY, 1)
     bands = lsh_bands(sig, TEST_KEY, 1)
     assert len(bands) == 8 and all(len(b) == 8 for b in bands)
+    # lookup bands come from the first 32 values only; the rest refine similarity
+    assert lsh_bands(sig[:32] + tuple(v ^ 1 for v in sig[32:]), TEST_KEY, 1) == bands
 
 
 def test_similarity_ordering() -> None:

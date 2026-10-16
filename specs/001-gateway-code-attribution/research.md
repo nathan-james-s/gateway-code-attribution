@@ -172,13 +172,28 @@ alongside applies. These are not open questions.
 ## R9. Similarity fingerprint (anchored and broad tiers)
 
 - **Decision**: For each non-trivial line:
-  - **Shingles**: token 3-grams (whole tokens for lines of 3–4 tokens), each keyed through HMAC.
-  - **Signature**: a **MinHash signature of 32 × 32-bit values**, built from 32 keyed hash seeds derived from
-    the key generation.
-  - **Lookup index for the broad tier**: **LSH bands**, 8 bands of 4 rows.
+  - **Shingles**: token 2-grams (the whole token list for lines of up to 3 tokens), each keyed through HMAC.
+    *Changed from 3-grams during implementation (T109): on the scenario set, one changed token on a 6-10 token
+    line left a 3-gram similarity of 0.25-0.45, below any safe threshold; with 2-grams it's 0.50-0.65, while
+    unrelated look-alike lines stay mostly under 0.30.*
+  - **Quote style**: single- and double-quoted string literals are the same token, so a formatter switching
+    quotes changes no fingerprint (R8 normalization; T109).
+  - **Signature**: a **MinHash signature of 128 × 32-bit values**, built from 128 keyed hash seeds derived from
+    the key generation. *Was 32 until T109: with 32, a line's estimated similarity varies by about ±0.18 (2
+    standard deviations) between keys, so a common edit near a threshold (one identifier renamed on a 7-token
+    line, true similarity 0.50) came out AI modified under some keys and human under others: the same edit
+    scored differently per installation and across a key rotation. 128 values narrow that to about ±0.09. It
+    costs about 17% more storage per captured line and 2.7 times the message size, reduced by sending the
+    signature as packed binary (contracts/capture-event.schema.json v2).*
+  - **Lookup index for the broad tier**: **LSH bands**, 8 bands of 4 rows, over the **first 32** signature
+    values. The bands only find candidates; the whole signature decides similarity. Banding all 128 values would
+    multiply the band rows (about 75% of the bytes per captured line) by four.
   - **Similarity**: the estimated Jaccard similarity of the two signatures.
   - **Starting thresholds**, before calibration: anchored ≥ 0.50, broad ≥ 0.75. They're calibrated against the
-    scenario set to meet SC-003 and frozen into the algorithm version.
+    scenario set to meet SC-003 and frozen into the algorithm version. *Now anchored ≥ 0.35 (T109): the
+    highest value at which a one-identifier rename of a short AI line (true similarity 0.50) is AI modified
+    under at least 99% of keys. An outcome must depend on the code, not on the key, so calibration only
+    considers key-stable anchored thresholds. Broad stays 0.75 until T113 calibrates with real traffic.*
 - **What it reveals** (the documented assessment Constitution II requires):
   - Without the key, signatures can't be computed or compared. They're keyed hashes, and they resist dictionary
     attacks.
@@ -225,7 +240,20 @@ alongside applies. These are not open questions.
      similarity reaches the anchored threshold → AI modified, high confidence.
   6. **Tier 3, broad**: for lines still unmatched, look up the author's LSH bands within the window, then confirm
      with MinHash similarity at or above the broad threshold → AI modified, lower confidence.
-  7. **Classify the rest**: indeterminate (R10) or human. Lines credited to unmapped authors are not observed
+  7. **Tier 4, wrapped** *(added during implementation, T109)*: a formatter often splits one AI line over several
+     (a wrapped call, a dict literal, a method chain), and a fragment of a long line is too dissimilar to the whole
+     line to match on its own. Runs of consecutive added lines still unmatched in a file (trivial lines like `{`
+     may sit inside) are joined and matched as one line, exact or by similarity, against the same author's
+     candidates (anchored threshold if the matching capture event anchors the file, else broad). Every
+     non-trivial line of a matching run is AI modified. Windows are 2-8 lines, largest first.
+  8. **Tier 5, split** *(added during implementation, T109)*: when a formatter splits a line, the main part can
+     match by similarity on its own (anchored or broad), leaving a short fragment unmatched (`if missing:` above
+     its `raise`, one `.filter(...)` link of a chain). An unmatched or trivial fragment directly above or below
+     lines that matched candidate *c* by similarity joins them when the joined text's MinHash similarity to *c* is
+     **higher** than theirs alone; the fragment gets their tier. Up to 8 lines in all. This needs no new
+     fingerprint: adding shingles that aren't in *c* can never raise a MinHash estimate, so only text that was in
+     the AI line can join it.
+  9. **Classify the rest**: indeterminate (R10) or human. Lines credited to unmapped authors are not observed
      (FR-015).
 - **How step 2 gets each line's author without cloning**: the PR check uses GitHub's GraphQL `blame` on the head
   commit for each changed file. A line whose blame commit is in the PR's commit set is credited to that commit's

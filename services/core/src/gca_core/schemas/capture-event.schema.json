@@ -14,7 +14,7 @@
       "type": "object",
       "required": ["schema", "kind", "instance_id", "seq", "gateway_type", "sent_at"],
       "properties": {
-        "schema": { "const": "gca.capture.v1" },
+        "schema": { "const": "gca.capture.v2" },
         "kind": { "enum": ["event", "heartbeat", "failure"] },
         "instance_id": { "type": "string", "format": "uuid" },
         "seq": { "type": "integer", "minimum": 0, "description": "Monotonic per instance; gaps = loss (R12)." },
@@ -37,6 +37,14 @@
         "alg": { "type": "integer", "minimum": 1 },
         "key_gen": { "type": "integer", "minimum": 1 },
         "tool_call_count": { "type": "integer", "minimum": 0 },
+        "event_id": { "type": "string", "format": "uuid", "description": "Assigned by capture; shared by the parts of one event." },
+        "part": {
+          "type": "object",
+          "description": "Present when one event's fingerprints are split over several messages (each under the NATS max_payload). Ingest stores them as one capture event.",
+          "required": ["index", "count"],
+          "additionalProperties": false,
+          "properties": { "index": { "type": "integer", "minimum": 1 }, "count": { "type": "integer", "minimum": 2 } }
+        },
         "lines": {
           "type": "array",
           "maxItems": 20000,
@@ -48,14 +56,14 @@
               "t": { "type": "integer", "description": "tool_call_ordinal" },
               "l": { "type": "integer", "description": "line_ordinal" },
               "x": { "type": "string", "contentEncoding": "base64", "description": "exact_fp, 16 bytes" },
-              "m": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 4294967295 }, "minItems": 32, "maxItems": 32 },
+              "m": { "type": "string", "contentEncoding": "base64", "minLength": 684, "maxLength": 684, "description": "MinHash signature: 128 big-endian uint32 values (512 bytes)" },
               "b": { "type": "array", "items": { "type": "string", "contentEncoding": "base64" }, "minItems": 8, "maxItems": 8 },
               "p": { "type": "array", "items": { "type": "string", "contentEncoding": "base64" }, "maxItems": 3, "description": "path_suffix_fps" }
             }
           }
         }
       },
-      "required": ["api_format", "model", "received_at", "status", "alg", "key_gen", "lines"]
+      "required": ["api_format", "model", "received_at", "status", "alg", "key_gen", "event_id", "lines"]
     },
     "heartbeat": {
       "allOf": [{ "$ref": "#/$defs/envelope" }],

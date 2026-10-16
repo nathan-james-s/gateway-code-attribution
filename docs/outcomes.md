@@ -11,6 +11,13 @@ These display labels are used everywhere: the check run, the portal, the dashboa
 | **AI, unmodified** | The line matches, exactly, a line the author's AI tool produced through the gateway within the matching window (14 days by default). | exact |
 | **AI, modified (anchored)** | Not an exact match, but similar to a line from an AI response that produced at least one exact match **in the same file**. Typical: you renamed a variable in AI-written code. | high |
 | **AI, modified (broad)** | Similar to a line from any of the author's AI responses in the window, with no anchor in the same file. Typical: AI-written code moved to another file and adapted. | lower |
+
+A formatter that splits one AI line over several (a long call wrapped one argument per line, a method chain
+broken up) gives lines that are each only a fragment of what the AI wrote. They're matched by joining the
+consecutive lines back together, and reported as **AI, modified** (anchored or broad, as above). A short
+fragment next to a line that already matched (`if missing:` split from the `raise` the AI wrote after it) is AI
+modified when joining it makes the match closer. Changing quote
+style alone (`'x'` to `"x"`) is not a modification.
 | **Human** | **No match to observed AI output.** It does not prove a person typed it: code from tools the gateway can't see also lands here. | |
 | **Indeterminate** | Too short or too common to attribute honestly: fewer than 3 tokens, no identifier, number or string, or a line on the common-lines list (`return`, `}`, `else:`, `import os`, blank lines). | |
 | **Not observed** *(state)* | The commit's author has no GitHub account linked, or isn't mapped to a developer with a gateway credential. Nothing is guessed. | |

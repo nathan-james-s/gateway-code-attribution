@@ -32,10 +32,14 @@ class CaptureRuntime:
         *,
         heartbeat_seconds: float = 5.0,
         max_buffer: int = 10_000,
+        max_message_bytes: int = 900_000,
     ) -> None:
         self.gateway_type = gateway_type
         self.instance_id = str(uuid.uuid4())
         self.heartbeat_seconds = heartbeat_seconds
+        self.max_message_bytes = (
+            max_message_bytes  # under NATS's default 1 MiB max_payload, with room to spare
+        )
         self.responses_seen = 0
         self._internal_errors = 0
         self._started = datetime.now(UTC)
@@ -86,7 +90,7 @@ class CaptureRuntime:
                 now = messages.now_iso()
                 for cause, count in (
                     ("buffer_overflow", self._publisher.take_overflow()),
-                    ("publish_failed", self._take_internal_errors()),
+                    ("publish_failed", self._take_internal_errors() + self._publisher.take_unsendable()),
                 ):
                     if count:
                         self._publisher.enqueue(
@@ -126,22 +130,22 @@ class CaptureRuntime:
     ) -> None:
         try:
             self.responses_seen += 1
-            self._publisher.enqueue(
-                messages.event_body(
-                    api_format=api_format,
-                    model=model,
-                    received_at=received_at or messages.now_iso(),
-                    status=status,
-                    alg=alg,
-                    key_gen=key_gen,
-                    lines=list(lines),
-                    tool_call_count=tool_call_count,
-                    credential_id=credential_id,
-                    tool_hint=tool_hint,
-                    session_id=session_id,
-                    failure_cause=failure_cause,
-                )
+            body = messages.event_body(
+                api_format=api_format,
+                model=model,
+                received_at=received_at or messages.now_iso(),
+                status=status,
+                alg=alg,
+                key_gen=key_gen,
+                lines=list(lines),
+                tool_call_count=tool_call_count,
+                credential_id=credential_id,
+                tool_hint=tool_hint,
+                session_id=session_id,
+                failure_cause=failure_cause,
             )
+            for part in messages.event_parts(body, self.max_message_bytes):
+                self._publisher.enqueue(part)
         except Exception:
             self._internal_errors += 1
             log.exception("emit_event failed")
