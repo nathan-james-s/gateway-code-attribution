@@ -9,7 +9,7 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
 
-from gca_core.github import ChangedFile
+from gca_core.github import BlameRange, ChangedFile, Comparison
 from gca_core.keys import KeyRing
 from gca_prcheck import checkrun, events, polling, worker
 from gca_prcheck.config import PrcheckConfig
@@ -198,3 +198,75 @@ async def test_rerun_is_idempotent(pg_engine: Engine, keyring: KeyRing, world: S
     assert worker.claim_ready(pg_engine) == head_id
     await worker.process_head(pg_engine, gh, keyring, PrcheckConfig(), head_id)  # type: ignore[arg-type]
     assert snapshot() == first and len(gh.created) == 2  # a new check run for the re-run, same results  # type: ignore[attr-defined]
+
+
+# Quickstart §2 "two mapped authors" (FR-012): developer B's own AI output, and two lines each author typed
+# from the other's AI output. Blame credits each line to the author of the commit that last touched it.
+TWO_AUTHOR_CAPTURED = (
+    "def discount(order):\n    return round(order.subtotal * order.customer.loyalty_rate, 2)\n"
+)
+TWO_AUTHOR_FILE = [
+    ("def total(items):", "c1"),  # A's capture
+    ("    return sum(item.price * item.quantity for item in items if item.active)", "c1"),  # A's capture
+    ("def discount(order):", "c2"),  # B's capture
+    ("    return round(order.subtotal * order.customer.loyalty_rate, 2)", "c2"),  # B's capture
+    ("    return round(order.subtotal * order.customer.loyalty_rate, 2)", "c1"),  # B's capture, A's commit
+    (
+        "    return sum(item.price * item.quantity for item in items if item.active)",
+        "c2",
+    ),  # A's capture, B's commit
+]
+
+
+async def test_two_mapped_authors_each_credited_for_their_own_commits(
+    pg_engine: Engine, keyring: KeyRing, world: SimpleNamespace
+) -> None:
+    a, b = 8_000_000 + uuid.uuid4().int % 1_000_000, 9_100_000 + uuid.uuid4().int % 1_000_000
+    full_name = f"acme/two-authors-{a}"
+
+    class TwoAuthorGitHub(world.FakeGitHub):  # type: ignore[name-defined,misc]
+        async def compare(self, inst: int, owner: str, repo: str, base: str, head: str) -> Comparison:
+            patch = f"@@ -0,0 +1,{len(TWO_AUTHOR_FILE)} @@\n" + "\n".join(
+                "+" + ln for ln, _ in TWO_AUTHOR_FILE
+            )
+            return Comparison(
+                "m" * 40,
+                [ChangedFile("src/app.py", "added", len(TWO_AUTHOR_FILE), patch, None)],
+                ["c1", "c2"],
+            )
+
+        async def blame(self, inst: int, owner: str, repo: str, oid: str, path: str) -> list[BlameRange]:
+            return [BlameRange(n, n, sha) for n, (_, sha) in enumerate(TWO_AUTHOR_FILE, start=1)]
+
+    gh = TwoAuthorGitHub(a, full_name, a, b)  # commit c1 is A's, c2 is B's
+    with pg_engine.begin() as conn:
+        dev_a = world.capture(conn, a, login="ada")
+        dev_b = world.capture(conn, b, login="bob", content=TWO_AUTHOR_CAPTURED)
+        conn.execute(text("UPDATE capture_instance SET status = 'stale' WHERE status = 'active'"))
+    await polling.poll_once(pg_engine, gh)  # type: ignore[arg-type]
+    with pg_engine.begin() as conn:
+        world.heartbeat(conn)
+    head_id = worker.claim_ready(pg_engine)
+    await worker.process_head(pg_engine, gh, keyring, PrcheckConfig(), head_id)  # type: ignore[arg-type]
+
+    with pg_engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                "SELECT lr.line_no, lr.outcome::text, lr.tier::text, lr.credited_developer_id, lr.credited_github_id, "
+                "ce.developer_id AS matched_developer_id "
+                "FROM line_result lr LEFT JOIN capture_event ce ON ce.id = lr.matched_capture_event_id "
+                "WHERE lr.change_head_id = :h ORDER BY lr.line_no"
+            ),
+            {"h": head_id},
+        ).fetchall()
+    assert [tuple(r) for r in rows] == [
+        (1, "ai_unmodified", "exact", dev_a, a, dev_a),
+        (2, "ai_unmodified", "exact", dev_a, a, dev_a),
+        (3, "ai_unmodified", "exact", dev_b, b, dev_b),
+        (4, "ai_unmodified", "exact", dev_b, b, dev_b),
+        # The other developer's AI output, committed by someone whose own captures never produced it: credited to
+        # the commit's author and matched only against that author's captures, so neither AI nor the other author.
+        (5, "human", "none", dev_a, a, None),
+        (6, "human", "none", dev_b, b, None),
+    ]
+    assert _head(pg_engine, head_id).coverage_status == "complete"  # type: ignore[arg-type,attr-defined]

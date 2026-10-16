@@ -166,7 +166,7 @@ Each PR's per-line results in the store were compared with its answer key, `.gca
 | PR opened while ingest is paused | #6 | 12/12 | ❌ the check never showed "Waiting for capture to catch up" (finding 7) |
 | the same, rerun with finding 7's fix (`--only pending`, 22:27 UTC) | [#13](https://github.com/nathan-james-s/gca-sample/pull/13) | 12/12 | ✅ the check showed "Waiting for capture to catch up" while ingest was paused, then completed after it resumed |
 | commit by an account with no gateway credential | #10 | 13/13 | ✅ |
-| two mapped authors | — | — | skipped by the owner: needs a second GitHub account with a credential (`--second-login`, `GCA_CREDENTIAL_2`). No automated test covers it either, so crediting each line to its commit's author is unverified |
+| two mapped authors | — | — | skipped by the owner: needs a second GitHub account with a credential (`--second-login`, `GCA_CREDENTIAL_2`). ✅ Covered without one by `test_two_mapped_authors_each_credited_for_their_own_commits` (services/prcheck/tests/test_us2_worker.py): a PR with one commit from each of two developers with credentials and captures, run through the worker against PostgreSQL. Every line is credited to its commit's author, and a line one author committed from the other's AI output is human, not matched to the other's capture |
 | a new push to an open PR | #5 | 8/8 and 13/13 | ✅ both heads attributed, the first kept |
 
 Every check showed incomplete coverage, from the Mac's earlier sleeps (finding 3). The answer keys say
@@ -196,7 +196,7 @@ one replaces the previous key for that gateway.
 
 ## Not run
 
-- **Section 2, two mapped authors**: skipped by the owner (see above).
+- **Section 2, two mapped authors, on GitHub**: skipped by the owner. An automated test covers the crediting (see above).
 - **Section 3 (reporting and roles)**: needs an organization with teams; the owner's App is on a personal account.
 - **Section 5 (bring your own key)**: optional, and it spends provider credit.
 

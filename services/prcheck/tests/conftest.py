@@ -90,12 +90,13 @@ def keyring(tmp_path: Path) -> KeyRing:
     return KeyRing(tmp_path)
 
 
-def capture(conn: Any, gid: int) -> None:
+def capture(conn: Any, gid: int, *, login: str = "ada", content: str = CAPTURED) -> uuid.UUID:
+    """A developer with an active gateway credential and one captured Write of ``content``; returns its id."""
     dev = conn.execute(
         text(
-            "INSERT INTO developer (id, github_id, github_login) VALUES (gen_random_uuid(), :g, 'ada') RETURNING id"
+            "INSERT INTO developer (id, github_id, github_login) VALUES (gen_random_uuid(), :g, :l) RETURNING id"
         ),
-        {"g": gid},
+        {"g": gid, "l": login},
     ).scalar()
     cred = conn.execute(
         text(
@@ -108,7 +109,7 @@ def capture(conn: Any, gid: int) -> None:
         "anthropic_messages",
         "Write",
         "json_args",
-        {"file_path": "/work/src/app.py", "content": CAPTURED},
+        {"file_path": "/work/src/app.py", "content": content},
         True,
     )
     iid = str(uuid.uuid4())
@@ -131,6 +132,7 @@ def capture(conn: Any, gid: int) -> None:
         credential_id=str(cred),
     )
     handle(conn, messages.validate({**env, **body}))
+    return uuid.UUID(str(dev))
 
 
 def heartbeat(conn: Any) -> None:
