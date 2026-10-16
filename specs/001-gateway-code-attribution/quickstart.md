@@ -103,7 +103,8 @@ in-scope tool from `/me/setup`, make a real change, and open a PR.
 ## 6. Library reuse and determinism (User Story 5, SC-008)
 
 - `uv run gca version` shows the library semver, `ALG` and the pinned Unicode version.
-- `uv run pytest lib/tests/golden` passes on Linux and macOS (CI matrix).
+- `uv run pytest lib/tests/test_golden.py` passes on Linux and macOS (CI matrix). `lib/tests/golden/` holds the
+  corpus and its generator, not tests.
 - `GCA_E2E=1 GCA_E2E_REPO=<ORG>/gca-sample uv run pytest tests/integration/test_cli_matches_prcheck.py`: it exports
   the captures behind the latest attributed demo PR (fingerprints only), runs `gca attribute` on a fresh clone, and
   checks it gives the same per-line outcomes as the PR check.
