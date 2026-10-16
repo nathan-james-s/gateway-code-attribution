@@ -87,6 +87,12 @@ installed. The owner estimates the missed step at about 10 seconds, so the run w
    zero, before 30 s), the demo model exits on SIGTERM, and `scn-pending` waits until the ingest pod has gone
    before it opens the PR.
 
+8. **Fault injection crashed with LiteLLM** (section 4 below). `gca demo run --inject-faults` sends deliberately
+   broken responses. LiteLLM closes the connection when an upstream stream is malformed, while agentgateway
+   passes it on, so the demo client raised `httpx.RemoteProtocolError` on the first `unexpected_format` fault and
+   stopped. The fault had already gone through the gateway, and capture recorded it. **Fixed**: the client treats
+   a cut connection on a fault request as sent, and carries on.
+
 Not guide issues: the first LiteLLM `gca demo run` got HTTP 401 because the key was read into a misspelled variable.
 The two attempts were recorded as `unknown_credential` losses, which correctly don't affect coverage.
 
@@ -157,9 +163,10 @@ Each PR's per-line results in the store were compared with its answer key, `.gca
 | braces, blanks, `else {` | #8 | 7/7 | ✅ |
 | rebase onto a moved base, then squash (SC-004) | #7 | 16/16 at the final head | ✅ The first head was force-pushed within seconds, before the 30 s poll saw it. That's expected with polling delivery |
 | cherry-pick (SC-004) | #3 | 10/10 | ✅ |
-| PR opened while ingest is paused | #6 | 12/12 | ❌ the check never showed "Waiting for capture to catch up" (finding 7, fixed) |
+| PR opened while ingest is paused | #6 | 12/12 | ❌ the check never showed "Waiting for capture to catch up" (finding 7) |
+| the same, rerun with finding 7's fix (`--only pending`, 22:27 UTC) | [#13](https://github.com/nathan-james-s/gca-sample/pull/13) | 12/12 | ✅ the check showed "Waiting for capture to catch up" while ingest was paused, then completed after it resumed |
 | commit by an account with no gateway credential | #10 | 13/13 | ✅ |
-| two mapped authors | — | — | not run: needs a second GitHub account with a credential (`--second-login`, `GCA_CREDENTIAL_2`) |
+| two mapped authors | — | — | skipped by the owner: needs a second GitHub account with a credential (`--second-login`, `GCA_CREDENTIAL_2`). No automated test covers it either, so crediting each line to its commit's author is unverified |
 | a new push to an open PR | #5 | 8/8 and 13/13 | ✅ both heads attributed, the first kept |
 
 Every check showed incomplete coverage, from the Mac's earlier sleeps (finding 3). The answer keys say
@@ -170,7 +177,7 @@ Every check showed incomplete coverage, from the Mac's earlier sleeps (finding 3
 
 | Step | Result |
 |---|---|
-| 1. Injected faults | not yet run |
+| 1. Injected faults: `--inject-faults truncated=3,unexpected_format=2 --faults-only` | ✅ exactly 3 `truncated` (Anthropic Messages) and 2 `unexpected_format` (OpenAI Responses) losses recorded, the source of the Coverage dashboard's per-cause panel. Fault-only traffic opens no PR and captures no lines, so none counted as human. The run stopped after the first `unexpected_format` fault (finding 8); after the fix, `unexpected_format=1` sent the second |
 | 2. NATS stopped (`kubectl -n gca scale statefulset/gca-nats --replicas=0`), demo run, NATS restored | ✅ every gateway request succeeded and [#12](https://github.com/nathan-james-s/gca-sample/pull/12) opened. A `heartbeat_missed` loss covers the outage (18:10:49–18:11:03 UTC), and #12 shows incomplete coverage |
 
 ## SC-011: no install for coding tools
@@ -187,12 +194,11 @@ The first attempts got HTTP 401 because the token wasn't the current LiteLLM gat
 OpenRouter provider key. The gateway only accepts the personal `sk-gca-` key from the portal, and issuing a new
 one replaces the previous key for that gateway.
 
-## Not yet run
+## Not run
 
-These are for the owner:
+- **Section 2, two mapped authors**: skipped by the owner (see above).
+- **Section 3 (reporting and roles)**: needs an organization with teams; the owner's App is on a personal account.
+- **Section 5 (bring your own key)**: optional, and it spends provider credit.
 
-- **Section 2, `scn-pending` again** with finding 7's fix: `gca demo scenarios --only pending`.
-- **Section 2, two mapped authors**: needs a second account with a gateway credential.
-- **Section 4, step 1**: injected faults.
-
-T120 stays open until these are recorded here.
+Every other section of the quickstart was run on this machine for both gateways and is recorded above, with
+each mismatch fixed. T120 is complete.

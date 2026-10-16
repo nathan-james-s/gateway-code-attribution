@@ -158,6 +158,26 @@ def test_refuses_paths_outside_repo(tmp_path: Path) -> None:
         agent.apply_output(tmp_path, out)
 
 
+def test_inject_faults_carries_on_when_the_gateway_cuts_a_broken_stream(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """LiteLLM closes the connection mid-body when the upstream stream is malformed; agentgateway passes it on.
+    Either way the fault reached the gateway, which is what capture must count."""
+    import httpx
+
+    sent: Counter[str] = Counter()
+
+    def send(api_format: str, text: str) -> bytes:
+        sent[api_format] += 1
+        if api_format == "openai_responses":
+            raise httpx.RemoteProtocolError("peer closed connection without sending complete message body")
+        return b""
+
+    agent.inject_faults({"truncated": 3, "unexpected_format": 2}, send)
+    assert sent == Counter({"anthropic_messages": 3, "openai_responses": 2})
+    assert "injected 2 unexpected_format responses" in capsys.readouterr().out
+
+
 def test_inject_faults_sends_broken_responses_that_capture_counts() -> None:
     """T092: each injected fault reaches demo-model by its own API format and parses as that loss cause."""
     from gca_demo.sessions import FAULTS

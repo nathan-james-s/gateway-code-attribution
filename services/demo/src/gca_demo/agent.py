@@ -219,7 +219,10 @@ def inject_faults(faults: dict[str, int], send: Sender) -> None:
     """Send broken responses through the gateway. Capture must count each one as loss, never as human."""
     for kind, count in faults.items():
         for n in range(count):
-            send(FAULTS[kind], fault_marker(kind, n))
+            # LiteLLM cuts the connection when the upstream stream is malformed (agentgateway passes it on). The
+            # broken response still went through the gateway, which is the fault being injected.
+            with contextlib.suppress(httpx.RemoteProtocolError, httpx.ReadError):
+                send(FAULTS[kind], fault_marker(kind, n))
         if count:
             print(f"  injected {count} {kind} response{'s' if count != 1 else ''} ({FAULTS[kind]})")
 
