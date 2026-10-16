@@ -107,3 +107,28 @@ def test_scenarios_cover_quickstart_cases() -> None:
         "scn-two-authors",
         "scn-new-push",
     } == kinds
+
+
+def test_pausing_ingest_waits_for_its_pod_to_exit(monkeypatch: pytest.MonkeyPatch) -> None:
+    """scn-pending opens its PR only once ingest has stopped; a terminating pod still stores captures."""
+    import argparse
+
+    from gca_demo import scenarios
+
+    calls: list[list[str]] = []
+    pods = ["pod/gca-gca-ingest-1", "pod/gca-gca-ingest-1", ""]  # terminating, terminating, gone
+
+    def run(cmd: list[str], cwd: Path | None = None) -> str:
+        calls.append(cmd)
+        return pods.pop(0) if "get" in cmd else ""
+
+    monkeypatch.setattr(scenarios, "_run", run)
+    monkeypatch.setattr(scenarios.time, "sleep", lambda s: None)
+    r = scenarios.Runner.__new__(scenarios.Runner)
+    r.args = argparse.Namespace(kube_context="kind-gca", namespace="gca", release="gca")
+    r.kubectl_scale(0)
+    assert [c[5] for c in calls] == ["scale", "get", "get", "get"]
+    assert "app.kubernetes.io/instance=gca,app.kubernetes.io/component=ingest" in calls[1]
+    calls.clear()
+    r.kubectl_scale(1)  # resuming doesn't wait
+    assert [c[5] for c in calls] == ["scale"]

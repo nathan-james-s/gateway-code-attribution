@@ -200,19 +200,19 @@ class Runner:
             time.sleep(10)
         return None
 
-    def kubectl_scale(self, replicas: int) -> None:
-        _run(
-            [
-                "kubectl",
-                "--context",
-                self.args.kube_context,
-                "-n",
-                self.args.namespace,
-                "scale",
-                f"deployment/{self.args.release}-gca-ingest",
-                f"--replicas={replicas}",
-            ]
-        )
+    def kubectl_scale(self, replicas: int, *, timeout: float = 90) -> None:
+        kubectl = ["kubectl", "--context", self.args.kube_context, "-n", self.args.namespace]
+        _run([*kubectl, "scale", f"deployment/{self.args.release}-gca-ingest", f"--replicas={replicas}"])
+        if replicas:
+            return
+        # Ingest is paused only once its pod has exited: until then it keeps storing captures and the watermark
+        # moves, so a PR opened straight away could be checked without waiting.
+        selector = f"app.kubernetes.io/instance={self.args.release},app.kubernetes.io/component=ingest"
+        end = time.monotonic() + timeout
+        while _run([*kubectl, "get", "pods", "-l", selector, "-o", "name"]):
+            if time.monotonic() > end:
+                raise DemoError(f"ingest was still running {timeout:g} s after scaling it to zero")
+            time.sleep(1)
 
     # ------------------------------------------------------------------------------------------ scenarios
     def simple(self, s: Session, coverage: str = "complete") -> dict[str, Any]:

@@ -78,6 +78,15 @@ installed. The owner estimates the missed step at about 10 seconds, so the run w
    lib/tests/golden` collects nothing (exit code 5): that directory holds the corpus and its generator, while the
    test is `lib/tests/test_golden.py`. **Fixed** in the quickstart.
 
+7. **`scn-pending` never showed "Waiting for capture to catch up"** (section 2 below). The scenario scales ingest
+   to zero, then opens its PR. But ingest runs as PID 1 and had no SIGTERM handler, so it ignored the signal and
+   kept consuming for the full 30-second grace period, until Kubernetes killed it. It stored a heartbeat sent
+   after the PR was recorded, the watermark passed the PR, and prcheck completed the check at once. The demo model
+   had the same missing handler. This also explains the 30 seconds every ingest restart took (finding 2).
+   **Fixed**: ingest stops consuming on SIGTERM and exits (measured on this cluster: gone 3 s after scaling to
+   zero, before 30 s), the demo model exits on SIGTERM, and `scn-pending` waits until the ingest pod has gone
+   before it opens the PR.
+
 Not guide issues: the first LiteLLM `gca demo run` got HTTP 401 because the key was read into a misspelled variable.
 The two attempts were recorded as `unknown_credential` losses, which correctly don't affect coverage.
 
@@ -134,12 +143,43 @@ model (`gca_eval.gateways._Upstream`, Python's `http.server`). It was waiting on
 the gateway under test shut down after its run, and they appear after Locust's final stats. No request failed. It's
 log noise, not a result.
 
+## Section 2: real PRs and edge cases (User Story 2)
+
+Run by the owner at 18:05 UTC with LiteLLM: `gca demo scenarios --repo nathan-james-s/gca-sample` (PRs
+[#3](https://github.com/nathan-james-s/gca-sample/pull/3)–[#11](https://github.com/nathan-james-s/gca-sample/pull/11)).
+Each PR's per-line results in the store were compared with its answer key, `.gca-expected.json`, at every head.
+
+| Case | PR | Lines matching the answer key | Result |
+|---|---|---|---|
+| unmodified AI lines | #11 | 11/11 | ✅ |
+| edited AI lines | #4 | 17/17 | ✅ |
+| typed-only lines | #9 | 8/8 | ✅ |
+| braces, blanks, `else {` | #8 | 7/7 | ✅ |
+| rebase onto a moved base, then squash (SC-004) | #7 | 16/16 at the final head | ✅ The first head was force-pushed within seconds, before the 30 s poll saw it. That's expected with polling delivery |
+| cherry-pick (SC-004) | #3 | 10/10 | ✅ |
+| PR opened while ingest is paused | #6 | 12/12 | ❌ the check never showed "Waiting for capture to catch up" (finding 7, fixed) |
+| commit by an account with no gateway credential | #10 | 13/13 | ✅ |
+| two mapped authors | — | — | not run: needs a second GitHub account with a credential (`--second-login`, `GCA_CREDENTIAL_2`) |
+| a new push to an open PR | #5 | 8/8 and 13/13 | ✅ both heads attributed, the first kept |
+
+Every check showed incomplete coverage, from the Mac's earlier sleeps (finding 3). The answer keys say
+`complete`, but no line outcome depends on coverage. The report labels the run `agentgateway` because
+`--gateway` wasn't passed. That flag only labels the report: traffic went through `--gateway-url`, here LiteLLM.
+
+## Section 4: coverage and fail-open (User Story 4)
+
+| Step | Result |
+|---|---|
+| 1. Injected faults | not yet run |
+| 2. NATS stopped (`kubectl -n gca scale statefulset/gca-nats --replicas=0`), demo run, NATS restored | ✅ every gateway request succeeded and [#12](https://github.com/nathan-james-s/gca-sample/pull/12) opened. A `heartbeat_missed` loss covers the outage (18:10:49–18:11:03 UTC), and #12 shows incomplete coverage |
+
 ## Not yet run
 
 These are for the owner:
 
-- **Section 2 (edge cases)**: `gca demo scenarios` opens about 10 PRs on the sample repository.
-- **Section 4 (coverage and fail-open)**.
+- **Section 2, `scn-pending` again** with finding 7's fix: `gca demo scenarios --only pending`.
+- **Section 2, two mapped authors**: needs a second account with a gateway credential.
+- **Section 4, step 1**: injected faults.
 - **The SC-011 check**: Claude Code through the gateway with only environment variables. It needs the owner's
   gateway key.
 

@@ -11,6 +11,8 @@ from __future__ import annotations
 import json
 import os
 import re
+import signal
+import sys
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -105,6 +107,8 @@ class Handler(BaseHTTPRequestHandler):
 def main() -> None:
     port = int(os.environ.get("GCA_DEMO_PORT", "8080"))
     sessions()  # fail fast on a bad session file
+    # As PID 1 an unhandled SIGTERM is ignored, and every rollout would wait out the grace period.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
     ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()  # noqa: S104
 
 

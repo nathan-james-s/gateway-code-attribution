@@ -21,21 +21,31 @@ log = logging.getLogger("gca.ingest")
 DURABLE = "gca-ingest"
 
 
-async def consume(engine: Engine, nats_url: str, *, batch: int = 100) -> None:
-    _, js = await connect_jetstream(nats_url)
-    await ensure_stream(js)
-    sub = await js.pull_subscribe(f"{SUBJECT_PREFIX}.>", durable=DURABLE, stream=STREAM)
-    while True:
-        try:
-            msgs = await sub.fetch(batch, timeout=1)
-        except TimeoutError:
-            continue
-        except Exception:
-            log.exception("fetch failed")
-            await asyncio.sleep(1)
-            continue
-        for m in msgs:
-            await _process(engine, m)
+async def consume(
+    engine: Engine, nats_url: str, *, batch: int = 100, stop: asyncio.Event | None = None
+) -> None:
+    """Consume until ``stop`` is set. It's checked between messages: fetched messages not yet stored stay unacked,
+    and JetStream redelivers them to the next ingest."""
+    stop = stop or asyncio.Event()
+    nc, js = await connect_jetstream(nats_url)
+    try:
+        await ensure_stream(js)
+        sub = await js.pull_subscribe(f"{SUBJECT_PREFIX}.>", durable=DURABLE, stream=STREAM)
+        while not stop.is_set():
+            try:
+                msgs = await sub.fetch(batch, timeout=1)
+            except TimeoutError:
+                continue
+            except Exception:
+                log.exception("fetch failed")
+                await asyncio.sleep(1)
+                continue
+            for m in msgs:
+                if stop.is_set():
+                    break
+                await _process(engine, m)
+    finally:
+        await nc.close()
 
 
 async def _process(engine: Engine, m: Any) -> None:

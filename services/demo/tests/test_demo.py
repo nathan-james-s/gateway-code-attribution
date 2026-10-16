@@ -4,8 +4,14 @@ from __future__ import annotations
 
 import http.client
 import json
+import os
 import shutil
+import signal
+import socket
+import subprocess
+import sys
 import threading
+import time
 from collections import Counter
 from http.server import ThreadingHTTPServer
 from pathlib import Path
@@ -180,3 +186,23 @@ def test_inject_faults_sends_broken_responses_that_capture_counts() -> None:
         "openai_chat", "/v1/chat/completions", '{"stream": true, "x": "gca-demo fault=truncated n=0"}'
     )
     assert b"max_tokens" not in other[1]
+
+
+def test_demo_model_exits_cleanly_on_sigterm(tmp_path: Path) -> None:
+    """It runs as PID 1, which ignores an unhandled SIGTERM: every rollout waited out the 30 s grace period."""
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "gca_demo.model"], env={**os.environ, "GCA_DEMO_PORT": str(port)}
+    )
+    try:
+        for _ in range(100):
+            with socket.socket() as s:
+                if s.connect_ex(("127.0.0.1", port)) == 0:
+                    break
+            time.sleep(0.05)
+        proc.send_signal(signal.SIGTERM)
+        assert proc.wait(timeout=5) == 0  # handled: a clean exit, not death by signal (-15)
+    finally:
+        proc.kill()
