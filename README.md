@@ -12,7 +12,7 @@
 </p>
 
 > **Status:** a complete, working reference implementation, published to be read and tried. It is
-> **public but not open source**: no releases, no roadmap, no contributions. See [License](#license).
+> **public but not open source**: no releases, no roadmap, no contributions.
 
 ---
 
@@ -198,6 +198,3 @@ None. This is a demo and reference implementation, published to be read and trie
 file. GitHub's terms let you view and fork it here; beyond that, copyright law's defaults apply. Third-party
 components keep their own licenses ([NOTICE](NOTICE)). The repository doesn't take contributions
 ([CONTRIBUTING.md](CONTRIBUTING.md)).
-
-This is a US-based project and isn't designed around GDPR or works-council requirements; adopters elsewhere are
-responsible for their own compliance.
