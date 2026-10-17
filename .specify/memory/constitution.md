@@ -64,8 +64,8 @@ reproducible and comparable over time (problem.md G6, M8).
 - No feature MAY require a paid tier of any dependency.
 - The project MUST be released under the **Apache License 2.0** (`LICENSE` at the repository root). Every
   dependency MUST carry a license compatible with it.
-  *Amended 2026-10-17 (v1.1.0):* the owner dropped the open-source release. The repository is public under a
-  source-available license (`LICENSE`), and no release is planned. The rest of this principle (tool and gateway
+  *Amended 2026-10-17 (v1.1.0):* the owner dropped the open-source release. The repository is public with no
+  license file, as a demo and reference implementation, and no release is planned. The rest of this principle (tool and gateway
   neutrality, no paid tiers, identical results across gateways) is unchanged. No in-flight spec or plan is
   affected: spec 001 is complete and carries the same note.
 

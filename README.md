@@ -9,7 +9,6 @@
   <a href="https://github.com/nathan-james-s/gateway-code-attribution/actions/workflows/ci.yml"><img alt="ci" src="https://github.com/nathan-james-s/gateway-code-attribution/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/nathan-james-s/gateway-code-attribution/actions/workflows/release-gate.yml"><img alt="release gate" src="https://github.com/nathan-james-s/gateway-code-attribution/actions/workflows/release-gate.yml/badge.svg"></a>
   <img alt="python 3.12" src="https://img.shields.io/badge/python-3.12-blue">
-  <a href="LICENSE"><img alt="license: source-available" src="https://img.shields.io/badge/license-source--available-lightgrey"></a>
 </p>
 
 > **Status:** a complete, working reference implementation, published to be read and tried. It is
@@ -22,20 +21,12 @@
 Every line an AI coding tool writes starts life as **model output**, and in a governed setup all model output
 already passes through one place: the AI gateway. So watch it there.
 
-```text
- Claude Code / Codex / Gemini CLI / OpenCode                 GitHub
-            │  model request                                   │  pull request opened
-            ▼                                                  ▼
-   ┌─────────────────┐   keyed fingerprints      ┌──────────────────────────┐
-   │   AI gateway    │ ───────────────────────▶  │   PR check               │
-   │ (agentgateway   │   of every code line      │   fingerprints each      │
-   │  or LiteLLM)    │   the model wrote         │   added line the same    │
-   └─────────────────┘   (never the code)        │   way and looks it up    │
-            │                                     └──────────────────────────┘
-            ▼  response, untouched                            │
-        developer's tool                                       ▼
-                                             ✔ AI, unmodified   ✎ AI, modified   ✍ Human   ∅ Indeterminate
-```
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/overview-dark.svg">
+    <img alt="Coding tools send requests through the AI gateway, which forwards them to the model provider and returns responses untouched. A copy of each response goes to capture, which reassembles tool calls, fingerprints every code line with an HMAC and drops the text; the fingerprints flow through NATS and ingest into PostgreSQL, which never holds code or prompts. When a pull request is opened, the PR check fingerprints each added line with the same library and key, looks it up among the author's captures from the last 14 days, and labels every line AI unmodified, AI modified, human or indeterminate on a check run and in the portal and Grafana dashboards." src="docs/images/overview.svg" width="1000">
+  </picture>
+</p>
 
 1. **Capture.** As a model response streams through the gateway, the stack reassembles its tool calls (`Write`,
    `Edit`, `apply_patch`, `write_file`, …), normalizes each line of code and stores a **keyed fingerprint**
@@ -203,10 +194,9 @@ and a Locust performance suite.
 
 ## License
 
-**Public, not open source.** You can read this repository, and clone, build and run it on your own systems to
-evaluate it, including the demo and the tests. Copying, modifying, redistributing, or any commercial or
-production use needs the owner's written permission. Full terms in [LICENSE](LICENSE); third-party components
-keep their own licenses ([NOTICE](NOTICE)). The repository doesn't take contributions
+None. This is a demo and reference implementation, published to be read and tried, and it carries no license
+file. GitHub's terms let you view and fork it here; beyond that, copyright law's defaults apply. Third-party
+components keep their own licenses ([NOTICE](NOTICE)). The repository doesn't take contributions
 ([CONTRIBUTING.md](CONTRIBUTING.md)).
 
 This is a US-based project and isn't designed around GDPR or works-council requirements; adopters elsewhere are
