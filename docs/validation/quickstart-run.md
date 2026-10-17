@@ -22,8 +22,8 @@ installed. The owner estimates the missed step at about 10 seconds, so the run w
 
 | PR | AI unmodified | AI modified (anchored) | AI modified (broad) | Human | Indeterminate | Coverage | alg |
 |---|---|---|---|---|---|---|---|
-| [#1](https://github.com/nathan-james-s/gca-sample/pull/1) agentgateway | 47 | 1 | 2 | 8 | 35 | incomplete | 1 |
-| [#2](https://github.com/nathan-james-s/gca-sample/pull/2) LiteLLM | 47 | 1 | 2 | 8 | 35 | incomplete | 1 |
+| #1 agentgateway | 47 | 1 | 2 | 8 | 35 | incomplete | 1 |
+| #2 LiteLLM | 47 | 1 | 2 | 8 | 35 | incomplete | 1 |
 
 | Expectation | Result |
 |---|---|
@@ -41,7 +41,7 @@ installed. The owner estimates the missed step at about 10 seconds, so the run w
 1. **The App install step is easy to miss, and missing it failed silently.** `gca demo init-repo` printed "Install
    the GitHub App on it next", but the step happens in the browser. `gca demo run` opened the PR anyway, and prcheck
    kept polling an App with no installations without logging anything. No check appeared and Grafana stayed empty.
-   **Fixed** in [#12](https://github.com/nathan-james-s/gateway-code-attribution/pull/12): `init-repo` prints the
+   **Fixed** in PR 12: `init-repo` prints the
    install link, `gca demo run` stops with that link when the App isn't installed, and prcheck warns while the App
    has no installations.
 2. **`make demo-upgrade GATEWAY=litellm` timed out with no ingest pod.** For 30 seconds after the restart, the kind
@@ -152,7 +152,7 @@ log noise, not a result.
 ## Section 2: real PRs and edge cases (User Story 2)
 
 Run by the owner at 18:05 UTC with LiteLLM: `gca demo scenarios --repo nathan-james-s/gca-sample` (PRs
-[#3](https://github.com/nathan-james-s/gca-sample/pull/3)–[#11](https://github.com/nathan-james-s/gca-sample/pull/11)).
+#3–#11).
 Each PR's per-line results in the store were compared with its answer key, `.gca-expected.json`, at every head.
 
 | Case | PR | Lines matching the answer key | Result |
@@ -164,7 +164,7 @@ Each PR's per-line results in the store were compared with its answer key, `.gca
 | rebase onto a moved base, then squash (SC-004) | #7 | 16/16 at the final head | ✅ The first head was force-pushed within seconds, before the 30 s poll saw it. That's expected with polling delivery |
 | cherry-pick (SC-004) | #3 | 10/10 | ✅ |
 | PR opened while ingest is paused | #6 | 12/12 | ❌ the check never showed "Waiting for capture to catch up" (finding 7) |
-| the same, rerun with finding 7's fix (`--only pending`, 22:27 UTC) | [#13](https://github.com/nathan-james-s/gca-sample/pull/13) | 12/12 | ✅ the check showed "Waiting for capture to catch up" while ingest was paused, then completed after it resumed |
+| the same, rerun with finding 7's fix (`--only pending`, 22:27 UTC) | #13 | 12/12 | ✅ the check showed "Waiting for capture to catch up" while ingest was paused, then completed after it resumed |
 | commit by an account with no gateway credential | #10 | 13/13 | ✅ |
 | two mapped authors | — | — | skipped by the owner: needs a second GitHub account with a credential (`--second-login`, `GCA_CREDENTIAL_2`). ✅ Covered without one by `test_two_mapped_authors_each_credited_for_their_own_commits` (services/prcheck/tests/test_us2_worker.py): a PR with one commit from each of two developers with credentials and captures, run through the worker against PostgreSQL. Every line is credited to its commit's author, and a line one author committed from the other's AI output is human, not matched to the other's capture |
 | a new push to an open PR | #5 | 8/8 and 13/13 | ✅ both heads attributed, the first kept |
@@ -178,7 +178,7 @@ Every check showed incomplete coverage, from the Mac's earlier sleeps (finding 3
 | Step | Result |
 |---|---|
 | 1. Injected faults: `--inject-faults truncated=3,unexpected_format=2 --faults-only` | ✅ exactly 3 `truncated` (Anthropic Messages) and 2 `unexpected_format` (OpenAI Responses) losses recorded, the source of the Coverage dashboard's per-cause panel. Fault-only traffic opens no PR and captures no lines, so none counted as human. The run stopped after the first `unexpected_format` fault (finding 8); after the fix, `unexpected_format=1` sent the second |
-| 2. NATS stopped (`kubectl -n gca scale statefulset/gca-nats --replicas=0`), demo run, NATS restored | ✅ every gateway request succeeded and [#12](https://github.com/nathan-james-s/gca-sample/pull/12) opened. A `heartbeat_missed` loss covers the outage (18:10:49–18:11:03 UTC), and #12 shows incomplete coverage |
+| 2. NATS stopped (`kubectl -n gca scale statefulset/gca-nats --replicas=0`), demo run, NATS restored | ✅ every gateway request succeeded and #12 opened. A `heartbeat_missed` loss covers the outage (18:10:49–18:11:03 UTC), and #12 shows incomplete coverage |
 
 ## SC-011: no install for coding tools
 
