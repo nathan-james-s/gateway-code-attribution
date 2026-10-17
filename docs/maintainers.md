@@ -17,8 +17,8 @@ Jobs skipped by their path filter report success, so they can stay required.
 
 `release-gate` (`release-gate.yml`) runs the scenario set through both gateways on every PR to `main` and uploads
 the quality report. `release.yml` requires it, so no release is published below the bar (Principle V). It passes
-(accuracy 0.987 on both gateways, 2026-10-16), so make it a required merge check too. Branch protection on a
-private repository needs GitHub Pro or higher; on a public one it's free.
+(accuracy 0.987 on both gateways, 2026-10-16), so make it a required merge check too. Branch protection is free on a
+public repository.
 
 ## Repository secrets
 
@@ -47,8 +47,10 @@ GCA_E2E=1 GCA_E2E_REPO=OWNER/NAME uv run pytest tests/integration/test_cli_match
 
 ## Releasing
 
-**Not released yet.** The owner deferred the first public release (v0.1.0) on 2026-10-16. The repository is
-private, and nothing has been tagged or published. When it's time, do the one-time setup below, then push the tag.
+**Not released, and no release is planned.** The owner deferred the first release (v0.1.0) on 2026-10-16 and on
+2026-10-17 dropped the open-source release altogether: the repository is public as source-available code
+([LICENSE](../LICENSE)), nothing has been tagged, and nothing is on PyPI or ghcr.io. The workflow below still
+works; if a release is ever wanted, do the one-time setup first, then push the tag.
 
 A `v*` tag runs `.github/workflows/release.yml`. The tag must equal the version in `lib/pyproject.toml`,
 `Chart.yaml` (`version` and `appVersion`) and `values.yaml` (`images.tag` and `gateway.litellm.image.tag`); the

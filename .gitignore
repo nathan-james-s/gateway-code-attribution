@@ -28,3 +28,6 @@ values-byo.yaml
 charts/*/charts/*.tgz
 scenarios-report.json
 tests/perf/results/
+
+# Quick-start key file (README)
+key.b64

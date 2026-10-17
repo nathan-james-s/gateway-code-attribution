@@ -5,10 +5,14 @@
 outside the stack is the same as the stack's. It has no runtime dependencies beyond the Python 3.12 standard
 library.
 
+It isn't published on PyPI. Install it from this repository (`lib/` is a standard Python package):
+
 ```bash
-pip install gcattr
+pip install "git+https://github.com/nathan-james-s/gateway-code-attribution#subdirectory=lib"
 gca version
 ```
+
+or, from a checkout, `uv sync --all-packages -p 3.12` and `uv run gca version`.
 
 ## What it does
 

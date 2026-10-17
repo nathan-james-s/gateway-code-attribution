@@ -4,7 +4,6 @@ description: Reference stack for AI-code attribution at an AI gateway (agentgate
 type: application
 version: 0.1.0
 appVersion: "0.1.0"
-license: Apache-2.0
 home: https://github.com/nathan-james-s/gateway-code-attribution
 sources:
   - https://github.com/nathan-james-s/gateway-code-attribution

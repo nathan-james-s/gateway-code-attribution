@@ -3,7 +3,6 @@ name = "gca-eval"
 version = "0.1.0"
 description = "Scenario set, evaluation runner, quality report and threshold calibration (User Story 6). Never shipped in an image."
 requires-python = ">=3.12,<3.13"
-license = "Apache-2.0"
 dependencies = [
     "gcattr",
     "gca-core",

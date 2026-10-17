@@ -4,10 +4,8 @@ version = "0.1.0"
 description = "Normalization, keyed fingerprinting and tiered matching for gateway-sourced AI-code attribution."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-license = "Apache-2.0"
 authors = [{ name = "Nathan Strandberg" }]
 classifiers = [
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.12",
     "Typing :: Typed",
 ]

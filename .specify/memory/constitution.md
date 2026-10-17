@@ -64,6 +64,10 @@ reproducible and comparable over time (problem.md G6, M8).
 - No feature MAY require a paid tier of any dependency.
 - The project MUST be released under the **Apache License 2.0** (`LICENSE` at the repository root). Every
   dependency MUST carry a license compatible with it.
+  *Amended 2026-10-17 (v1.1.0):* the owner dropped the open-source release. The repository is public under a
+  source-available license (`LICENSE`), and no release is planned. The rest of this principle (tool and gateway
+  neutrality, no paid tiers, identical results across gateways) is unchanged. No in-flight spec or plan is
+  affected: spec 001 is complete and carries the same note.
 
 *Rationale:* vendor-neutral, tool-neutral attribution is the gap this project exists to fill (problem.md G2,
 G8).
@@ -174,4 +178,4 @@ constitution wins until it is amended.
   - A deviation MUST be justified in the plan's complexity tracking, or the constitution amended first.
   - The constitution is reviewed at each release against the release bar (Principle V).
 
-**Version**: 1.0.1 | **Ratified**: 2026-10-14 | **Last Amended**: 2026-10-14
+**Version**: 1.1.0 | **Ratified**: 2026-10-14 | **Last Amended**: 2026-10-17

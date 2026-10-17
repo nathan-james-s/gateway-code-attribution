@@ -9,6 +9,11 @@
 recorded in [docs/validation/quickstart-run.md](../../docs/validation/quickstart-run.md). The first public release
 (v0.1.0) is deferred by the owner; SC-012 (adoption) follows it.
 
+**Owner decision (2026-10-17)**: the open-source release this spec assumes is dropped. The repository is made
+public as source-available code under the [LICENSE](../../LICENSE) at the root, not Apache-2.0, and no release
+to PyPI or ghcr.io is planned. Everywhere this spec, the plan and the constitution say "open-source" or
+"Apache-2.0", read it as the plan at the time; the rest of the spec stands as the record of what was built.
+
 **Input**: User description: "@.specify/assessments/gateway-code-attribution/decision.md" (the assessment's go
 decision and its suggested input). The core of that input:
 
@@ -588,7 +593,7 @@ gateway. Then deliberately degrade the matching thresholds and confirm the relea
     - productivity judgments;
     - a hosted service.
   - The project is US-based and isn't designed around GDPR or works-council requirements.
-  - Licensed under Apache-2.0.
+  - Licensed under Apache-2.0. *(Superseded on 2026-10-17: source-available, see the status note above.)*
 - **Accepted risk (owner, 2026-10-14)**
   - On agentgateway, a response in flight when the capture processor *crashes* (not a graceful restart) is cut short
     for the developer, because agentgateway 1.6.0's fail-open covers only requests that start after the failure

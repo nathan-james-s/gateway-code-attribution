@@ -1,24 +1,34 @@
 # Contributing
 
-## Workflow
+**This repository doesn't take contributions.** It's public so the design and the code can be read, tried and
+cited. It isn't an open-source project: there is no roadmap, no release schedule and no maintainer commitment,
+and pull requests from outside won't be merged. Reading the code and running the demo locally is covered by the
+[LICENSE](LICENSE); anything beyond that needs the owner's written permission.
 
-Features follow the Spec Kit sequence: `/speckit-specify` → `/speckit-clarify` → `/speckit-plan` →
-`/speckit-tasks` → `/speckit-implement`. Every plan passes a Constitution Check against
-`.specify/memory/constitution.md`.
+If you spot a security problem, follow [SECURITY.md](SECURITY.md).
 
-## Merge gates (constitution: Development Workflow & Quality Gates)
+## How the project was built (for readers)
+
+Every feature followed the Spec Kit sequence: `/speckit-specify` → `/speckit-clarify` → `/speckit-plan` →
+`/speckit-tasks` → `/speckit-implement`, with each plan checked against
+[`.specify/memory/constitution.md`](.specify/memory/constitution.md). The specification, research, data model,
+contracts and task list are all in [`specs/001-gateway-code-attribution/`](specs/001-gateway-code-attribution/),
+and the assessment that preceded them in
+[`.specify/assessments/gateway-code-attribution/`](.specify/assessments/gateway-code-attribution/).
+
+The CI gates that every change had to pass:
 
 | Change touches | Gate |
 |---|---|
-| `lib/` | determinism + golden tests; full scenario set; outcome diff vs previous algorithm version |
-| `services/capture-*`, `services/core/` | cross-gateway conformance suite |
-| any data path | privacy audit (no code or prompt text in storage, logs, traces) |
-| `charts/`, `services/` | clean install from scratch reaches a first result |
-| a coding tool listed as supported | recorded real traffic in `eval/corpus/` |
+| `lib/` | determinism and golden-corpus tests; the full scenario set; an outcome diff against the previous algorithm version |
+| `services/capture-*`, `services/core/` | the cross-gateway conformance suite |
+| any data path | the privacy audit (no code or prompt text in storage, logs or traces) |
+| `charts/`, `services/` | a clean install from scratch that reaches a first result |
+| a coding tool listed as supported | recorded real traffic in `eval/corpus/`, with its owner's consent |
 
-AI-assisted development is welcome; it does not relax any gate.
+Most of the code was written with AI assistance, under those gates.
 
-## Local setup
+## Running it yourself
 
 ```bash
 uv sync --all-packages -p 3.12

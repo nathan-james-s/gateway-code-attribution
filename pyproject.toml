@@ -3,7 +3,6 @@ name = "gateway-code-attribution"
 version = "0.0.0"
 description = "Workspace root for the Gateway Code Attribution reference stack (not a published package)."
 requires-python = "==3.12.*"
-license = "Apache-2.0"
 
 [tool.uv]
 package = false
