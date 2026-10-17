@@ -21,20 +21,12 @@
 Every line an AI coding tool writes starts life as **model output**, and in a governed setup all model output
 already passes through one place: the AI gateway. So watch it there.
 
-```text
- Claude Code / Codex / Gemini CLI / OpenCode                 GitHub
-            │  model request                                   │  pull request opened
-            ▼                                                  ▼
-   ┌─────────────────┐   keyed fingerprints      ┌──────────────────────────┐
-   │   AI gateway    │ ───────────────────────▶  │   PR check               │
-   │ (agentgateway   │   of every code line      │   fingerprints each      │
-   │  or LiteLLM)    │   the model wrote         │   added line the same    │
-   └─────────────────┘   (never the code)        │   way and looks it up    │
-            │                                     └──────────────────────────┘
-            ▼  response, untouched                            │
-        developer's tool                                       ▼
-                                             ✔ AI, unmodified   ✎ AI, modified   ✍ Human   ∅ Indeterminate
-```
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/overview-dark.svg">
+    <img alt="Coding tools send requests through the AI gateway, which forwards them to the model provider and returns responses untouched. A copy of each response goes to capture, which reassembles tool calls, fingerprints every code line with an HMAC and drops the text; the fingerprints flow through NATS and ingest into PostgreSQL, which never holds code or prompts. When a pull request is opened, the PR check fingerprints each added line with the same library and key, looks it up among the author's captures from the last 14 days, and labels every line AI unmodified, AI modified, human or indeterminate on a check run and in the portal and Grafana dashboards." src="docs/images/overview.svg" width="1000">
+  </picture>
+</p>
 
 1. **Capture.** As a model response streams through the gateway, the stack reassembles its tool calls (`Write`,
    `Edit`, `apply_patch`, `write_file`, …), normalizes each line of code and stores a **keyed fingerprint**
