@@ -48,8 +48,8 @@ GCA_E2E=1 GCA_E2E_REPO=OWNER/NAME uv run pytest tests/integration/test_cli_match
 ## Releasing
 
 **Not released, and no release is planned.** The owner deferred the first release (v0.1.0) on 2026-10-16 and on
-2026-10-17 dropped the open-source release altogether: the repository is public as source-available code
-([LICENSE](../LICENSE)), nothing has been tagged, and nothing is on PyPI or ghcr.io. The workflow below still
+2026-10-17 dropped the open-source release altogether: the repository is public with no license file,
+nothing has been tagged, and nothing is on PyPI or ghcr.io. The workflow below still
 works; if a release is ever wanted, do the one-time setup first, then push the tag.
 
 A `v*` tag runs `.github/workflows/release.yml`. The tag must equal the version in `lib/pyproject.toml`,

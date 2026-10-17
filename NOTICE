@@ -1,9 +1,10 @@
 Gateway Code Attribution
 Copyright 2026 Nathan Strandberg. All rights reserved.
 
-This repository is source-available, not open source (see LICENSE).
+This repository is published without a license file: it is a demo and reference implementation, not open
+source.
 
 It deploys, but does not modify or redistribute in source form, separately licensed software including
 agentgateway (Apache-2.0), LiteLLM (MIT, excluding its enterprise/ directory), NATS (Apache-2.0),
 PostgreSQL (PostgreSQL License) and Grafana (AGPL-3.0, run as an unmodified separate service). Each is used
-under its own license, which this repository's license does not change.
+under its own license.

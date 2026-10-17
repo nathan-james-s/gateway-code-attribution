@@ -2,8 +2,8 @@
 
 **This repository doesn't take contributions.** It's public so the design and the code can be read, tried and
 cited. It isn't an open-source project: there is no roadmap, no release schedule and no maintainer commitment,
-and pull requests from outside won't be merged. Reading the code and running the demo locally is covered by the
-[LICENSE](LICENSE); anything beyond that needs the owner's written permission.
+and pull requests from outside won't be merged. There is no license file: GitHub's terms let you view and fork
+it here, and copyright law's defaults apply beyond that.
 
 If you spot a security problem, follow [SECURITY.md](SECURITY.md).
 

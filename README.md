@@ -9,7 +9,6 @@
   <a href="https://github.com/nathan-james-s/gateway-code-attribution/actions/workflows/ci.yml"><img alt="ci" src="https://github.com/nathan-james-s/gateway-code-attribution/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/nathan-james-s/gateway-code-attribution/actions/workflows/release-gate.yml"><img alt="release gate" src="https://github.com/nathan-james-s/gateway-code-attribution/actions/workflows/release-gate.yml/badge.svg"></a>
   <img alt="python 3.12" src="https://img.shields.io/badge/python-3.12-blue">
-  <a href="LICENSE"><img alt="license: source-available" src="https://img.shields.io/badge/license-source--available-lightgrey"></a>
 </p>
 
 > **Status:** a complete, working reference implementation, published to be read and tried. It is
@@ -203,10 +202,9 @@ and a Locust performance suite.
 
 ## License
 
-**Public, not open source.** You can read this repository, and clone, build and run it on your own systems to
-evaluate it, including the demo and the tests. Copying, modifying, redistributing, or any commercial or
-production use needs the owner's written permission. Full terms in [LICENSE](LICENSE); third-party components
-keep their own licenses ([NOTICE](NOTICE)). The repository doesn't take contributions
+None. This is a demo and reference implementation, published to be read and tried, and it carries no license
+file. GitHub's terms let you view and fork it here; beyond that, copyright law's defaults apply. Third-party
+components keep their own licenses ([NOTICE](NOTICE)). The repository doesn't take contributions
 ([CONTRIBUTING.md](CONTRIBUTING.md)).
 
 This is a US-based project and isn't designed around GDPR or works-council requirements; adopters elsewhere are
